@@ -1,0 +1,37 @@
+
+
+echo "🔍 Starting pre-commit hooks..."
+
+# Function to check if directory has changes
+check_changes() {
+    DIR=$1
+    if git diff --cached --name-only | grep "^$DIR/"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Run checks for prod-server
+if check_changes "prod-server"; then
+    echo "⚡ Running checks for prod-server..."
+    cd prod-server || exit 1
+    if ! npx lint-staged; then
+        echo "❌ prod-server checks failed"
+        exit 1
+    fi
+    cd ..
+fi
+
+# Run checks for prod-client
+if check_changes "prod-client"; then
+    echo "⚡ Running checks for prod-client..."
+    cd prod-client || exit 1
+    if ! npx lint-staged; then
+        echo "❌ prod-client checks failed"
+        exit 1
+    fi
+    cd ..
+fi
+
+echo "✅ Pre-commit checks completed successfully!"

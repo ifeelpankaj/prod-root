@@ -1,0 +1,405 @@
+@import 'variables';
+.carousel {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    &__button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 1;
+        border-radius: 50%;
+        transition: background-color 0.3s;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        &--left {
+            left: 10px;
+        }
+
+        &--right {
+            right: 10px;
+        }
+    }
+
+    &__image-container {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        scroll-behavior: smooth;
+        overflow: hidden;
+    }
+
+    &__image {
+        min-width: 100%;
+        transition: opacity 0.5s ease-in-out;
+        border-radius: 10px;
+    }
+}
+
+//Loader
+.loaderContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #1c1c1c 0%, #2a2a2a 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.loaderContent {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
+
+.luxuryRing {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid transparent;
+
+    &.outerRing {
+        width: 200px;
+        height: 200px;
+        border-top-color: $primary-color;
+        border-bottom-color: $secondary-color;
+    }
+
+    &.middleRing {
+        width: 160px;
+        height: 160px;
+        top: 20px;
+        left: 20px;
+        border-left-color: $accent-color;
+        border-right-color: $primary-color;
+    }
+
+    &.innerRing {
+        width: 120px;
+        height: 120px;
+        top: 40px;
+        left: 40px;
+        border-top-color: $secondary-color;
+        border-bottom-color: $accent-color;
+    }
+}
+
+.carIcon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    color: $white;
+}
+
+.loadingText {
+    font-family: $font-primary;
+    font-size: $font-size-large;
+    color: $white;
+    margin-top: 40px;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+// MessageDisplay.scss
+.message-display {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    font-family: 'Arial', sans-serif;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    &.error {
+        background-color: #ffe6e6;
+        border-left: 4px solid #ff4d4d;
+    }
+
+    &.not-found {
+        background-color: #e6f3ff;
+        border-left: 4px solid #4da6ff;
+    }
+
+    &.info {
+        background-color: #e6ffe6;
+        border-left: 4px solid #4dff4d;
+    }
+
+    .icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
+
+    .content {
+        font-size: 1rem;
+        color: #333;
+        margin: 0;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .message-display {
+        flex-direction: column;
+        text-align: center;
+
+        .icon {
+            margin-right: 0;
+            margin-bottom: 0.5rem;
+        }
+    }
+}
+
+@keyframes bounce {
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.loader-small {
+        --dot-size: 8px;
+    }
+    &.loader-medium {
+        --dot-size: 12px;
+    }
+    &.loader-large {
+        --dot-size: 16px;
+    }
+}
+
+.loader {
+    display: flex;
+    justify-content: space-between;
+    width: calc(var(--dot-size) * 4);
+
+    .loader-dot {
+        width: var(--dot-size);
+        height: var(--dot-size);
+        border-radius: 50%;
+        background-color: var(--color);
+        animation: bounce 1.4s infinite ease-in-out both;
+
+        &:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        &:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+    }
+}
+
+// Optional: Add a subtle glow effect
+.loader-dot {
+    box-shadow: 0 0 10px var(--color);
+}
+
+// Optional: Add a background for better visibility
+.loader-container {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+}
+
+//pagination
+
+/// Variables
+$footer-bg: #f8f9fa;
+$footer-text: #333;
+$footer-hover: #007bff;
+$footer-height: 50px;
+$footer-padding: 0 1rem;
+$transition-duration: 0.2s;
+
+// Mixins
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+}
+
+// Footer Styles
+.footer {
+    background-color: $footer-bg;
+    color: $footer-text;
+    height: $footer-height;
+    padding: $footer-padding;
+    font-family: 'Arial', sans-serif;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+
+    @include flex-center;
+    justify-content: space-between;
+
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+
+    &__content {
+        @include flex-center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    &__copyright {
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+
+    &__links {
+        @include flex-center;
+        gap: 1rem;
+
+        a {
+            color: $footer-text;
+            font-size: 1.1rem;
+            transition: color $transition-duration ease;
+
+            &:hover {
+                color: $footer-hover;
+            }
+        }
+    }
+}
+
+// Media Queries for Responsiveness
+@media (max-width: 600px) {
+    .footer {
+        height: auto;
+        padding: 0.5rem 1rem;
+
+        &__content {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        &__copyright {
+            font-size: 0.8rem;
+        }
+
+        &__links {
+            gap: 0.8rem;
+
+            a {
+                font-size: 1rem;
+            }
+        }
+    }
+}
+
+// Ensure footer doesn't affect other components
+body {
+    margin-bottom: $footer-height;
+}
+
+@media (max-width: 600px) {
+    body {
+        margin-bottom: 70px;
+    }
+}
+
+//Vedio Crousel
+.video-carousel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    &__content {
+        position: relative;
+        max-width: 80vw;
+        max-height: 60vh;
+        width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__video {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    &__button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        border: none;
+        padding: 0.5em 1em;
+        font-size: 1.5em;
+        cursor: pointer;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        &--prev {
+            left: 10px;
+        }
+
+        &--next {
+            right: 10px;
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+    .video-carousel__content {
+        max-width: 90vw;
+        max-height: 50vh;
+    }
+
+    .video-carousel__button {
+        font-size: 1.2em;
+        padding: 0.3em 0.8em;
+    }
+}
