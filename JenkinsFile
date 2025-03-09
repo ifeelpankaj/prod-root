@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     environment {
-        // Define any environment variables if needed
         APP_DIR = '/app'
         EXTERNAL_IP = sh(script: 'curl -s ifconfig.me', returnStdout: true).trim()
     }
@@ -45,7 +44,7 @@ pipeline {
         
         stage('Deploy with Docker') {
             steps {
-                sh 'docker compose up --build -d'
+                sh 'docker compose down && docker compose up --build -d'
             }
         }
     }

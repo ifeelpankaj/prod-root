@@ -82,7 +82,7 @@ const Header = () => {
                             src={Logo}
                             className="header__logo-icon"
                         />
-                        <span className="header__logo-text">Velocity Rides</span>
+                        <span className="header__logo-text">Undefined Rides</span>
                     </Link>
                 )}
 
