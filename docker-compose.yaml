@@ -1,4 +1,3 @@
-# docker-compose.yml
 version: "3.9"
 
 services:
@@ -12,6 +11,19 @@ services:
       - backend
     env_file:
       - ./prod-client/.env
+    networks:
+      - app-network
+
+  admin:
+    build:
+      context: ./prod-admin
+      dockerfile: Dockerfile
+    ports:
+      - "4174:4173" # Different host port to avoid conflicts
+    depends_on:
+      - backend
+    env_file:
+      - ./prod-admin/.env
     networks:
       - app-network
 
