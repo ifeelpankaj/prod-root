@@ -1,0 +1,434 @@
+@use 'variables' as *;
+// ===========================
+// CAB DETAILS SECTION STYLES
+// ===========================
+
+// ===========================
+// CAB DETAILS SECTION STYLES
+// ===========================
+
+@use 'sass:color';
+
+.details-section {
+    // Subtle background pattern
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba($brand-primary, 0.02) 0%, rgba($brand-secondary, 0.03) 50%, rgba($brand-accent, 0.01) 100%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    // Section title
+    h1 {
+        font-family: $font-display;
+        font-size: $font-size-4xl;
+        font-weight: $font-weight-bold;
+        color: $text-heading;
+        text-align: center;
+        margin: 0 0 $space-12 0;
+        position: relative;
+        z-index: 1;
+
+        // Elegant underline with gradient
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -$space-4;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: $gradient-primary;
+            border-radius: $radius-full;
+            box-shadow: 0 2px 8px rgba($brand-secondary, 0.3);
+        }
+
+        @media (max-width: $breakpoint-md) {
+            font-size: $font-size-3xl;
+            margin-bottom: $space-10;
+        }
+
+        @media (max-width: $breakpoint-sm) {
+            font-size: $font-size-2xl;
+            margin-bottom: $space-8;
+        }
+    }
+
+    // Error state styling
+    > div {
+        background: linear-gradient(135deg, rgba($brand-success, 0.1) 0%, rgba($brand-success, 0.05) 100%);
+        border: 1px solid rgba($brand-danger, 0.2);
+        border-radius: $card-radius;
+        padding: $space-8;
+        text-align: center;
+        font-family: $font-primary;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-medium;
+        color: $brand-danger;
+        box-shadow: $shadow-md;
+
+        &::before {
+            content: '';
+            display: block;
+            font-size: $font-size-3xl;
+            margin-bottom: $space-4;
+            opacity: 0.7;
+        }
+    }
+}
+
+// ===========================
+// DETAILS CONTENT CONTAINER
+// ===========================
+
+.details__content {
+    background: $bg-card;
+    border-radius: $modal-radius;
+    padding: $space-10;
+    box-shadow:
+        $shadow-xl,
+        0 0 0 1px rgba($border-light, 0.5);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transition: $transition-all;
+
+    // Subtle inner glow
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: $gradient-primary;
+        opacity: 0.6;
+    }
+
+    // Hover effect for interactivity
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow:
+            0 32px 64px -12px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba($brand-secondary, 0.1);
+    }
+
+    @media (max-width: $breakpoint-md) {
+        padding: $space-8;
+        margin: 0 $space-4;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-6;
+        border-radius: $radius-xl;
+    }
+}
+
+// ===========================
+// CAB IMAGE STYLING
+// ===========================
+
+.details__content img {
+    width: 100%;
+    max-width: 500px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: $radius-2xl !important;
+    margin: 0 auto $space-8 auto;
+    display: block;
+    box-shadow:
+        $shadow-lg,
+        0 0 0 1px rgba($border-light, 0.3);
+    transition: $transition-all;
+
+    // Image hover effect
+    &:hover {
+        transform: scale(1.02);
+        box-shadow:
+            $shadow-2xl,
+            0 0 0 1px rgba($brand-secondary, 0.2);
+    }
+
+    @media (max-width: $breakpoint-lg) {
+        height: 250px;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        height: 200px;
+        margin-bottom: $space-6;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        height: 180px;
+        border-radius: $radius-xl !important;
+    }
+}
+
+// ===========================
+// CAB MODEL NAME (H2)
+// ===========================
+
+.details__content h2 {
+    font-family: $font-display;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-heading;
+    text-align: center;
+    margin: 0 0 $space-8 0;
+    line-height: $line-height-tight;
+
+    // Subtle text shadow for depth
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    // Gradient text effect
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
+    // Fallback for browsers that don't support background-clip
+    @supports not (-webkit-background-clip: text) {
+        background: none;
+        -webkit-text-fill-color: initial;
+        color: $text-heading;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-2xl;
+        margin-bottom: $space-6;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-xl;
+        margin-bottom: $space-4;
+    }
+}
+
+// ===========================
+// CAB INFORMATION PARAGRAPHS
+// ===========================
+
+.details__content p {
+    font-family: $font-primary;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+    margin: 0 0 $space-6 0;
+    padding: $space-4 $space-6;
+    background: rgba($bg-secondary, 0.5);
+    border-radius: $radius-lg;
+    border-left: 4px solid $brand-accent;
+    transition: $transition-all;
+    position: relative;
+
+    // Subtle hover effect
+    &:hover {
+        background: rgba($bg-secondary, 0.8);
+        border-left-color: $brand-secondary;
+        transform: translateX(4px);
+        box-shadow: $shadow-sm;
+    }
+
+    // Icon spacing for potential icons
+    &::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: $brand-accent;
+        border-radius: $radius-full;
+        position: absolute;
+        left: -2px;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: $transition-all;
+    }
+
+    &:hover::before {
+        background: $brand-secondary;
+        transform: translateY(-50%) scale(1.2);
+    }
+
+    // Last paragraph margin
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    // Specific styling for different info types
+    &:nth-child(3) {
+        // Cab Number
+        border-left-color: $brand-info;
+
+        &::before {
+            background: $brand-info;
+        }
+
+        &:hover {
+            border-left-color: color.adjust($brand-info, $lightness: -10%);
+
+            &::before {
+                background: color.adjust($brand-info, $lightness: -10%);
+            }
+        }
+    }
+
+    &:nth-child(4) {
+        // Belongs To
+        border-left-color: $brand-success;
+
+        &::before {
+            background: $brand-success;
+        }
+
+        &:hover {
+            border-left-color: color.adjust($brand-success, $lightness: -10%);
+
+            &::before {
+                background: color.adjust($brand-success, $lightness: -10%);
+            }
+        }
+    }
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-base;
+        padding: $space-3 $space-4;
+        margin-bottom: $space-4;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-sm;
+        padding: $space-3;
+        margin-bottom: $space-3;
+    }
+}
+
+// ===========================
+// LOADING STATE ANIMATION
+// ===========================
+
+.details__content--loading {
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba($brand-secondary, 0.1) 50%, transparent 100%);
+        animation: shimmer 2s infinite;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+// ===========================
+// DARK MODE SUPPORT
+// ===========================
+
+@media (prefers-color-scheme: dark) {
+    .details-section {
+        background: $bg-dark;
+
+        &::before {
+            background: linear-gradient(135deg, rgba($brand-secondary, 0.05) 0%, rgba($brand-accent, 0.03) 50%, rgba($brand-primary, 0.02) 100%);
+        }
+
+        h1 {
+            color: $text-white;
+        }
+    }
+
+    .details__content {
+        background: rgba($bg-dark, 0.95);
+        border: 1px solid rgba($border-medium, 0.2);
+
+        h2 {
+            color: $text-white;
+
+            @supports not (-webkit-background-clip: text) {
+                color: $text-white;
+            }
+        }
+
+        p {
+            color: $text-light;
+            background: rgba($brand-primary, 0.1);
+
+            &:hover {
+                background: rgba($brand-primary, 0.15);
+            }
+        }
+    }
+}
+
+// ===========================
+// HIGH CONTRAST MODE
+// ===========================
+
+@media (prefers-contrast: high) {
+    .details__content {
+        border: 2px solid $border-dark;
+
+        p {
+            border-left-width: 6px;
+            font-weight: $font-weight-semibold;
+        }
+
+        h2 {
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            color: $text-heading !important;
+            font-weight: $font-weight-extrabold;
+        }
+    }
+}
+
+// ===========================
+// PRINT STYLES
+// ===========================
+
+@media print {
+    .details-section {
+        background: $bg-primary;
+        box-shadow: none;
+
+        &::before {
+            display: none;
+        }
+    }
+
+    .details__content {
+        background: $bg-primary;
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        break-inside: avoid;
+
+        &:hover {
+            transform: none;
+        }
+
+        img {
+            &:hover {
+                transform: none;
+            }
+        }
+
+        p {
+            &:hover {
+                transform: none;
+                background: rgba($bg-secondary, 0.5) !important;
+            }
+        }
+    }
+}

@@ -1,0 +1,333 @@
+// Import your variables file
+@use 'variables' as *;
+
+.services {
+    // Services section title only
+    h1 {
+        font-family: $font-display;
+        font-size: $font-size-4xl;
+        font-weight: $font-weight-bold;
+        color: $text-heading;
+        text-align: center;
+        margin: 0 0 $space-16 0;
+        position: relative;
+        z-index: 1;
+
+        // Elegant underline
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -$space-4;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: $gradient-primary;
+            border-radius: $radius-full;
+        }
+
+        @media (max-width: $breakpoint-md) {
+            font-size: $font-size-3xl;
+        }
+    }
+}
+
+// Services cards container - Fixed flexbox layout
+.services_cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: $space-8;
+    max-width: $container-xl;
+    margin: 0 auto;
+    padding: 0 $space-4;
+    position: relative;
+    z-index: 1;
+
+    @media (max-width: $breakpoint-lg) {
+        gap: $space-6;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        gap: $space-6;
+        padding: 0 $space-4;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        flex-direction: column;
+        gap: $space-4;
+    }
+}
+
+// Services card base styles
+.services_card {
+    flex: 1 1 280px; // Flex grow, shrink, basis for responsive behavior
+    min-width: 280px;
+    max-width: 350px;
+    background: rgba($bg-card, 0.98);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba($border-light, 0.6);
+    border-radius: $card-radius;
+    padding: $space-8;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    // Top accent line
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba($brand-secondary, 0.4) 50%, transparent 100%);
+    }
+
+    // Animated accent bar
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--card-accent-color, #{$brand-secondary});
+        transform: translateX(-100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+    }
+
+    // Hover effects
+    &:hover {
+        transform: translateY(-12px) scale(1.03);
+        box-shadow:
+            0 20px 25px -5px rgba(0, 0, 0, 0.15),
+            0 10px 10px -5px rgba(0, 0, 0, 0.08);
+        border-color: rgba($brand-secondary, 0.4);
+
+        &::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    // Active state
+    &:active {
+        transform: translateY(-8px) scale(1.01);
+    }
+
+    // Focus for accessibility
+    &:focus-visible {
+        outline: 2px solid var(--card-accent-color, #{$brand-secondary});
+        outline-offset: 4px;
+    }
+
+    // Card entrance animation
+    animation: slideUpFade 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(40px);
+
+    &:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+    &:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+    &:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        flex: 1 1 100%;
+        min-width: auto;
+        max-width: none;
+    }
+}
+
+// Services card icon
+.services_card__icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: $space-6;
+    color: var(--card-accent-color, #{$brand-secondary});
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
+
+    .services_card:hover & {
+        transform: scale(1.15) rotate(8deg);
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+    }
+}
+
+// Services card title - Standardized class name
+.services_card__title,
+.service_card__title {
+    font-family: $font-display;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-heading;
+    margin: 0 0 $space-4 0;
+    line-height: $line-height-tight;
+}
+
+// Services card description - Standardized class name
+.services_card__description,
+.cab-service_card__description {
+    font-family: $font-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-regular;
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+    margin: 0;
+}
+
+// Card color variants - Fixed class names
+.services_card--update,
+.cab-service_card--update {
+    --card-accent-color: #{$brand-info};
+
+    &:hover {
+        background: linear-gradient(135deg, rgba($brand-info, 0.08) 0%, rgba($bg-card, 0.98) 100%);
+        border-color: rgba($brand-info, 0.4);
+    }
+}
+
+.services_card--bookings-done,
+.cab_services_card--bookings-done {
+    --card-accent-color: #{$brand-success};
+
+    &:hover {
+        background: linear-gradient(135deg, rgba($brand-success, 0.08) 0%, rgba($bg-card, 0.98) 100%);
+        border-color: rgba($brand-success, 0.4);
+    }
+}
+
+.services_card--upcoming-bookings,
+.cab_services_card--upcoming-bookings {
+    --card-accent-color: #{$brand-accent};
+
+    &:hover {
+        background: linear-gradient(135deg, rgba($brand-accent, 0.08) 0%, rgba($bg-card, 0.98) 100%);
+        border-color: rgba($brand-accent, 0.4);
+    }
+}
+
+.services_card--delete,
+.cab-service_card--delete {
+    --card-accent-color: #{$brand-danger};
+
+    &:hover {
+        background: linear-gradient(135deg, rgba($brand-danger, 0.08) 0%, rgba($bg-card, 0.98) 100%);
+        border-color: rgba($brand-danger, 0.4);
+    }
+}
+
+// Mobile responsive adjustments
+@media (max-width: $breakpoint-md) {
+    .services {
+        padding: $space-12 $space-4;
+    }
+
+    .services_card {
+        padding: $space-6;
+
+        &__icon {
+            width: 44px;
+            height: 44px;
+            margin-bottom: $space-4;
+        }
+
+        &__title {
+            font-size: $font-size-lg;
+        }
+
+        &__description {
+            font-size: $font-size-sm;
+        }
+    }
+
+    .service_card__title {
+        font-size: $font-size-lg;
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .services {
+        background: linear-gradient(135deg, rgba($brand-primary, 0.08) 0%, rgba($brand-secondary, 0.04) 50%, rgba($brand-accent, 0.02) 100%);
+    }
+
+    .services_card {
+        background: rgba($bg-dark, 0.95);
+        border-color: rgba($border-medium, 0.3);
+
+        .services_card__title,
+        .service_card__title {
+            color: $text-white;
+        }
+
+        .services_card__description,
+        .cab-service_card__description {
+            color: $text-light;
+        }
+    }
+}
+
+// High contrast accessibility
+@media (prefers-contrast: high) {
+    .services_card {
+        border: 2px solid $border-dark;
+
+        &:hover {
+            border-width: 3px;
+        }
+
+        .services_card__title,
+        .service_card__title {
+            font-weight: $font-weight-bold;
+        }
+    }
+}
+
+// Animation keyframes
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Print styles
+@media print {
+    .services {
+        background: $bg-primary;
+
+        &::before {
+            display: none;
+        }
+    }
+
+    .services_card {
+        background: $bg-primary;
+        border: 1px solid $border-dark;
+        box-shadow: none;
+        break-inside: avoid;
+        margin-bottom: $space-4;
+
+        &:hover {
+            transform: none;
+        }
+    }
+}

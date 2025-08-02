@@ -1,0 +1,30 @@
+# Function to check if directory has changes
+has_changes() {
+  git diff --cached --quiet --relative="$1" || echo "has_changes"
+}
+
+# Check prod-server changes and run its commitlint if needed
+if [ "$(has_changes prod-server)" ]; then
+  echo "📝 Checking commit message for prod-server..."
+  cd prod-server
+  npx commitlint --edit $1
+  if [ $? -ne 0 ]; then
+    echo "❌ prod-server commit message check failed"
+    exit 1
+  fi
+  cd ..
+fi
+
+# Check prod-client changes and run its commitlint if needed
+if [ "$(has_changes prod-client)" ]; then
+  echo "📝 Checking commit message for prod-client..."
+  cd prod-client
+  npx commitlint --edit $1
+  if [ $? -ne 0 ]; then
+    echo "❌ prod-client commit message check failed"
+    exit 1
+  fi
+  cd ..
+fi
+
+echo "✅ Commit message validation completed successfully!"

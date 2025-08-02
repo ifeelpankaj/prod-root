@@ -1,0 +1,225 @@
+@use './variables' as *;
+@use 'sass:color';
+
+@mixin flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth_container {
+    @include flex-center;
+    height: 100vh;
+    font-family: 'Montserrat', sans-serif;
+    background-color: $bg-primary;
+}
+
+.auth_form_side,
+.auth_welcome_side {
+    width: 50%;
+    height: 100%;
+    padding: $space-12;
+    @include flex-center;
+    flex-direction: column;
+}
+
+.auth_form_side {
+    background-color: $bg-primary;
+
+    h1 {
+        font-size: $font-size-2xl;
+        margin-bottom: $space-8;
+        color: $text-secondary;
+    }
+
+    .auth_form {
+        width: 100%;
+        max-width: 300px;
+
+        input {
+            width: 100%;
+            padding: $space-3;
+            margin-bottom: $space-4;
+            border: none;
+            background-color: $bg-light-gray;
+            border-radius: $input-radius;
+        }
+
+        .auth_role_selector {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: $space-4;
+
+            .auth_role_btn {
+                flex: 1;
+                padding: $space-3;
+                background-color: $bg-light-gray;
+                border: none;
+                border-radius: $button-radius;
+                cursor: pointer;
+                transition: $transition-all;
+
+                &:first-child {
+                    margin-right: $space-2;
+                }
+
+                &.active,
+                &:active,
+                &:focus {
+                    background-color: $brand-primary;
+                    color: $text-white;
+                }
+
+                &:hover {
+                    background-color: color.adjust($bg-light-gray, $lightness: -10%);
+                }
+            }
+        }
+
+        .auth_forgot_password {
+            color: $text-secondary;
+            text-decoration: none;
+            font-size: $font-size-sm;
+            margin-bottom: $space-4;
+            display: inline-block;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .auth_submit_btn {
+            width: 100%;
+            padding: $space-3;
+            background: $brand-secondary;
+            color: $text-white;
+            border: none;
+            border-radius: $button-radius;
+            cursor: pointer;
+            transition: $transition-all;
+
+            &:hover {
+                background: $brand-primary;
+            }
+        }
+    }
+}
+
+.auth_welcome_side {
+    background: $gradient-primary;
+    color: $text-white;
+    text-align: center;
+
+    h2 {
+        font-size: $font-size-4xl;
+        margin-bottom: $space-4;
+    }
+
+    p {
+        margin-bottom: $space-8;
+        font-size: $font-size-base;
+    }
+
+    .auth_switch_btn {
+        padding: $space-3 $space-12;
+        background-color: transparent;
+        color: $text-white;
+        border: 1px solid $text-white;
+        border-radius: $button-radius;
+        cursor: pointer;
+        transition: $transition-all;
+
+        &:hover {
+            background-color: $text-white;
+            color: $brand-primary;
+        }
+    }
+}
+
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: $overlay-dark;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: $z-modal;
+
+    .custom-modal-content {
+        background-color: $bg-primary;
+        padding: $space-8;
+        width: 400px;
+        max-width: 100%;
+        border-radius: $modal-radius;
+        box-shadow: $modal-shadow;
+        position: relative;
+        text-align: center;
+        animation: fadeIn $duration-base ease;
+
+        h2 {
+            margin-bottom: $space-4;
+        }
+
+        input {
+            width: 100%;
+            padding: $space-2;
+            margin-bottom: $space-4;
+            border: 1px solid $border-medium;
+            border-radius: $input-radius;
+        }
+
+        button {
+            padding: $space-2 $space-4;
+            background-color: $brand-secondary;
+            color: $text-white;
+            border: none;
+            border-radius: $button-radius;
+            cursor: pointer;
+
+            &:hover {
+                background-color: color.adjust($brand-secondary, $lightness: -10%);
+            }
+        }
+
+        .close-modal-btn {
+            background-color: $brand-danger;
+            position: absolute;
+            top: $space-2;
+            right: $space-2;
+            padding: $space-1 $space-2;
+            border-radius: $radius-base;
+            cursor: pointer;
+            color: $text-white;
+            font-size: $font-size-base;
+
+            &:hover {
+                background-color: color.adjust($brand-danger, $lightness: -10%);
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: $breakpoint-md) {
+    .auth_container {
+        flex-direction: column;
+    }
+
+    .auth_form_side,
+    .auth_welcome_side {
+        width: 100%;
+        height: auto;
+    }
+}

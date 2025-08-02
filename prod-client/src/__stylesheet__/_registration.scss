@@ -1,0 +1,434 @@
+@use './variables' as *;
+@use 'sass:color';
+.drivercab_cab-registration {
+    font-family: $font-primary;
+    background: linear-gradient(135deg, $bg-primary, color.adjust($bg-primary, $lightness: -5%));
+    padding: $space-8;
+    border-radius: $radius-2xl;
+    box-shadow: $shadow-xl;
+    max-width: 600px;
+    margin: $space-8 auto;
+    position: relative;
+    overflow: hidden;
+
+    form {
+        display: grid;
+        gap: $space-6;
+    }
+
+    .drivercab_form-group {
+        position: relative;
+        overflow: hidden;
+
+        label {
+            display: block;
+            margin-bottom: $space-2;
+            font-weight: $font-weight-semibold;
+            color: $brand-primary;
+            font-size: $font-size-base;
+            transition: $transition-transform;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: $space-3;
+            border: 2px solid $border-light;
+            border-radius: $radius-lg;
+            background-color: rgba(255, 255, 255, 0.9);
+            transition: $transition-all;
+            font-size: $font-size-base;
+            color: $text-primary;
+            font-family: $font-primary;
+
+            &:focus {
+                outline: none;
+                border-color: $brand-secondary;
+                background-color: $bg-primary;
+                box-shadow: 0 0 0 3px rgba($brand-secondary, 0.2);
+            }
+
+            &::placeholder {
+                color: $text-muted;
+                opacity: 0.7;
+            }
+        }
+
+        select {
+            appearance: none;
+            // background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23#{str-slice(inspect($brand-secondary), 2)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right $space-3 center;
+            background-size: 1.2em;
+            padding-right: $space-12; // Make room for the dropdown arrow
+
+            // &:focus {
+            //     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23#{str-slice(inspect($brand-secondary), 2)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            // }
+        }
+
+        &:hover label {
+            transform: translateY(-2px);
+            color: $brand-secondary;
+        }
+
+        // Enhanced states
+        &.error {
+            input,
+            select {
+                border-color: $brand-danger;
+                background-color: rgba($brand-danger, 0.05);
+            }
+
+            label {
+                color: $brand-danger;
+            }
+        }
+
+        &.success {
+            input,
+            select {
+                border-color: $brand-success;
+                background-color: rgba($brand-success, 0.05);
+            }
+
+            label {
+                color: $brand-success;
+            }
+        }
+    }
+
+    input[type='file'] {
+        padding: $space-2;
+        background-color: $bg-primary;
+        border-radius: $radius-lg;
+        font-size: $font-size-sm;
+        border: 2px solid $border-light;
+        transition: $transition-all;
+
+        &:focus {
+            border-color: $brand-secondary;
+            box-shadow: 0 0 0 3px rgba($brand-secondary, 0.2);
+        }
+
+        &::file-selector-button {
+            padding: $space-2 $space-4;
+            border-radius: $radius-base;
+            background-color: $brand-primary;
+            color: $text-white;
+            border: none;
+            cursor: pointer;
+            font-weight: $font-weight-medium;
+            font-size: $font-size-sm;
+            transition: $transition-colors;
+            margin-right: $space-3;
+
+            &:hover {
+                background-color: color.adjust($brand-primary, $lightness: -10%);
+            }
+        }
+    }
+
+    button[type='submit'] {
+        background: $gradient-primary;
+        color: $text-white;
+        border: none;
+        padding: $space-4;
+        border-radius: $radius-lg;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        cursor: pointer;
+        transition: $transition-all;
+        box-shadow: $shadow-md;
+        font-family: $font-primary;
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: $shadow-lg;
+        }
+
+        &:active {
+            transform: translateY(-1px);
+            box-shadow: $shadow-md;
+        }
+
+        &:disabled {
+            background: $text-muted;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: $utility-opacity-disabled;
+        }
+
+        // Loading state
+        &.loading {
+            position: relative;
+            color: transparent;
+
+            &::after {
+                content: '';
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                top: 50%;
+                left: 50%;
+                margin-left: -10px;
+                margin-top: -10px;
+                border: 2px solid transparent;
+                border-top-color: $text-white;
+                border-radius: $radius-full;
+                animation: spin 1s linear infinite;
+            }
+        }
+    }
+
+    // Enhanced visual effects
+    &::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: $gradient-primary;
+        border-radius: $radius-2xl;
+        z-index: -1;
+        opacity: 0.1;
+    }
+
+    // Shimmer effect (optional)
+    &::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        right: -50%;
+        bottom: -50%;
+        background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%);
+        transform: rotate(30deg);
+        z-index: 1;
+        pointer-events: none;
+        // Uncomment below to enable shimmer animation
+        // animation: shimmer 6s infinite;
+    }
+}
+
+// Keyframe animations
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// Form validation styles
+.drivercab_form-validation {
+    .drivercab_form-group {
+        .validation-message {
+            margin-top: $space-2;
+            font-size: $font-size-sm;
+            font-weight: $font-weight-medium;
+
+            &.error {
+                color: $brand-danger;
+            }
+
+            &.success {
+                color: $brand-success;
+            }
+
+            &.info {
+                color: $brand-info;
+            }
+        }
+    }
+}
+
+// Progress indicator
+.drivercab_progress-indicator {
+    margin-bottom: $space-6;
+
+    .progress-bar {
+        width: 100%;
+        height: 4px;
+        background-color: $bg-tertiary;
+        border-radius: $radius-full;
+        overflow: hidden;
+
+        .progress-fill {
+            height: 100%;
+            background: $gradient-primary;
+            border-radius: $radius-full;
+            transition: width 0.3s ease;
+        }
+    }
+
+    .progress-text {
+        margin-top: $space-2;
+        text-align: center;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+        font-weight: $font-weight-medium;
+    }
+}
+
+// Responsive Design using your breakpoints
+@media (max-width: $breakpoint-md) {
+    .drivercab_cab-registration {
+        padding: $space-6;
+        margin: $space-4;
+
+        form {
+            gap: $space-4;
+        }
+
+        .drivercab_form-group {
+            label {
+                font-size: $font-size-sm;
+                margin-bottom: $space-1;
+            }
+
+            input,
+            select {
+                padding: $space-2;
+                font-size: $font-size-sm;
+            }
+
+            select {
+                background-size: 1em;
+                padding-right: $space-10;
+            }
+        }
+
+        input[type='file'] {
+            font-size: $font-size-xs;
+
+            &::file-selector-button {
+                padding: $space-1 $space-3;
+                font-size: $font-size-xs;
+            }
+        }
+
+        button[type='submit'] {
+            padding: $space-3;
+            font-size: $font-size-base;
+        }
+    }
+}
+
+@media (max-width: $breakpoint-sm) {
+    .drivercab_cab-registration {
+        padding: $space-4;
+        margin: $space-2;
+
+        form {
+            gap: $space-3;
+        }
+
+        .drivercab_form-group {
+            label {
+                font-size: $font-size-xs;
+                margin-bottom: $space-1;
+            }
+
+            input,
+            select {
+                padding: $space-2;
+                font-size: $font-size-xs;
+            }
+
+            select {
+                background-size: 0.8em;
+                padding-right: $space-8;
+            }
+        }
+
+        input[type='file'] {
+            font-size: $font-size-xs;
+            padding: $space-1;
+
+            &::file-selector-button {
+                padding: $space-1 $space-2;
+                font-size: $font-size-xs;
+                margin-right: $space-2;
+            }
+        }
+
+        button[type='submit'] {
+            padding: $space-3;
+            font-size: $font-size-sm;
+        }
+    }
+}
+
+// Additional enhancements
+.drivercab_cab-registration {
+    // Floating label effect (optional)
+    .drivercab_form-group.floating-label {
+        position: relative;
+
+        label {
+            position: absolute;
+            top: $space-3;
+            left: $space-3;
+            background: $bg-primary;
+            padding: 0 $space-1;
+            transition: $transition-all;
+            pointer-events: none;
+        }
+
+        input:focus + label,
+        input:not(:placeholder-shown) + label,
+        select:focus + label,
+        select:not([value='']) + label {
+            top: -$space-2;
+            font-size: $font-size-xs;
+            color: $brand-secondary;
+        }
+    }
+
+    // File upload drag and drop area
+    .drivercab_file-upload-area {
+        border: 2px dashed $border-medium;
+        border-radius: $radius-lg;
+        padding: $space-8;
+        text-align: center;
+        transition: $transition-all;
+        cursor: pointer;
+
+        &:hover,
+        &.drag-over {
+            border-color: $brand-secondary;
+            background-color: rgba($brand-secondary, 0.05);
+        }
+
+        .upload-icon {
+            font-size: $font-size-3xl;
+            color: $text-muted;
+            margin-bottom: $space-4;
+        }
+
+        .upload-text {
+            color: $text-secondary;
+            font-size: $font-size-base;
+            font-weight: $font-weight-medium;
+        }
+
+        .upload-hint {
+            color: $text-muted;
+            font-size: $font-size-sm;
+            margin-top: $space-2;
+        }
+    }
+}

@@ -1,0 +1,346 @@
+@use './variables' as *;
+@use 'sass:color';
+.driver_document-verification {
+    font-family: $font-primary;
+    background: linear-gradient(135deg, $bg-primary, color.adjust($bg-primary, $lightness: -5%));
+    padding: $space-8;
+    border-radius: $radius-2xl;
+    box-shadow: $shadow-xl;
+    max-width: 600px;
+    margin: $space-8 auto;
+    position: relative;
+    overflow: hidden;
+
+    form {
+        display: grid;
+        gap: $space-6;
+    }
+
+    .driver_document-item {
+        background: rgba(255, 255, 255, 0.8);
+        padding: $space-6;
+        border-radius: $radius-xl;
+        box-shadow: $shadow-md;
+        transition: $transition-all;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: $shadow-lg;
+        }
+
+        label {
+            display: block;
+            margin-bottom: $space-3;
+            font-weight: $font-weight-semibold;
+            color: $brand-primary;
+            font-size: $font-size-base;
+            transition: $transition-transform;
+        }
+    }
+
+    .driver_file-input-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: $space-3;
+
+        input[type='file'] {
+            padding: $space-2;
+            background-color: $bg-primary;
+            border-radius: $radius-lg;
+            font-size: $font-size-sm;
+            border: 2px solid transparent;
+            transition: $transition-all;
+
+            &:focus {
+                outline: none;
+                border-color: $brand-secondary;
+                box-shadow: 0 0 0 3px rgba($brand-secondary, 0.3);
+            }
+
+            &::file-selector-button {
+                padding: $space-2 $space-4;
+                border-radius: $radius-base;
+                background-color: $brand-primary;
+                color: $text-white;
+                border: none;
+                cursor: pointer;
+                font-weight: $font-weight-medium;
+                transition: $transition-colors;
+
+                &:hover {
+                    background-color: color.adjust($brand-primary, $lightness: -10%);
+                }
+            }
+        }
+    }
+
+    .driver_show-document-btn {
+        background-color: $brand-secondary;
+        color: $text-white;
+        border: none;
+        padding: $space-2 $space-4;
+        border-radius: $radius-base;
+        cursor: pointer;
+        transition: $transition-all;
+        font-weight: $font-weight-semibold;
+        font-size: $font-size-sm;
+
+        &:hover {
+            background-color: color.adjust($brand-secondary, $lightness: -10%);
+            transform: translateY(-2px);
+        }
+    }
+
+    .driver_document-preview {
+        margin-top: $space-4;
+        background-color: $bg-primary;
+        border-radius: $radius-lg;
+        overflow: hidden;
+        box-shadow: $shadow-md;
+
+        img,
+        object {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+        }
+    }
+
+    .driver_file-requirements {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+        opacity: 0.8;
+        text-align: center;
+        margin-top: $space-4;
+        font-style: italic;
+        line-height: $line-height-relaxed;
+    }
+
+    .driver_bank-details-section {
+        background: rgba(255, 255, 255, 0.8);
+        padding: $space-6;
+        border-radius: $radius-xl;
+        box-shadow: $shadow-md;
+        transition: $transition-all;
+
+        h3 {
+            font-size: $font-size-xl;
+            color: $brand-primary;
+            margin-bottom: $space-4;
+            font-weight: $font-weight-semibold;
+        }
+
+        .driver_bank-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: $space-2;
+            margin-bottom: $space-4;
+
+            label {
+                font-weight: $font-weight-semibold;
+                color: $text-primary;
+                font-size: $font-size-base;
+            }
+
+            input {
+                padding: $space-3;
+                background-color: $bg-primary;
+                border-radius: $radius-lg;
+                font-size: $font-size-base;
+                border: 2px solid $border-light;
+                transition: $transition-all;
+                color: $text-primary;
+
+                &:focus {
+                    outline: none;
+                    border-color: $brand-secondary;
+                    box-shadow: 0 0 0 3px rgba($brand-secondary, 0.2);
+                }
+
+                &::placeholder {
+                    color: $text-muted;
+                }
+            }
+        }
+    }
+
+    button[type='submit'] {
+        background: $gradient-primary;
+        color: $text-white;
+        border: none;
+        padding: $space-4;
+        border-radius: $radius-lg;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        cursor: pointer;
+        transition: $transition-all;
+        box-shadow: $shadow-md;
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: $shadow-lg;
+        }
+
+        &:disabled {
+            background: $text-muted;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: $utility-opacity-disabled;
+        }
+    }
+}
+
+// Responsive Design using your breakpoints
+@media (max-width: $breakpoint-md) {
+    .driver_document-verification {
+        padding: $space-6;
+        margin: $space-4;
+
+        form {
+            gap: $space-4;
+        }
+
+        .driver_document-item,
+        .driver_bank-details-section {
+            padding: $space-4;
+
+            label {
+                font-size: $font-size-sm;
+            }
+        }
+
+        .driver_file-input-wrapper {
+            input[type='file'] {
+                font-size: $font-size-xs;
+            }
+        }
+
+        .driver_show-document-btn {
+            padding: $space-2 $space-3;
+            font-size: $font-size-sm;
+        }
+
+        button[type='submit'] {
+            padding: $space-3;
+            font-size: $font-size-base;
+        }
+    }
+}
+
+@media (max-width: $breakpoint-sm) {
+    .driver_document-verification {
+        padding: $space-4;
+        margin: $space-2;
+
+        form {
+            gap: $space-3;
+        }
+
+        .driver_document-item,
+        .driver_bank-details-section {
+            padding: $space-3;
+
+            label {
+                font-size: $font-size-xs;
+            }
+        }
+
+        .driver_file-input-wrapper {
+            input[type='file'] {
+                font-size: $font-size-xs;
+                padding: $space-1;
+            }
+        }
+
+        .driver_show-document-btn {
+            padding: $space-1 $space-2;
+            font-size: $font-size-xs;
+        }
+
+        button[type='submit'] {
+            padding: $space-3;
+            font-size: $font-size-sm;
+        }
+
+        .driver_bank-details-section {
+            h3 {
+                font-size: $font-size-lg;
+            }
+
+            .driver_bank-detail-item {
+                input {
+                    padding: $space-2;
+                    font-size: $font-size-sm;
+                }
+            }
+        }
+    }
+}
+
+// Additional enhancements using your variables
+.driver_document-verification {
+    // Enhanced focus states
+    .driver_document-item:focus-within {
+        border: 2px solid $brand-secondary;
+        box-shadow: 0 0 0 4px rgba($brand-secondary, 0.1);
+    }
+
+    // Success state for completed documents
+    .driver_document-item.completed {
+        border-left: 4px solid $brand-success;
+        background: rgba($brand-success, 0.05);
+    }
+
+    // Error state for invalid documents
+    .driver_document-item.error {
+        border-left: 4px solid $brand-danger;
+        background: rgba($brand-danger, 0.05);
+
+        label {
+            color: $brand-danger;
+        }
+    }
+
+    // Loading state
+    .driver_document-item.loading {
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba($bg-primary, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: $radius-xl;
+        }
+    }
+
+    // File type indicators
+    .driver_file-input-wrapper {
+        .file-type-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: $space-1;
+            font-size: $font-size-xs;
+            color: $text-secondary;
+            margin-top: $space-1;
+
+            &.pdf {
+                color: $brand-danger;
+            }
+            &.image {
+                color: $brand-success;
+            }
+            &.doc {
+                color: $brand-secondary;
+            }
+        }
+    }
+}

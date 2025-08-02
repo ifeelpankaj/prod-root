@@ -1,0 +1,1191 @@
+@use 'mixin' as *;
+@use 'sass:color';
+@use 'variables' as *;
+.dashboard-product-box {
+    background-color: white;
+    padding: 2rem;
+    overflow: auto;
+    @include square(100%);
+}
+
+.create-product-btn {
+    position: fixed;
+    right: 2rem;
+    top: 2rem;
+    @include square(2.5rem);
+    @include flex(row, center, center, 0);
+    border-radius: 50%;
+    background-color: rgb(201, 9, 9);
+    color: white;
+    &:hover {
+        opacity: 0.8;
+    }
+}
+.product-delete-btn {
+    background-color: rgb(56, 56, 56);
+    color: white;
+    font-size: 1.2rem;
+    @include square(2.5rem);
+    @include flex;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    position: absolute;
+    top: -1.2rem;
+    right: -1.2rem;
+}
+
+.product-management {
+    @include flex(row, center, unset);
+    padding: 4rem;
+
+    > section {
+        overflow-y: auto;
+        width: 100%;
+        height: 85vh;
+        max-width: 500px;
+        box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.216);
+        background-color: white;
+        padding: 5rem;
+        @include flex(column, unset, unset, 1rem);
+        position: relative;
+        border-radius: 5px;
+
+        > h2 {
+            @include heading(2px);
+            text-align: center;
+        }
+
+        > img {
+            @include square(100%);
+            object-fit: contain;
+        }
+
+        > strong {
+            font-weight: 300;
+        }
+
+        > span {
+            position: absolute;
+            right: 2rem;
+            top: 2rem;
+        }
+
+        > p {
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        > h3 {
+            text-align: center;
+            font-size: 2rem;
+        }
+    }
+
+    > article {
+        height: 85vh;
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.216);
+        position: relative;
+
+        > form {
+            @include flex(column, unset, center, 2rem);
+            > h2 {
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            > img {
+                @include square(5rem);
+                object-fit: cover;
+                border-radius: 5px;
+            }
+
+            > div {
+                width: 100%;
+                position: relative;
+                > label {
+                    position: absolute;
+                    left: 0;
+                    top: -1.5rem;
+                }
+
+                > input,
+                > textarea {
+                    @include inputStyle(100%, 1rem, unset, 1px solid rgba(13, 13, 13, 0.196));
+                    border-radius: 5px;
+                    max-height: 10rem;
+                }
+            }
+
+            > button {
+                padding: 1rem;
+                border: none;
+                background-color: rgb(5, 107, 224);
+                color: white;
+                width: 100%;
+                border-radius: 5px;
+                font-size: 1.1rem;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .shipping-info-card {
+        > h1 {
+            text-align: center;
+            @include heading(2px);
+        }
+        > h5 {
+            margin: 2rem 0 0 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        > p {
+            margin: 0.5rem;
+        }
+        > .shipping-btn {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: none;
+            background-color: rgb(5, 107, 224);
+            color: white;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            &:hover {
+                opacity: 0.8;
+            }
+        }
+    }
+}
+
+.transaction-product-card {
+    @include flex(row, unset, center, 1rem);
+
+    > img {
+        @include square(4rem);
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    > span {
+        margin-left: auto;
+    }
+}
+
+// Update Cabs styles
+// Professional Cab Details Component Styling
+// Using your elegant design system variables
+
+.c_d_cab_container {
+    background: $bg-primary;
+    min-height: 100vh;
+    font-family: $font-primary;
+    color: $text-primary;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 300px;
+        background: $gradient-hero;
+        z-index: $z-hide;
+        border-radius: 0 0 $radius-3xl $radius-3xl;
+    }
+}
+
+.c_d_cab_header {
+    position: relative;
+    z-index: $z-base;
+    padding: $space-8 $space-6;
+    text-align: center;
+
+    h1 {
+        font-family: $font-display;
+        font-size: $font-size-4xl;
+        font-weight: $font-weight-bold;
+        color: $text-heading;
+        margin: 0;
+        letter-spacing: -0.025em;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+        @media (max-width: $breakpoint-md) {
+            font-size: $font-size-3xl;
+        }
+    }
+}
+
+.c_d_cab_content {
+    position: relative;
+    z-index: $z-base;
+    display: flex;
+    flex-direction: column;
+    gap: $space-8;
+    max-width: $container-xl;
+    margin: 0 auto;
+    padding: $space-6;
+
+    @media (max-width: $breakpoint-lg) {
+        gap: $space-6;
+    }
+}
+
+.c_d_cab_sidebar {
+    background: $bg-card;
+    border-radius: $card-radius;
+    padding: $space-8;
+    box-shadow: $card-shadow;
+    border: 1px solid $border-light;
+    transition: $transition-all;
+    width: 100%;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-lg;
+    }
+
+    // Image upload sections
+    > div {
+        margin-bottom: $space-6;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: $font-weight-semibold;
+            color: $text-primary;
+            margin-bottom: $space-3;
+            font-size: $font-size-sm;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type='file'] {
+            width: 100%;
+            padding: $space-4;
+            border: 2px dashed $border-medium;
+            border-radius: $input-radius;
+            background: $bg-secondary;
+            transition: $transition-colors;
+            cursor: pointer;
+
+            &:hover {
+                border-color: $brand-secondary;
+                background: $bg-primary;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: $border-focus;
+                box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
+            }
+        }
+
+        img {
+            margin-top: $space-4;
+            border-radius: $radius-lg;
+            box-shadow: $shadow-sm;
+            transition: $transition-transform;
+            border: 3px solid $bg-primary;
+
+            &:hover {
+                transform: scale(1.05);
+                box-shadow: $shadow-md;
+            }
+        }
+    }
+
+    // Image grid for multiple images
+    > div:last-child {
+        img {
+            margin: $space-2;
+            display: inline-block;
+            object-fit: scale-down;
+        }
+    }
+}
+
+.c_d_cab_info {
+    background: $bg-card;
+    border-radius: $card-radius;
+    padding: $space-8;
+    box-shadow: $card-shadow;
+    border: 1px solid $border-light;
+    transition: $transition-all;
+    width: 100%;
+
+    &:hover {
+        box-shadow: $shadow-lg;
+    }
+
+    h2 {
+        font-family: $font-display;
+        font-size: $font-size-3xl;
+        font-weight: $font-weight-bold;
+        color: $text-heading;
+        margin: 0 0 $space-8 0;
+        position: relative;
+        padding-bottom: $space-4;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: $gradient-primary;
+            border-radius: $radius-full;
+        }
+    }
+}
+
+.c_d_cab_edit_btn {
+    background: $gradient-primary;
+    color: $text-white;
+    border: none;
+    padding: $space-4 $space-8;
+    border-radius: $button-radius;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-base;
+    cursor: pointer;
+    transition: $transition-all;
+    box-shadow: $button-shadow;
+    margin-bottom: $space-8;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-lg;
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: $opacity-disabled;
+        cursor: not-allowed;
+        transform: none;
+
+        &:hover {
+            transform: none;
+            box-shadow: $button-shadow;
+        }
+    }
+}
+
+.c_d_cab_info_item {
+    margin-bottom: $space-6;
+    position: relative;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    label {
+        display: block;
+        font-weight: $font-weight-semibold;
+        color: $text-secondary;
+        margin-bottom: $space-2;
+        font-size: $font-size-sm;
+        text-transform: uppercase;
+        letter-spacing: 0.75px;
+        position: relative;
+    }
+
+    input {
+        width: 100%;
+        padding: $space-4 $space-5;
+        border: 2px solid $border-light;
+        border-radius: $input-radius;
+        font-size: $font-size-base;
+        font-family: $font-primary;
+        background: $bg-primary;
+        color: $text-primary;
+        transition: $transition-all;
+
+        &:focus {
+            outline: none;
+            border-color: $border-focus;
+            box-shadow: 0 0 0 4px rgba($brand-secondary, 0.1);
+            background: $bg-primary;
+            transform: translateY(-1px);
+        }
+
+        &:hover {
+            border-color: $border-medium;
+        }
+    }
+
+    p {
+        margin: 0;
+        padding: $space-4 $space-5;
+        background: $bg-secondary;
+        border-radius: $input-radius;
+        font-size: $font-size-base;
+        color: $text-primary;
+        font-weight: $font-weight-medium;
+        border: 2px solid transparent;
+        transition: $transition-colors;
+
+        &:hover {
+            background: $bg-tertiary;
+        }
+    }
+}
+
+// Enhanced styling for specific fields
+.c_d_cab_info_item {
+    &:nth-child(3) {
+        // Model Name
+        label::before {
+            content: '🚗';
+            margin-right: $space-2;
+        }
+    }
+
+    &:nth-child(4) {
+        // Cab Number
+        label::before {
+            content: '🔢';
+            margin-right: $space-2;
+        }
+
+        p,
+        input {
+            font-family: $font-mono;
+            font-weight: $font-weight-bold;
+            background: linear-gradient(135deg, $bg-secondary 0%, $bg-tertiary 100%);
+        }
+    }
+
+    &:nth-child(5) {
+        // Capacity
+        label::before {
+            content: '👥';
+            margin-right: $space-2;
+        }
+
+        p {
+            color: $color-premium;
+            font-weight: $font-weight-bold;
+        }
+    }
+
+    &:nth-child(6) {
+        // Features
+        label::before {
+            content: '⭐';
+            margin-right: $space-2;
+        }
+    }
+
+    &:nth-child(7) {
+        // Rate
+        label::before {
+            content: '💰';
+            margin-right: $space-2;
+        }
+
+        p,
+        input {
+            color: $brand-success;
+            font-weight: $font-weight-bold;
+            font-size: $font-size-lg;
+        }
+    }
+}
+
+// Loading and disabled states
+.c_d_cab_container {
+    &.loading {
+        .c_d_cab_sidebar,
+        .c_d_cab_info {
+            opacity: $opacity-loading;
+            pointer-events: none;
+        }
+    }
+}
+
+// Responsive enhancements
+@media (max-width: $breakpoint-md) {
+    .c_d_cab_container::before {
+        height: 200px;
+    }
+
+    .c_d_cab_header {
+        padding: $space-6 $space-4;
+    }
+
+    .c_d_cab_content {
+        padding: $space-4;
+        gap: $space-4;
+    }
+
+    .c_d_cab_sidebar,
+    .c_d_cab_info {
+        padding: $space-6;
+    }
+
+    .c_d_cab_info h2 {
+        font-size: $font-size-2xl;
+    }
+}
+
+@media (max-width: $breakpoint-sm) {
+    .c_d_cab_sidebar,
+    .c_d_cab_info {
+        padding: $space-4;
+    }
+
+    .c_d_cab_edit_btn {
+        width: 100%;
+    }
+}
+
+// Animation keyframes
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Entry animations
+.c_d_cab_sidebar {
+    animation: slideInUp 0.6s $ease-out;
+    animation-delay: 0.1s;
+    animation-fill-mode: both;
+}
+
+.c_d_cab_info {
+    animation: slideInUp 0.6s $ease-out;
+    animation-delay: 0.2s;
+    animation-fill-mode: both;
+}
+
+.c_d_cab_info_item {
+    animation: fadeIn 0.4s $ease-out;
+    animation-delay: calc(0.3s + var(--item-index, 0) * 0.1s);
+    animation-fill-mode: both;
+}
+
+// Luxury touches
+.c_d_cab_sidebar::before,
+.c_d_cab_info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $gradient-primary;
+    border-radius: $radius-full $radius-full 0 0;
+}
+
+// Glass morphism effect for modern look
+@supports (backdrop-filter: blur(10px)) {
+    .c_d_cab_sidebar,
+    .c_d_cab_info {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+}
+// Professional Cab Registration Form Styles
+// Scoped to prevent interference with other components
+
+.add_display_cab-admin-container {
+    min-height: 100vh;
+    background: $bg-secondary;
+    padding: $space-8 $space-4;
+    font-family: $font-primary;
+
+    @media (max-width: $breakpoint-md) {
+        padding: $space-6 $space-3;
+    }
+}
+
+.add_display_cab-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: $bg-card;
+    border-radius: $card-radius;
+    box-shadow: $card-shadow;
+    overflow: hidden;
+    position: relative;
+
+    // Elegant gradient accent
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: $gradient-primary;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        margin: 0 $space-2;
+        border-radius: $radius-lg;
+    }
+}
+
+.add_display_cab-title {
+    background: $bg-primary;
+    color: $text-heading;
+    font-family: $font-display;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    text-align: center;
+    margin: 0;
+    padding: $space-8 $space-6;
+    border-bottom: 1px solid $border-light;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: $gradient-primary;
+        border-radius: $radius-full;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-2xl;
+        padding: $space-6 $space-4;
+    }
+}
+
+.add_display_cab-form {
+    padding: $space-8 $space-6;
+
+    @media (max-width: $breakpoint-md) {
+        padding: $space-6 $space-4;
+    }
+}
+
+// Additional select-specific styling for better placeholder handling
+.add_display_cab-form-group {
+    margin-bottom: $space-8;
+    position: relative;
+
+    &:last-of-type {
+        margin-bottom: $space-6;
+    }
+
+    // Custom styling for select wrapper to handle placeholder better
+    &:has(.add_display_cab-select) {
+        position: relative;
+
+        .add_display_cab-select {
+            // Ensure consistent appearance across browsers
+            background-color: $bg-primary;
+
+            // Style when no option is selected (placeholder state)
+            &:required:invalid {
+                color: $text-muted;
+                font-style: italic;
+            }
+
+            // Style when valid option is selected
+            &:valid {
+                color: $text-primary;
+                font-style: normal;
+            }
+        }
+    }
+}
+
+.add_display_cab-label {
+    display: block;
+    color: $text-heading;
+    font-family: $font-secondary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $space-3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -$space-1;
+        left: 0;
+        width: 30px;
+        height: 2px;
+        background: $brand-accent;
+        border-radius: $radius-full;
+    }
+}
+
+.add_display_cab-input,
+.add_display_cab-select {
+    width: 100%;
+    height: $input-height-lg;
+    padding: $space-4 $space-5;
+    border: 2px solid $border-light;
+    border-radius: $input-radius;
+    background: $bg-primary;
+    color: $text-primary;
+    font-family: $font-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-regular;
+    transition: $transition-all;
+    outline: none;
+    box-shadow: $shadow-sm;
+
+    &::placeholder {
+        color: $text-muted;
+        font-style: italic;
+    }
+
+    &:focus {
+        border-color: $brand-secondary;
+        box-shadow:
+            0 0 0 3px rgba($brand-secondary, 0.1),
+            $shadow-md;
+        transform: translateY(-1px);
+
+        // Fix for select focus state
+        &.add_display_cab-select {
+            color: $text-primary;
+        }
+    }
+
+    &:hover {
+        border-color: $border-medium;
+        box-shadow: $shadow-base;
+    }
+
+    &[required] {
+        position: relative;
+    }
+}
+
+.add_display_cab-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right $space-4 center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: $space-12;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    // Style for placeholder option (empty value)
+    &:invalid {
+        color: $text-muted;
+        font-style: italic;
+    }
+
+    // Style for when a valid option is selected
+    &:valid {
+        color: $text-primary;
+        font-style: normal;
+    }
+
+    // Specific styling for empty/placeholder option
+    option[value=''] {
+        color: $text-muted;
+        font-style: italic;
+    }
+
+    option:not([value='']) {
+        color: $text-primary;
+        font-style: normal;
+    }
+
+    option {
+        padding: $space-2;
+        background: $bg-primary;
+        color: $text-primary;
+    }
+}
+
+.add_display_cab-file-input {
+    width: 100%;
+    padding: $space-4;
+    border: 2px dashed $border-medium;
+    border-radius: $input-radius;
+    background: $bg-tertiary;
+    color: $text-primary;
+    font-family: $font-primary;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    transition: $transition-all;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        border-color: $brand-secondary;
+        background: rgba($brand-secondary, 0.05);
+        transform: translateY(-1px);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: $brand-secondary;
+        box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
+    }
+
+    &::file-selector-button {
+        background: $gradient-primary;
+        color: $text-white;
+        border: none;
+        padding: $space-2 $space-4;
+        border-radius: $radius-base;
+        font-family: $font-secondary;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-medium;
+        cursor: pointer;
+        margin-right: $space-3;
+        transition: $transition-all;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: $shadow-md;
+        }
+    }
+}
+
+.add_display_cab-helper-text {
+    display: block;
+    color: $text-secondary;
+    font-size: $font-size-xs;
+    font-style: italic;
+    margin-top: $space-2;
+    margin-left: $space-1;
+}
+
+.add_display_cab-error {
+    display: block;
+    color: $text-error;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    margin-top: $space-2;
+    padding: $space-1 $space-2;
+    background: rgba($brand-danger, 0.1);
+    border-left: 3px solid $brand-danger;
+    border-radius: $radius-sm;
+    animation: shake 0.5s ease-in-out;
+}
+
+.add_display_cab-selected-files {
+    margin-top: $space-4;
+    padding: $space-4;
+    background: rgba($brand-success, 0.05);
+    border: 1px solid rgba($brand-success, 0.2);
+    border-radius: $radius-md;
+    border-left: 4px solid $brand-success;
+}
+
+.add_display_cab-selected-label {
+    color: $brand-success;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 $space-2 0;
+}
+
+.add_display_cab-file-name {
+    color: $text-primary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    word-break: break-all;
+}
+
+.add_display_cab-file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.add_display_cab-file-item {
+    color: $text-primary;
+    font-size: $font-size-sm;
+    padding: $space-1 0;
+    position: relative;
+    padding-left: $space-5;
+
+    &::before {
+        content: '•';
+        color: $brand-success;
+        font-weight: $font-weight-bold;
+        position: absolute;
+        left: 0;
+    }
+
+    &:not(:last-child) {
+        border-bottom: 1px solid rgba($brand-success, 0.1);
+        padding-bottom: $space-2;
+        margin-bottom: $space-1;
+    }
+}
+
+.add_display_cab-form-actions {
+    display: flex;
+    gap: $space-4;
+    justify-content: center;
+    padding-top: $space-6;
+    border-top: 1px solid $border-light;
+    margin-top: $space-8;
+
+    @media (max-width: $breakpoint-sm) {
+        flex-direction: column;
+        gap: $space-3;
+    }
+}
+
+.add_display_cab-submit-btn {
+    background: $gradient-primary;
+    color: $text-white;
+    border: none;
+    padding: $space-4 $space-8;
+    border-radius: $button-radius;
+    font-family: $font-secondary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-all;
+    box-shadow: $button-shadow;
+    position: relative;
+    overflow: hidden;
+    min-width: 160px;
+    height: $btn-height-lg;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-lg;
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: $opacity-disabled;
+        cursor: not-allowed;
+        transform: none;
+
+        &:hover {
+            transform: none;
+            box-shadow: $button-shadow;
+        }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        width: 100%;
+    }
+}
+
+.add_display_cab-reset-btn {
+    background: $bg-primary;
+    color: $text-secondary;
+    border: 2px solid $border-medium;
+    padding: $space-4 $space-8;
+    border-radius: $button-radius;
+    font-family: $font-secondary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: $transition-all;
+    min-width: 160px;
+    height: $btn-height-lg;
+
+    &:hover {
+        background: $bg-tertiary;
+        border-color: $border-dark;
+        color: $text-primary;
+        transform: translateY(-1px);
+        box-shadow: $shadow-base;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: $opacity-disabled;
+        cursor: not-allowed;
+        transform: none;
+
+        &:hover {
+            transform: none;
+            background: $bg-primary;
+            border-color: $border-medium;
+            color: $text-secondary;
+        }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        width: 100%;
+    }
+}
+
+// Loading state styles
+.add_display_cab-submit-btn:disabled {
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+}
+
+// Animations
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+// Focus indicators for accessibility
+.add_display_cab-form *:focus-visible {
+    outline: 2px solid $brand-secondary;
+    outline-offset: 2px;
+}
+
+// Responsive improvements
+@media (max-width: $breakpoint-sm) {
+    .add_display_cab-form-group {
+        margin-bottom: $space-6;
+    }
+
+    .add_display_cab-input,
+    .add_display_cab-select {
+        height: $input-height-md;
+        font-size: $font-size-sm;
+    }
+
+    .add_display_cab-title {
+        font-size: $font-size-xl;
+    }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    .add_display_cab-container {
+        border: 2px solid $border-dark;
+    }
+
+    .add_display_cab-input,
+    .add_display_cab-select {
+        border-width: 2px;
+    }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+    .add_display_cab-input,
+    .add_display_cab-select,
+    .add_display_cab-submit-btn,
+    .add_display_cab-reset-btn,
+    .add_display_cab-file-input {
+        transition: none;
+    }
+
+    .add_display_cab-submit-btn::before {
+        display: none;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+            transform: translate(-50%, -50%) rotate(360deg);
+        }
+    }
+}

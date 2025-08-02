@@ -1,0 +1,1046 @@
+// @use './variables' as *;
+// // Import your variables file
+// // @import 'path/to/your/variables';
+// @use "sass:color";
+// .modify_order_container {
+//     max-width: 1200px;
+//     margin: 0 auto;
+//     padding: $space-6;
+//     background: $bg-primary;
+//     border-radius: $card-radius;
+//     box-shadow: $card-shadow;
+//     font-family: $font-primary;
+
+//     @media (max-width: $breakpoint-md) {
+//         padding: $space-4;
+//         margin: $space-2;
+//     }
+// }
+
+// .modify_order_header {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     padding-bottom: $space-6;
+//     border-bottom: 2px solid $border-light;
+//     margin-bottom: $space-8;
+
+//     h1 {
+//         font-family: $font-display;
+//         font-size: $font-size-3xl;
+//         font-weight: $font-weight-bold;
+//         color: $text-heading;
+//         margin: 0;
+//         background: $gradient-primary;
+//         -webkit-background-clip: text;
+//         -webkit-text-fill-color: transparent;
+//         background-clip: text;
+//     }
+
+//     .modify_order_id {
+//         display: flex;
+//         align-items: center;
+
+//         span {
+//             font-size: $font-size-sm;
+//             font-weight: $font-weight-medium;
+//             color: $text-secondary;
+//             background: $bg-tertiary;
+//             padding: $space-2 $space-4;
+//             border-radius: $radius-lg;
+//             border: 1px solid $border-light;
+//         }
+//     }
+
+//     @media (max-width: $breakpoint-sm) {
+//         flex-direction: column;
+//         gap: $space-4;
+//         text-align: center;
+//     }
+// }
+
+// .modify_order_content {
+//     display: flex;
+//     flex-direction: column;
+//     gap: $space-8;
+// }
+
+// .modify_order_info {
+//     display: flex;
+//     flex-direction: column;
+//     gap: $space-8;
+// }
+
+// .modify_order_actions {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: $space-6;
+
+//     h2 {
+//         font-family: $font-display;
+//         font-size: $font-size-2xl;
+//         font-weight: $font-weight-semibold;
+//         color: $text-heading;
+//         margin: 0;
+//     }
+// }
+
+// .modify_order_action_buttons {
+//     display: flex;
+//     gap: $space-3;
+
+//     @media (max-width: $breakpoint-sm) {
+//         flex-direction: column;
+//         width: 100%;
+//     }
+// }
+
+// .modify_order_btn {
+//     padding: $space-3 $space-6;
+//     border-radius: $button-radius;
+//     font-size: $font-size-sm;
+//     font-weight: $font-weight-medium;
+//     font-family: $font-primary;
+//     border: none;
+//     cursor: pointer;
+//     transition: $transition-all;
+//     box-shadow: $button-shadow;
+//     min-width: 120px;
+//     height: $btn-height-md;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+
+//     &:hover {
+//         transform: translateY(-2px);
+//         box-shadow: $shadow-lg;
+//     }
+
+//     &:active {
+//         transform: translateY(0);
+//     }
+
+//     &:disabled {
+//         opacity: $opacity-disabled;
+//         cursor: not-allowed;
+//         transform: none;
+//     }
+// }
+
+// .save_btn {
+//     background: $gradient-success;
+//     color: $text-white;
+
+//     &:hover:not(:disabled) {
+//         background: linear-gradient(135deg, darken($brand-success, 10%) 0%, darken(#2ecc71, 10%) 100%);
+//     }
+// }
+
+// .cancel_btn {
+//     background: $bg-secondary;
+//     color: $text-primary;
+//     border: 1px solid $border-medium;
+
+//     &:hover:not(:disabled) {
+//         background: $bg-tertiary;
+//         border-color: $border-dark;
+//     }
+// }
+
+// .edit_btn {
+//     background: $gradient-primary;
+//     color: $text-white;
+
+//     &:hover:not(:disabled) {
+//         background: linear-gradient(135deg, darken($brand-primary, 10%) 0%, darken($brand-secondary, 10%) 100%);
+//     }
+// }
+
+// .processing_btn {
+//     background: $bg-light-gray;
+//     color: $text-secondary;
+//     cursor: not-allowed;
+
+//     &::after {
+//         content: '';
+//         width: 16px;
+//         height: 16px;
+//         border: 2px solid transparent;
+//         border-top: 2px solid $brand-secondary;
+//         border-radius: 50%;
+//         animation: spin 1s linear infinite;
+//         margin-left: $space-2;
+//     }
+// }
+
+// @keyframes spin {
+//     0% {
+//         transform: rotate(0deg);
+//     }
+//     100% {
+//         transform: rotate(360deg);
+//     }
+// }
+
+// // Section Styles
+// .modify_order_basic_info,
+// .modify_order_trip_section,
+// .modify_order_passengers_section,
+// .modify_order_cab_section {
+//     background: $bg-card;
+//     border: 1px solid $border-light;
+//     border-radius: $card-radius;
+//     padding: $space-6;
+//     box-shadow: $shadow-sm;
+//     transition: $transition-all;
+
+//     &:hover {
+//         box-shadow: $shadow-md;
+//         border-color: lighten($brand-secondary, 30%);
+//     }
+
+//     h3 {
+//         font-family: $font-display;
+//         font-size: $font-size-xl;
+//         font-weight: $font-weight-semibold;
+//         color: $text-heading;
+//         margin: 0 0 $space-5 0;
+//         padding-bottom: $space-3;
+//         border-bottom: 1px solid $border-light;
+//         position: relative;
+
+//         &::after {
+//             content: '';
+//             position: absolute;
+//             bottom: -1px;
+//             left: 0;
+//             width: 60px;
+//             height: 2px;
+//             background: $gradient-primary;
+//             border-radius: $radius-full;
+//         }
+//     }
+// }
+
+// .modify_order_info_grid {
+//     display: grid;
+//     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+//     gap: $space-5;
+//     margin-top: $space-5;
+
+//     @media (max-width: $breakpoint-sm) {
+//         grid-template-columns: 1fr;
+//         gap: $space-4;
+//     }
+// }
+
+// .modify_order_info_item {
+//     display: flex;
+//     flex-direction: column;
+//     gap: $space-2;
+
+//     label {
+//         font-size: $font-size-sm;
+//         font-weight: $font-weight-medium;
+//         color: $text-secondary;
+//         text-transform: uppercase;
+//         letter-spacing: 0.5px;
+//     }
+
+//     p {
+//         font-size: $font-size-base;
+//         font-weight: $font-weight-regular;
+//         color: $text-primary;
+//         margin: 0;
+//         padding: $space-3;
+//         background: $bg-secondary;
+//         border-radius: $input-radius;
+//         border: 1px solid transparent;
+//         min-height: 44px;
+//         display: flex;
+//         align-items: center;
+//     }
+// }
+
+// .modify_order_input,
+// .modify_order_select {
+//     padding: $space-3 $space-4;
+//     border: 1px solid $border-medium;
+//     border-radius: $input-radius;
+//     font-size: $font-size-base;
+//     font-family: $font-primary;
+//     color: $text-primary;
+//     background: $bg-primary;
+//     transition: $transition-colors;
+//     min-height: 44px;
+
+//     &:focus {
+//         outline: none;
+//         border-color: $border-focus;
+//         box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
+//     }
+
+//     &::placeholder {
+//         color: $text-muted;
+//     }
+// }
+
+// .modify_order_passenger_count {
+//     display: flex;
+//     align-items: center;
+//     gap: $space-3;
+
+//     .modify_order_capacity_info {
+//         font-size: $font-size-xs;
+//         color: $text-muted;
+//         font-weight: $font-weight-medium;
+//     }
+// }
+
+// // Passenger Section Specific Styles
+// .modify_order_passengers_header {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: $space-6;
+
+//     @media (max-width: $breakpoint-sm) {
+//         flex-direction: column;
+//         gap: $space-4;
+//         align-items: flex-start;
+//     }
+// }
+
+// .modify_order_passenger_actions {
+//     display: flex;
+//     align-items: center;
+//     gap: $space-4;
+
+//     .modify_order_passenger_counter {
+//         font-size: $font-size-sm;
+//         font-weight: $font-weight-medium;
+//         color: $text-secondary;
+//         background: $bg-tertiary;
+//         padding: $space-2 $space-3;
+//         border-radius: $radius-lg;
+//         border: 1px solid $border-light;
+//     }
+// }
+
+// .modify_order_add_passenger_btn {
+//     background: $gradient-warning;
+//     color: $text-white;
+//     padding: $space-2 $space-4;
+//     border: none;
+//     border-radius: $button-radius;
+//     font-size: $font-size-sm;
+//     font-weight: $font-weight-medium;
+//     cursor: pointer;
+//     transition: $transition-all;
+
+//     &:hover:not(:disabled) {
+//         background: linear-gradient(135deg, darken($brand-warning, 10%) 0%, darken($brand-accent, 10%) 100%);
+//         transform: translateY(-1px);
+//     }
+
+//     &:disabled {
+//         opacity: $opacity-disabled;
+//         cursor: not-allowed;
+//     }
+// }
+
+// .modify_order_passengers_list {
+//     display: grid;
+//     gap: $space-5;
+// }
+
+// .modify_order_passenger_card {
+//     background: $bg-secondary;
+//     border: 1px solid $border-light;
+//     border-radius: $card-radius;
+//     padding: $space-5;
+//     transition: $transition-all;
+
+//     &:hover {
+//         box-shadow: $shadow-sm;
+//         border-color: lighten($brand-secondary, 40%);
+//     }
+// }
+
+// .modify_order_passenger_card_header {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: $space-4;
+
+//     h4 {
+//         font-size: $font-size-lg;
+//         font-weight: $font-weight-medium;
+//         color: $text-heading;
+//         margin: 0;
+//     }
+// }
+
+// .modify_order_remove_passenger_btn {
+//     background: transparent;
+//     color: $brand-danger;
+//     padding: $space-1 $space-3;
+//     border: 1px solid $brand-danger;
+//     border-radius: $radius-md;
+//     font-size: $font-size-xs;
+//     font-weight: $font-weight-medium;
+//     cursor: pointer;
+//     transition: $transition-all;
+
+//     &:hover {
+//         background: $brand-danger;
+//         color: $text-white;
+//     }
+// }
+
+// .modify_order_passenger_details {
+//     display: grid;
+//     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+//     gap: $space-4;
+
+//     @media (max-width: $breakpoint-sm) {
+//         grid-template-columns: 1fr;
+//     }
+// }
+
+// .modify_order_passenger_field {
+//     display: flex;
+//     flex-direction: column;
+//     gap: $space-2;
+
+//     label {
+//         font-size: $font-size-xs;
+//         font-weight: $font-weight-medium;
+//         color: $text-secondary;
+//         text-transform: uppercase;
+//         letter-spacing: 0.5px;
+//     }
+
+//     p {
+//         font-size: $font-size-sm;
+//         color: $text-primary;
+//         margin: 0;
+//         padding: $space-2 $space-3;
+//         background: $bg-primary;
+//         border-radius: $input-radius;
+//         border: 1px solid $border-light;
+//         min-height: 36px;
+//         display: flex;
+//         align-items: center;
+//     }
+
+//     input,
+//     select {
+//         min-height: 36px;
+//         padding: $space-2 $space-3;
+//         font-size: $font-size-sm;
+//     }
+// }
+
+// // Responsive Design
+// @media (max-width: $breakpoint-lg) {
+//     .modify_order_info_grid {
+//         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+//     }
+// }
+
+// @media (max-width: $breakpoint-md) {
+//     .modify_order_container {
+//         border-radius: 0;
+//         box-shadow: none;
+//     }
+
+//     .modify_order_header h1 {
+//         font-size: $font-size-2xl;
+//     }
+
+//     .modify_order_actions h2 {
+//         font-size: $font-size-xl;
+//     }
+// }
+
+// @media (max-width: $breakpoint-sm) {
+//     .modify_order_info_grid {
+//         grid-template-columns: 1fr;
+//     }
+
+//     .modify_order_passenger_details {
+//         grid-template-columns: 1fr;
+//     }
+
+//     .modify_order_action_buttons {
+//         flex-direction: column;
+
+//         .modify_order_btn {
+//             width: 100%;
+//         }
+//     }
+// }
+
+// // Loading States
+// .modify_order_container.loading {
+//     position: relative;
+
+//     &::after {
+//         content: '';
+//         position: absolute;
+//         top: 0;
+//         left: 0;
+//         right: 0;
+//         bottom: 0;
+//         background: rgba($bg-primary, 0.8);
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         border-radius: $card-radius;
+//         z-index: $z-overlay;
+//     }
+// }
+
+// // Success/Error States
+// .modify_order_container.success {
+//     border-left: 4px solid $brand-success;
+// }
+
+// .modify_order_container.error {
+//     border-left: 4px solid $brand-danger;
+// }
+
+// // Print Styles
+// @media print {
+//     .modify_order_action_buttons,
+//     .modify_order_add_passenger_btn,
+//     .modify_order_remove_passenger_btn {
+//         display: none !important;
+//     }
+
+//     .modify_order_container {
+//         box-shadow: none;
+//         border: 1px solid $border-medium;
+//     }
+// }
+@use './variables' as *;
+@use 'sass:color';
+
+.modify_order_container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: $space-6;
+    background: $bg-primary;
+    border-radius: $card-radius;
+    box-shadow: $card-shadow;
+    font-family: $font-primary;
+}
+
+.modify_order_container.loading {
+    position: relative;
+}
+
+.modify_order_container.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba($bg-primary, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $card-radius;
+    z-index: $z-overlay;
+}
+
+.modify_order_container.success {
+    border-left: 4px solid $brand-success;
+}
+
+.modify_order_container.error {
+    border-left: 4px solid $brand-danger;
+}
+
+.modify_order_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: $space-6;
+    border-bottom: 2px solid $border-light;
+    margin-bottom: $space-8;
+}
+
+.modify_order_header h1 {
+    font-family: $font-display;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-heading;
+    margin: 0;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modify_order_id {
+    display: flex;
+    align-items: center;
+}
+
+.modify_order_id span {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    background: $bg-tertiary;
+    padding: $space-2 $space-4;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+}
+
+.modify_order_content {
+    display: flex;
+    flex-direction: column;
+    gap: $space-8;
+}
+
+.modify_order_info {
+    display: flex;
+    flex-direction: column;
+    gap: $space-8;
+}
+
+.modify_order_actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-6;
+}
+
+.modify_order_actions h2 {
+    font-family: $font-display;
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-semibold;
+    color: $text-heading;
+    margin: 0;
+}
+
+.modify_order_action_buttons {
+    display: flex;
+    gap: $space-3;
+}
+
+.modify_order_btn {
+    padding: $space-3 $space-6;
+    border-radius: $button-radius;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    font-family: $font-primary;
+    border: none;
+    cursor: pointer;
+    transition: $transition-all;
+    box-shadow: $button-shadow;
+    min-width: 120px;
+    height: $btn-height-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modify_order_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+}
+
+.modify_order_btn:active {
+    transform: translateY(0);
+}
+
+.modify_order_btn:disabled {
+    opacity: $opacity-disabled;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.save_btn {
+    background: $gradient-success;
+    color: $text-white;
+}
+
+.save_btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, color.scale($brand-success, $lightness: -10%) 0%, color.scale(#2ecc71, $lightness: -10%) 100%);
+}
+
+.cancel_btn {
+    background: $bg-secondary;
+    color: $text-primary;
+    border: 1px solid $border-medium;
+}
+
+.cancel_btn:hover:not(:disabled) {
+    background: $bg-tertiary;
+    border-color: $border-dark;
+}
+
+.edit_btn {
+    background: $gradient-primary;
+    color: $text-white;
+}
+
+.edit_btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, color.scale($brand-primary, $lightness: -10%) 0%, color.scale($brand-secondary, $lightness: -10%) 100%);
+}
+
+.processing_btn {
+    background: $bg-light-gray;
+    color: $text-secondary;
+    cursor: not-allowed;
+}
+
+.processing_btn::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid $brand-secondary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: $space-2;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// Section Styles
+.modify_order_basic_info,
+.modify_order_trip_section,
+.modify_order_passengers_section,
+.modify_order_cab_section {
+    background: $bg-card;
+    border: 1px solid $border-light;
+    border-radius: $card-radius;
+    padding: $space-6;
+    box-shadow: $shadow-sm;
+    transition: $transition-all;
+}
+
+.modify_order_basic_info:hover,
+.modify_order_trip_section:hover,
+.modify_order_passengers_section:hover,
+.modify_order_cab_section:hover {
+    box-shadow: $shadow-md;
+    border-color: color.scale($brand-secondary, $lightness: 30%);
+}
+
+.modify_order_basic_info h3,
+.modify_order_trip_section h3,
+.modify_order_passengers_section h3,
+.modify_order_cab_section h3 {
+    font-family: $font-display;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-heading;
+    margin: 0 0 $space-5 0;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $border-light;
+    position: relative;
+}
+
+.modify_order_basic_info h3::after,
+.modify_order_trip_section h3::after,
+.modify_order_passengers_section h3::after,
+.modify_order_cab_section h3::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: $gradient-primary;
+    border-radius: $radius-full;
+}
+
+.modify_order_info_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: $space-5;
+    margin-top: $space-5;
+}
+
+.modify_order_info_item {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.modify_order_info_item label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modify_order_info_item p {
+    font-size: $font-size-base;
+    font-weight: $font-weight-regular;
+    color: $text-primary;
+    margin: 0;
+    padding: $space-3;
+    background: $bg-secondary;
+    border-radius: $input-radius;
+    border: 1px solid transparent;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.modify_order_input,
+.modify_order_select {
+    padding: $space-3 $space-4;
+    border: 1px solid $border-medium;
+    border-radius: $input-radius;
+    font-size: $font-size-base;
+    font-family: $font-primary;
+    color: $text-primary;
+    background: $bg-primary;
+    transition: $transition-colors;
+    min-height: 44px;
+}
+
+.modify_order_input:focus,
+.modify_order_select:focus {
+    outline: none;
+    border-color: $border-focus;
+    box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
+}
+
+.modify_order_input::placeholder {
+    color: $text-muted;
+}
+
+.modify_order_passenger_count {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+}
+
+.modify_order_capacity_info {
+    font-size: $font-size-xs;
+    color: $text-muted;
+    font-weight: $font-weight-medium;
+}
+
+// Passenger Section Specific Styles
+.modify_order_passengers_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-6;
+}
+
+.modify_order_passenger_actions {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+}
+
+.modify_order_passenger_counter {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    background: $bg-tertiary;
+    padding: $space-2 $space-3;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+}
+
+.modify_order_add_passenger_btn {
+    background: $gradient-warning;
+    color: $text-white;
+    padding: $space-2 $space-4;
+    border: none;
+    border-radius: $button-radius;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: $transition-all;
+}
+
+.modify_order_add_passenger_btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, color.scale($brand-warning, $lightness: -10%) 0%, color.scale($brand-accent, $lightness: -10%) 100%);
+    transform: translateY(-1px);
+}
+
+.modify_order_add_passenger_btn:disabled {
+    opacity: $opacity-disabled;
+    cursor: not-allowed;
+}
+
+.modify_order_passengers_list {
+    display: grid;
+    gap: $space-5;
+}
+
+.modify_order_passenger_card {
+    background: $bg-secondary;
+    border: 1px solid $border-light;
+    border-radius: $card-radius;
+    padding: $space-5;
+    transition: $transition-all;
+}
+
+.modify_order_passenger_card:hover {
+    box-shadow: $shadow-sm;
+    border-color: color.scale($brand-secondary, $lightness: 40%);
+}
+
+.modify_order_passenger_card_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-4;
+}
+
+.modify_order_passenger_card_header h4 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: $text-heading;
+    margin: 0;
+}
+
+.modify_order_remove_passenger_btn {
+    background: transparent;
+    color: $brand-danger;
+    padding: $space-1 $space-3;
+    border: 1px solid $brand-danger;
+    border-radius: $radius-md;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: $transition-all;
+}
+
+.modify_order_remove_passenger_btn:hover {
+    background: $brand-danger;
+    color: $text-white;
+}
+
+.modify_order_passenger_details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $space-4;
+}
+
+.modify_order_passenger_field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.modify_order_passenger_field label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modify_order_passenger_field p {
+    font-size: $font-size-sm;
+    color: $text-primary;
+    margin: 0;
+    padding: $space-2 $space-3;
+    background: $bg-primary;
+    border-radius: $input-radius;
+    border: 1px solid $border-light;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+.modify_order_passenger_field input,
+.modify_order_passenger_field select {
+    min-height: 36px;
+    padding: $space-2 $space-3;
+    font-size: $font-size-sm;
+}
+
+// Responsive Design
+@media (max-width: $breakpoint-md) {
+    .modify_order_container {
+        padding: $space-4;
+        margin: $space-2;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .modify_order_header h1 {
+        font-size: $font-size-2xl;
+    }
+
+    .modify_order_actions h2 {
+        font-size: $font-size-xl;
+    }
+}
+
+@media (max-width: $breakpoint-lg) {
+    .modify_order_info_grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: $breakpoint-sm) {
+    .modify_order_header {
+        flex-direction: column;
+        gap: $space-4;
+        text-align: center;
+    }
+
+    .modify_order_action_buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .modify_order_action_buttons .modify_order_btn {
+        width: 100%;
+    }
+
+    .modify_order_info_grid {
+        grid-template-columns: 1fr;
+        gap: $space-4;
+    }
+
+    .modify_order_passenger_details {
+        grid-template-columns: 1fr;
+    }
+
+    .modify_order_passengers_header {
+        flex-direction: column;
+        gap: $space-4;
+        align-items: flex-start;
+    }
+}
+
+// Print Styles
+@media print {
+    .modify_order_action_buttons,
+    .modify_order_add_passenger_btn,
+    .modify_order_remove_passenger_btn {
+        display: none !important;
+    }
+
+    .modify_order_container {
+        box-shadow: none;
+        border: 1px solid $border-medium;
+    }
+}

@@ -1,0 +1,557 @@
+/* eslint-disable react/no-array-index-key */
+import React, { useState } from 'react';
+import AdminSidebar from '../../../../__components__/adminSidebar';
+import { useGetOrderByIdQuery } from '../../../../__redux__/api/order.api';
+import { useParams } from 'react-router-dom';
+import { useAdminModifyBookingMutation } from '../../../../__redux__/api/admin.api';
+import StylishLoader from '../../../../__components__/loader';
+import MessageDisplay from '../../../../__components__/messageDisplay';
+import { toast } from 'react-toastify';
+
+const ModifyOrder = () => {
+    const { id } = useParams();
+    const { data: orderDetail, isLoading, isError, refetch } = useGetOrderByIdQuery(id);
+    const [updateOrder, { isLoading: isUpdating }] = useAdminModifyBookingMutation();
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedOrder, setEditedOrder] = useState({});
+    const [passengers, setPassengers] = useState([]);
+
+    React.useEffect(() => {
+        if (orderDetail) {
+            setEditedOrder({
+                pickupLocation: orderDetail.pickupLocation || '',
+                departureDate: orderDetail.departureDate ? new Date(orderDetail.departureDate).toISOString().slice(0, 16) : '',
+                dropOffDate: orderDetail.dropOffDate ? new Date(orderDetail.dropOffDate).toISOString().slice(0, 16) : '',
+                exactLocation: orderDetail.exactLocation || '',
+                destination: orderDetail.destination || '',
+                numberOfPassengers: orderDetail.numberOfPassengers || 1
+            });
+            setPassengers(orderDetail.passengers || [{ firstName: '', lastName: '', age: '', gender: '' }]);
+        }
+    }, [orderDetail]);
+
+    const handleEdit = () => setIsEditing(true);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditedOrder((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handlePassengerChange = (index, field, value) => {
+        const updatedPassengers = [...passengers];
+        updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+        setPassengers(updatedPassengers);
+    };
+
+    const addPassenger = () => {
+        const maxCapacity = orderDetail?.bookedCab?.capacity || 10;
+        if (passengers.length < maxCapacity) {
+            setPassengers([...passengers, { firstName: '', lastName: '', age: '', gender: '' }]);
+            setEditedOrder((prev) => ({ ...prev, numberOfPassengers: passengers.length + 1 }));
+        } else {
+            toast.error(`Cannot add more passengers. Cab capacity is ${maxCapacity}.`);
+        }
+    };
+
+    const removePassenger = (index) => {
+        if (passengers.length > 1) {
+            const updatedPassengers = passengers.filter((_, i) => i !== index);
+            setPassengers(updatedPassengers);
+            setEditedOrder((prev) => ({ ...prev, numberOfPassengers: updatedPassengers.length }));
+        }
+    };
+
+    const validateForm = () => {
+        // Basic validation
+        if (!editedOrder.pickupLocation.trim()) {
+            toast.error('Pickup location is required');
+            return false;
+        }
+        if (!editedOrder.destination.trim()) {
+            toast.error('Destination is required');
+            return false;
+        }
+        if (!editedOrder.departureDate) {
+            toast.error('Departure date is required');
+            return false;
+        }
+        if (orderDetail?.bookingType === 'RoundTrip' && !editedOrder.dropOffDate) {
+            toast.error('Drop-off date is required for round trip');
+            return false;
+        }
+
+        // Date validation
+        const departureDate = new Date(editedOrder.departureDate);
+        const dropOffDate = editedOrder.dropOffDate ? new Date(editedOrder.dropOffDate) : null;
+
+        if (dropOffDate && dropOffDate <= departureDate) {
+            toast.error('Drop-off date must be after departure date');
+            return false;
+        }
+
+        // Passenger validation
+        const hasEmptyPassengers = passengers.some((p) => !p.firstName.trim() || !p.lastName.trim());
+        if (hasEmptyPassengers) {
+            toast.error('All passengers must have first name and last name');
+            return false;
+        }
+
+        return true;
+    };
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            const updateData = {
+                ...editedOrder,
+                passengers,
+                numberOfPassengers: passengers.length
+            };
+
+            // Debug: Check what you're sending
+
+            const resultAction = await updateOrder({
+                id,
+                newData: updateData
+            }).unwrap();
+            await refetch();
+            // console.log('Update result:', resultAction);
+            const { message } = resultAction;
+            toast.success(message); // Add success feedback
+            setIsEditing(false);
+        } catch (error) {
+            toast.error(error?.data?.message || 'Failed to update order');
+        }
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+        if (orderDetail) {
+            setEditedOrder({
+                pickupLocation: orderDetail.pickupLocation || '',
+                departureDate: orderDetail.departureDate ? new Date(orderDetail.departureDate).toISOString().slice(0, 16) : '',
+                dropOffDate: orderDetail.dropOffDate ? new Date(orderDetail.dropOffDate).toISOString().slice(0, 16) : '',
+                exactLocation: orderDetail.exactLocation || '',
+                destination: orderDetail.destination || '',
+                numberOfPassengers: orderDetail.numberOfPassengers || 1
+            });
+            setPassengers(orderDetail.passengers || [{ firstName: '', lastName: '', age: '', gender: '' }]);
+        }
+    };
+
+    // Sync passengers with numberOfPassengers input
+    const handlePassengerCountChange = (e) => {
+        const count = parseInt(e.target.value) || 1;
+        const maxCapacity = orderDetail?.bookedCab?.capacity || 10;
+
+        if (count > maxCapacity) {
+            toast.error(`Cannot exceed cab capacity of ${maxCapacity}`);
+            return;
+        }
+
+        setEditedOrder((prev) => ({ ...prev, numberOfPassengers: count }));
+
+        // Adjust passengers array
+        if (count > passengers.length) {
+            // Add new passengers
+            const newPassengers = [...passengers];
+            for (let i = passengers.length; i < count; i++) {
+                newPassengers.push({ firstName: '', lastName: '', age: '', gender: '' });
+            }
+            setPassengers(newPassengers);
+        } else if (count < passengers.length) {
+            // Remove excess passengers
+            setPassengers(passengers.slice(0, count));
+        }
+    };
+
+    return (
+        <div className="admin-container">
+            <AdminSidebar />
+            <main>
+                {isLoading ? (
+                    <StylishLoader
+                        size="large"
+                        color="cyan"
+                    />
+                ) : isError ? (
+                    <MessageDisplay
+                        type="error"
+                        message="Failed to load order details. Please try again later."
+                    />
+                ) : (
+                    <div className="modify_order_container">
+                        <header className="modify_order_header">
+                            <h1>Modify Order</h1>
+                            <div className="modify_order_id">
+                                <span>Order ID: {orderDetail?._id}</span>
+                            </div>
+                        </header>
+
+                        <main className="modify_order_content">
+                            <section className="modify_order_info">
+                                <div className="modify_order_actions">
+                                    <h2>Order Information</h2>
+                                    {!isUpdating ? (
+                                        <div className="modify_order_action_buttons">
+                                            {isEditing ? (
+                                                <>
+                                                    <button
+                                                        onClick={handleUpdate}
+                                                        disabled={isUpdating}
+                                                        className="modify_order_btn save_btn">
+                                                        Save Changes
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCancel}
+                                                        className="modify_order_btn cancel_btn">
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    onClick={handleEdit}
+                                                    className="modify_order_btn edit_btn">
+                                                    Edit Order
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <button className="modify_order_btn processing_btn">Processing...</button>
+                                    )}
+                                </div>
+
+                                {/* Order Basic Details */}
+                                <div className="modify_order_basic_info">
+                                    <h3>Basic Information</h3>
+
+                                    <div className="modify_order_info_grid">
+                                        <div className="modify_order_info_item">
+                                            <label>Created At</label>
+                                            <p>{new Date(orderDetail?.createdAt).toLocaleString()}</p>
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Booking Status</label>
+                                            <p className={`status-badge status-${orderDetail?.bookingStatus?.toLowerCase()}`}>
+                                                {orderDetail?.bookingStatus}
+                                            </p>
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Booking Type</label>
+                                            <p>{orderDetail?.bookingType}</p>
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Departure Date</label>
+                                            {isEditing ? (
+                                                <input
+                                                    type="datetime-local"
+                                                    name="departureDate"
+                                                    value={editedOrder.departureDate}
+                                                    onChange={handleInputChange}
+                                                    className="modify_order_input"
+                                                    required
+                                                />
+                                            ) : (
+                                                <p>{new Date(orderDetail?.departureDate).toLocaleString()}</p>
+                                            )}
+                                        </div>
+
+                                        {(orderDetail?.bookingType === 'RoundTrip' || isEditing) && (
+                                            <div className="modify_order_info_item">
+                                                <label>Drop Off Date</label>
+                                                {isEditing ? (
+                                                    <input
+                                                        type="datetime-local"
+                                                        name="dropOffDate"
+                                                        value={editedOrder.dropOffDate}
+                                                        onChange={handleInputChange}
+                                                        className="modify_order_input"
+                                                        required={orderDetail?.bookingType === 'RoundTrip'}
+                                                    />
+                                                ) : (
+                                                    <p>
+                                                        {orderDetail?.dropOffDate
+                                                            ? new Date(orderDetail.dropOffDate).toLocaleString()
+                                                            : 'Not specified'}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Trip Details Section */}
+                                <div className="modify_order_trip_section">
+                                    <h3>Trip Details</h3>
+
+                                    <div className="modify_order_info_grid">
+                                        <div className="modify_order_info_item">
+                                            <label>Pickup Location</label>
+                                            {isEditing ? (
+                                                <input
+                                                    name="pickupLocation"
+                                                    value={editedOrder.pickupLocation}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Enter pickup location"
+                                                    className="modify_order_input"
+                                                    required
+                                                />
+                                            ) : (
+                                                <p>{orderDetail?.pickupLocation}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Exact Location</label>
+                                            {isEditing ? (
+                                                <textarea
+                                                    name="exactLocation"
+                                                    value={editedOrder.exactLocation}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Enter exact pickup location (building, landmark, etc.)"
+                                                    className="modify_order_input modify_order_textarea"
+                                                    rows="3"
+                                                />
+                                            ) : (
+                                                <p>{orderDetail?.exactLocation || 'Not specified'}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Destination</label>
+                                            {isEditing ? (
+                                                <input
+                                                    name="destination"
+                                                    value={editedOrder.destination}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Enter destination"
+                                                    className="modify_order_input"
+                                                    required
+                                                />
+                                            ) : (
+                                                <p>{orderDetail?.destination}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Number of Passengers</label>
+                                            <div className="modify_order_passenger_count">
+                                                {isEditing ? (
+                                                    <input
+                                                        type="number"
+                                                        name="numberOfPassengers"
+                                                        value={editedOrder.numberOfPassengers}
+                                                        onChange={handlePassengerCountChange}
+                                                        min="1"
+                                                        max={orderDetail?.bookedCab?.capacity || 10}
+                                                        className="modify_order_input"
+                                                    />
+                                                ) : (
+                                                    <p>{orderDetail?.numberOfPassengers}</p>
+                                                )}
+                                                <span className="modify_order_capacity_info">(Max: {orderDetail?.bookedCab?.capacity || 'N/A'})</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Passenger Details Section */}
+                                <div className="modify_order_passengers_section">
+                                    <div className="modify_order_passengers_header">
+                                        <h3>Passenger Details</h3>
+                                        {isEditing && (
+                                            <div className="modify_order_passenger_actions">
+                                                <button
+                                                    type="button"
+                                                    onClick={addPassenger}
+                                                    className="modify_order_add_passenger_btn"
+                                                    disabled={passengers.length >= (orderDetail?.bookedCab?.capacity || 10)}>
+                                                    Add Passenger
+                                                </button>
+                                                <span className="modify_order_passenger_counter">
+                                                    {passengers.length} / {orderDetail?.bookedCab?.capacity || 'N/A'}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="modify_order_passengers_list">
+                                        {passengers.map((passenger, index) => (
+                                            <div
+                                                key={index}
+                                                className="modify_order_passenger_card">
+                                                <div className="modify_order_passenger_card_header">
+                                                    <h4>Passenger {index + 1}</h4>
+                                                    {isEditing && passengers.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removePassenger(index)}
+                                                            className="modify_order_remove_passenger_btn">
+                                                            Remove
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="modify_order_passenger_details">
+                                                    <div className="modify_order_passenger_field">
+                                                        <label>First Name *</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                value={passenger.firstName}
+                                                                onChange={(e) => handlePassengerChange(index, 'firstName', e.target.value)}
+                                                                placeholder="First name"
+                                                                className="modify_order_input"
+                                                                required
+                                                            />
+                                                        ) : (
+                                                            <p>{passenger.firstName}</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="modify_order_passenger_field">
+                                                        <label>Last Name *</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                value={passenger.lastName}
+                                                                onChange={(e) => handlePassengerChange(index, 'lastName', e.target.value)}
+                                                                placeholder="Last name"
+                                                                className="modify_order_input"
+                                                                required
+                                                            />
+                                                        ) : (
+                                                            <p>{passenger.lastName}</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="modify_order_passenger_field">
+                                                        <label>Age</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                type="number"
+                                                                value={passenger.age}
+                                                                onChange={(e) => handlePassengerChange(index, 'age', parseInt(e.target.value) || '')}
+                                                                placeholder="Age"
+                                                                min="0"
+                                                                max="120"
+                                                                className="modify_order_input"
+                                                            />
+                                                        ) : (
+                                                            <p>{passenger.age || 'Not specified'}</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="modify_order_passenger_field">
+                                                        <label>Gender</label>
+                                                        {isEditing ? (
+                                                            <select
+                                                                value={passenger.gender}
+                                                                onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                                                                className="modify_order_select">
+                                                                <option value="">Select Gender</option>
+                                                                <option value="Male">Male</option>
+                                                                <option value="Female">Female</option>
+                                                                <option value="Other">Other</option>
+                                                            </select>
+                                                        ) : (
+                                                            <p>{passenger.gender || 'Not specified'}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Cab Information Section */}
+                                <div className="modify_order_cab_section">
+                                    <h3>Assigned Cab Information</h3>
+
+                                    <div className="modify_order_info_grid">
+                                        <div className="modify_order_info_item">
+                                            <label>Cab Model</label>
+                                            <p>{orderDetail?.bookedCab?.modelName || 'Not assigned'}</p>
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Cab Number</label>
+                                            <p>{orderDetail?.bookedCab?.cabNumber || 'Not assigned'}</p>
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Cab Capacity</label>
+                                            <p>{orderDetail?.bookedCab?.capacity || 'Not assigned'}</p>
+                                        </div>
+
+                                        <div className="modify_order_info_item">
+                                            <label>Features</label>
+                                            <p>{orderDetail?.bookedCab?.feature || 'Not specified'}</p>
+                                        </div>
+
+                                        {orderDetail?.bookedCab?.rate && (
+                                            <div className="modify_order_info_item">
+                                                <label>Rate per Day</label>
+                                                <p>₹{orderDetail.bookedCab.rate}</p>
+                                            </div>
+                                        )}
+
+                                        <div className="modify_order_info_item">
+                                            <label>Availability</label>
+                                            <p className={`status-badge status-${orderDetail?.bookedCab?.availability?.toLowerCase()}`}>
+                                                {orderDetail?.bookedCab?.availability || 'Unknown'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Payment Information */}
+                                {(orderDetail?.bookingAmount || orderDetail?.paidAmount) && (
+                                    <div className="modify_order_payment_section">
+                                        <h3>Payment Information</h3>
+
+                                        <div className="modify_order_info_grid">
+                                            {orderDetail?.bookingAmount && (
+                                                <div className="modify_order_info_item">
+                                                    <label>Booking Amount</label>
+                                                    <p>₹{orderDetail.bookingAmount}</p>
+                                                </div>
+                                            )}
+
+                                            {orderDetail?.paidAmount && (
+                                                <div className="modify_order_info_item">
+                                                    <label>Paid Amount</label>
+                                                    <p>₹{orderDetail.paidAmount}</p>
+                                                </div>
+                                            )}
+
+                                            <div className="modify_order_info_item">
+                                                <label>Payment Method</label>
+                                                <p>{orderDetail?.paymentMethod || 'Not specified'}</p>
+                                            </div>
+
+                                            <div className="modify_order_info_item">
+                                                <label>Payment Status</label>
+                                                <p className={`status-badge status-${orderDetail?.paymentStatus?.toLowerCase()}`}>
+                                                    {orderDetail?.paymentStatus || 'Unknown'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </section>
+                        </main>
+                    </div>
+                )}
+            </main>
+        </div>
+    );
+};
+
+export default ModifyOrder;

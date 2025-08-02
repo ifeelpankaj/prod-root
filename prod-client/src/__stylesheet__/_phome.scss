@@ -1,0 +1,507 @@
+@use './variables' as *;
+.p_home_container {
+    min-height: 100vh;
+    background: $gradient-hero;
+    position: relative;
+    overflow: hidden;
+
+    // Add subtle animated background pattern
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+        animation: float 20s ease-in-out infinite;
+    }
+
+    // Floating animation for background
+    @keyframes float {
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        33% {
+            transform: translateY(-10px) rotate(1deg);
+        }
+        66% {
+            transform: translateY(5px) rotate(-1deg);
+        }
+    }
+}
+
+// =================
+// CONTENT LAYOUT
+// =================
+.p_home_content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-16;
+    max-width: $container-xl;
+    margin: 0 auto;
+    padding: $space-20 $space-8;
+    min-height: 100vh;
+    align-items: center;
+    position: relative;
+    z-index: $z-base;
+
+    @media (max-width: $breakpoint-lg) {
+        grid-template-columns: 1fr;
+        gap: $space-12;
+        text-align: center;
+        padding: $space-16 $space-6;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-12 $space-4;
+    }
+}
+
+// =================
+// FORM CONTAINER
+// =================
+.p_home_form_container {
+    background: rgba($bg-primary, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: $radius-3xl;
+    padding: $space-12;
+    box-shadow: $shadow-2xl;
+    position: relative;
+
+    // Glass morphism effect
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        border-radius: $radius-3xl;
+        pointer-events: none;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        padding: $space-8;
+        border-radius: $radius-2xl;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-6;
+        border-radius: $radius-xl;
+    }
+}
+
+// =================
+// TITLE STYLING
+// =================
+.p_home_title {
+    font-family: $font-display;
+    font-size: $font-size-4xl;
+    font-weight: $font-weight-bold;
+    color: $text-heading;
+    text-align: center;
+    margin-bottom: $space-8;
+    position: relative;
+
+    // Gradient text effect
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
+    // Subtle text shadow for depth
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-3xl;
+        margin-bottom: $space-6;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-2xl;
+        margin-bottom: $space-5;
+    }
+}
+
+// =================
+// TRIP TYPE TOGGLE
+// =================
+.p_home_trip_toggle {
+    display: flex;
+    align-items: center;
+    background: $bg-tertiary;
+    border-radius: $radius-full;
+    padding: $space-1;
+    margin-bottom: $space-8;
+    position: relative;
+    cursor: pointer;
+    border: 2px solid $border-light;
+    transition: $transition-all;
+
+    &:hover {
+        border-color: $brand-secondary;
+        box-shadow: $shadow-md;
+    }
+
+    span {
+        flex: 1;
+        padding: $space-3 $space-6;
+        text-align: center;
+        font-family: $font-primary;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+        transition: $transition-colors;
+        position: relative;
+        z-index: 2;
+        border-radius: $radius-full;
+
+        &.p_home_active {
+            color: $text-white;
+            font-weight: $font-weight-semibold;
+        }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        margin-bottom: $space-6;
+
+        span {
+            padding: $space-2 $space-4;
+            font-size: $font-size-xs;
+        }
+    }
+}
+
+.p_home_toggle_slider {
+    position: absolute;
+    top: $space-1;
+    left: $space-1;
+    width: calc(50% - #{$space-1});
+    height: calc(100% - #{$space-2});
+    background: $gradient-primary;
+    border-radius: $radius-full;
+    transition: $transition-transform;
+    box-shadow: $shadow-sm;
+}
+
+// =================
+// FORM GROUPS
+// =================
+.p_home_form_group {
+    position: relative;
+    margin-bottom: $space-6;
+
+    &:last-of-type {
+        margin-bottom: $space-8;
+    }
+
+    // Input styling
+    input,
+    .p_home_custom_datepicker {
+        width: 100%;
+        padding: $space-4 $space-4 $space-4 $space-12;
+        border: 2px solid $border-light;
+        border-radius: $input-radius;
+        font-family: $font-primary;
+        font-size: $font-size-base;
+        font-weight: $font-weight-regular;
+        color: $text-primary;
+        background: $bg-primary;
+        transition: $transition-all;
+        height: $input-height-lg;
+
+        &::placeholder {
+            color: $text-muted;
+            font-weight: $font-weight-regular;
+        }
+
+        &:focus {
+            outline: none;
+            border-color: $brand-secondary;
+            box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
+            transform: translateY(-1px);
+        }
+
+        &:hover:not(:focus) {
+            border-color: $border-medium;
+            box-shadow: $shadow-sm;
+        }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        margin-bottom: $space-4;
+
+        input,
+        .p_home_custom_datepicker {
+            height: $input-height-md;
+            padding: $space-3 $space-3 $space-3 $space-10;
+            font-size: $font-size-sm;
+        }
+    }
+}
+
+// =================
+// INPUT ICONS
+// =================
+.p_home_input_icon {
+    position: absolute;
+    left: $space-4;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-muted;
+    font-size: $font-size-lg;
+    z-index: 2;
+    transition: $transition-colors;
+
+    .p_home_form_group:hover &,
+    .p_home_form_group:focus-within & {
+        color: $brand-secondary;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        left: $space-3;
+        font-size: $font-size-base;
+    }
+}
+
+// =================
+// DATEPICKER CUSTOMIZATION
+// =================
+.p_home_custom_datepicker {
+    cursor: pointer;
+}
+
+:global(.p_home_custom_calendar) {
+    font-family: $font-primary !important;
+    border: none !important;
+    border-radius: $radius-xl !important;
+    box-shadow: $shadow-xl !important;
+    background: $bg-primary !important;
+
+    .react-datepicker__header {
+        background: $gradient-primary !important;
+        border: none !important;
+        border-radius: $radius-lg $radius-lg 0 0 !important;
+        color: $text-white !important;
+    }
+
+    .react-datepicker__current-month {
+        color: $text-white !important;
+        font-weight: $font-weight-semibold !important;
+    }
+
+    .react-datepicker__day-name {
+        color: rgba($text-white, 0.8) !important;
+        font-weight: $font-weight-medium !important;
+    }
+
+    .react-datepicker__day {
+        border-radius: $radius-md !important;
+        transition: $transition-all !important;
+
+        &:hover {
+            background: $brand-secondary !important;
+            color: $text-white !important;
+            transform: scale(1.1) !important;
+        }
+
+        &--selected {
+            background: $brand-accent !important;
+            color: $text-white !important;
+            font-weight: $font-weight-semibold !important;
+        }
+
+        &--today {
+            background: rgba($brand-secondary, 0.2) !important;
+            color: $brand-secondary !important;
+            font-weight: $font-weight-medium !important;
+        }
+    }
+}
+
+:global(.p_home_custom_popper) {
+    z-index: $z-modal !important;
+}
+
+// =================
+// SEARCH BUTTON
+// =================
+.p_home_search_cab_button {
+    width: 100%;
+    padding: $space-4 $space-8;
+    background: $gradient-primary;
+    border: none;
+    border-radius: $button-radius;
+    color: $text-white;
+    font-family: $font-primary;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-all;
+    box-shadow: $shadow-md;
+    position: relative;
+    overflow: hidden;
+    height: $btn-height-lg;
+
+    // Hover effect
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-lg;
+    }
+
+    // Active effect
+    &:active {
+        transform: translateY(0);
+    }
+
+    // Ripple effect
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition:
+            width 0.3s,
+            height 0.3s;
+    }
+
+    &:active::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        height: $btn-height-md;
+        font-size: $font-size-base;
+        padding: $space-3 $space-6;
+    }
+}
+
+// =================
+// TEXT/CAROUSEL CONTAINER
+// =================
+.p_home_text_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    // Add some visual enhancement around the carousel
+    &::before {
+        content: '';
+        position: absolute;
+        top: -$space-8;
+        left: -$space-8;
+        right: -$space-8;
+        bottom: -$space-8;
+        background: linear-gradient(45deg, rgba($brand-secondary, 0.1) 0%, rgba($brand-accent, 0.1) 100%);
+        border-radius: $radius-3xl;
+        z-index: -1;
+    }
+
+    @media (max-width: $breakpoint-lg) {
+        margin-top: $space-8;
+    }
+}
+
+// =================
+// RESPONSIVE ANIMATIONS
+// =================
+@media (prefers-reduced-motion: reduce) {
+    .p_home_container::before,
+    .p_home_search_cab_button::before {
+        animation: none;
+    }
+
+    * {
+        transition: none !important;
+    }
+}
+
+// =================
+// LOADING STATES
+// =================
+.p_home_form_container {
+    &.loading {
+        pointer-events: none;
+        opacity: $utility-opacity-loading;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border: 3px solid $border-light;
+            border-top: 3px solid $brand-secondary;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            transform: translate(-50%, -50%);
+            z-index: $z-overlay;
+        }
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+// =================
+// ACCESSIBILITY IMPROVEMENTS
+// =================
+.p_home_search_cab_button:focus-visible,
+.p_home_form_group input:focus-visible,
+.p_home_custom_datepicker:focus-visible {
+    outline: 2px solid $brand-accent;
+    outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    .p_home_form_container {
+        background: $bg-primary;
+        border: 2px solid $text-primary;
+    }
+
+    .p_home_title {
+        -webkit-text-fill-color: $text-primary;
+        color: $text-primary;
+    }
+
+    .p_home_search_cab_button {
+        background: $text-primary;
+        border: 2px solid $text-primary;
+    }
+}
+
+// =================
+// PRINT STYLES
+// =================
+@media print {
+    .p_home_container {
+        background: none;
+        color: black;
+    }
+
+    .p_home_form_container {
+        background: white;
+        border: 1px solid black;
+        box-shadow: none;
+    }
+}

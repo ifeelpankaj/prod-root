@@ -1,0 +1,977 @@
+@use './variables' as *;
+// ===================================
+// UNIQUE PROFESSIONAL CLASSY BOOKING DESIGN
+// ===================================
+@use 'sass:color';
+.booking_booking-detail {
+    font-family: $font-display;
+    background: linear-gradient(135deg, #f8faff 0%, #f1f5ff 50%, #e8f2ff 100%);
+    padding: $space-8;
+    color: $text-primary;
+    min-height: 100vh;
+    position: relative;
+
+    // Subtle background pattern
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    &__title {
+        font-size: clamp($font-size-3xl, 5vw, $font-size-5xl);
+        font-weight: $font-weight-extrabold;
+        background: linear-gradient(135deg, #1e293b, #3730a3, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+        margin-bottom: $space-12;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        position: relative;
+        z-index: 1;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -$space-4;
+            left: 50%;
+            transform: translateX(-50%);
+            width: $space-20;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #ec4899, #8b5cf6);
+            border-radius: $radius-full;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+    }
+
+    section {
+        margin-bottom: $space-10;
+        position: relative;
+        z-index: 1;
+
+        h2 {
+            font-size: $font-size-2xl;
+            font-weight: $font-weight-bold;
+            color: #1e293b;
+            margin-bottom: $space-6;
+            position: relative;
+            display: inline-block;
+            padding-left: $space-6;
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 4px;
+                height: 100%;
+                background: linear-gradient(180deg, #6366f1, #8b5cf6);
+                border-radius: $radius-full;
+            }
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -$space-2;
+                left: $space-6;
+                width: 60%;
+                height: 2px;
+                background: linear-gradient(90deg, rgba(99, 102, 241, 0.3), transparent);
+                border-radius: $radius-full;
+            }
+        }
+    }
+
+    // Enhanced base cards with luxury feel
+    .booking_journey-card,
+    .booking_cab-card,
+    .booking_payment-card,
+    .booking_driver-card,
+    .booking_passenger-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: $space-6;
+        box-shadow:
+            0 20px 40px rgba(30, 41, 59, 0.08),
+            0 8px 25px rgba(99, 102, 241, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        padding: $space-8;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+        // Luxury shimmer effect
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.4) 20%,
+                rgba(255, 255, 255, 0.6) 50%,
+                rgba(255, 255, 255, 0.4) 80%,
+                transparent 100%
+            );
+            transition: left 0.8s ease;
+        }
+
+        &:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow:
+                0 30px 60px rgba(30, 41, 59, 0.12),
+                0 15px 35px rgba(99, 102, 241, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border-color: rgba(99, 102, 241, 0.2);
+
+            &::before {
+                left: 100%;
+            }
+        }
+    }
+
+    // Journey Card - Premium design
+    .booking_journey-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 255, 0.9) 100%);
+
+        &__path {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: $space-8;
+            padding: $space-6;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.03) 100%);
+            border-radius: $space-4;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        &__info {
+            display: flex;
+            justify-content: space-around;
+            gap: $space-4;
+            flex-wrap: wrap;
+        }
+    }
+
+    .booking_journey-point {
+        text-align: center;
+        flex: 1;
+        position: relative;
+        padding: $space-4;
+        border-radius: $radius-xl;
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        &--from {
+            svg,
+            i {
+                color: #10b981 !important;
+                filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
+            }
+        }
+
+        &--to {
+            svg,
+            i {
+                color: #f59e0b !important;
+                filter: drop-shadow(0 4px 12px rgba(245, 158, 11, 0.3));
+            }
+        }
+
+        svg,
+        i {
+            font-size: $font-size-4xl;
+            margin-bottom: $space-4;
+            transition: all 0.3s ease;
+        }
+
+        h3 {
+            font-size: $font-size-xl;
+            font-weight: $font-weight-bold;
+            color: #1e293b;
+            margin-bottom: $space-2;
+            text-shadow: 0 2px 4px rgba(30, 41, 59, 0.1);
+        }
+
+        p {
+            font-size: $font-size-base;
+            color: #64748b;
+            font-weight: $font-weight-medium;
+            line-height: $line-height-relaxed;
+        }
+    }
+
+    .booking_journey-line {
+        flex-grow: 1;
+        height: 6px;
+        background: linear-gradient(90deg, #10b981 0%, #3b82f6 25%, #8b5cf6 50%, #ec4899 75%, #f59e0b 100%);
+        margin: 0 $space-6;
+        position: relative;
+        border-radius: $radius-full;
+        box-shadow:
+            0 4px 15px rgba(59, 130, 246, 0.3),
+            inset 0 1px 2px rgba(255, 255, 255, 0.4);
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: $space-4;
+            height: $space-4;
+            border-radius: $radius-full;
+            transform: translateY(-50%);
+            box-shadow:
+                0 0 0 4px rgba(255, 255, 255, 0.9),
+                0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &::before {
+            left: -$space-2;
+            background: #10b981;
+        }
+        &::after {
+            right: -$space-2;
+            background: #f59e0b;
+        }
+    }
+
+    // Passengers - Elegant cards
+    .booking_passengers-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: $space-5;
+    }
+
+    .booking_passenger-card {
+        display: flex;
+        align-items: center;
+        gap: $space-5;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(236, 254, 255, 0.8) 100%);
+
+        &__avatar {
+            width: $space-16;
+            height: $space-16;
+            border-radius: $radius-full;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: $font-weight-bold;
+            font-size: $font-size-xl;
+            flex-shrink: 0;
+            box-shadow:
+                0 8px 25px rgba(99, 102, 241, 0.3),
+                0 0 0 3px rgba(255, 255, 255, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: scale(1.05) rotate(3deg);
+                box-shadow:
+                    0 12px 35px rgba(99, 102, 241, 0.4),
+                    0 0 0 4px rgba(255, 255, 255, 0.9),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        &__info {
+            h3 {
+                font-size: $font-size-xl;
+                font-weight: $font-weight-bold;
+                color: #1e293b;
+                margin-bottom: $space-1;
+                text-shadow: 0 1px 2px rgba(30, 41, 59, 0.1);
+            }
+
+            p {
+                font-size: $font-size-base;
+                color: #64748b;
+                font-weight: $font-weight-medium;
+            }
+        }
+    }
+
+    // Cab Card - Executive style
+    .booking_cab-card {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 243, 199, 0.8) 100%);
+
+        &__info {
+            flex: 1;
+            padding-top: $space-6;
+            display: flex;
+            justify-content: space-around;
+            min-width: 250px;
+            gap: $space-3;
+            flex-wrap: wrap;
+        }
+    }
+
+    // Payment Card - Premium financial display
+    .booking_payment-card {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: $space-5;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.9) 100%);
+
+        .seperate_heading {
+            font-size: $font-size-2xl;
+            font-weight: $font-weight-bold;
+            color: #1e293b;
+            margin-bottom: $space-4;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(30, 41, 59, 0.1);
+        }
+
+        &__amount,
+        > div {
+            text-align: center;
+            padding: $space-6;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: $space-4;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            &:hover {
+                transform: translateY(-6px) scale(1.02);
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+                box-shadow:
+                    0 15px 35px rgba(99, 102, 241, 0.15),
+                    0 5px 15px rgba(0, 0, 0, 0.1);
+                border-color: rgba(99, 102, 241, 0.2);
+
+                &::before {
+                    opacity: 1;
+                }
+            }
+
+            svg,
+            i {
+                font-size: $font-size-4xl;
+                margin-bottom: $space-4;
+                filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+                transition: all 0.3s ease;
+
+                &:hover {
+                    transform: scale(1.1);
+                }
+            }
+
+            h3 {
+                font-size: $font-size-base;
+                font-weight: $font-weight-semibold;
+                color: #64748b;
+                margin-bottom: $space-3;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+            }
+
+            p {
+                font-size: $font-size-xl;
+                font-weight: $font-weight-bold;
+                color: #1e293b;
+                text-shadow: 0 1px 2px rgba(30, 41, 59, 0.1);
+            }
+        }
+    }
+
+    // Driver Card - Executive presentation
+    .booking_driver-card {
+        display: flex;
+        align-items: center;
+        gap: $space-8;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(239, 246, 255, 0.9) 100%);
+
+        &__avatar {
+            width: $space-24;
+            height: $space-24;
+            border-radius: $radius-full;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            box-shadow:
+                0 15px 35px rgba(30, 41, 59, 0.2),
+                0 0 0 1px rgba(99, 102, 241, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            transition: all 0.4s ease;
+            position: relative;
+
+            &::before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                border-radius: $radius-full;
+                background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            &:hover {
+                transform: scale(1.08);
+                border-color: rgba(255, 255, 255, 1);
+
+                &::before {
+                    opacity: 1;
+                }
+            }
+        }
+
+        &__info {
+            flex: 1;
+
+            h3 {
+                font-size: $font-size-2xl;
+                font-weight: $font-weight-bold;
+                color: #1e293b;
+                margin-bottom: $space-4;
+                text-shadow: 0 2px 4px rgba(30, 41, 59, 0.1);
+            }
+
+            &-items {
+                display: flex;
+                flex-direction: column;
+                gap: $space-2;
+            }
+        }
+    }
+
+    // Driver Pending - Elegant waiting state
+    .booking_driver-pending {
+        text-align: center;
+        padding: $space-12;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.8) 100%);
+        border-radius: $space-6;
+
+        svg,
+        i {
+            font-size: $font-size-5xl;
+            color: #f59e0b;
+            margin-bottom: $space-6;
+            filter: drop-shadow(0 8px 20px rgba(245, 158, 11, 0.3));
+            animation: gentle-pulse 3s infinite ease-in-out;
+        }
+
+        h3 {
+            font-size: $font-size-3xl;
+            font-weight: $font-weight-bold;
+            color: #1e293b;
+            margin-bottom: $space-4;
+            text-shadow: 0 2px 4px rgba(30, 41, 59, 0.1);
+        }
+
+        p {
+            font-size: $font-size-lg;
+            color: #64748b;
+            max-width: 85%;
+            margin: 0 auto;
+            font-weight: $font-weight-medium;
+            line-height: $line-height-relaxed;
+        }
+    }
+}
+
+// Info Item - Refined with unique styling
+.info-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-3;
+    padding: $space-4 $space-5;
+    border-radius: $radius-xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 3px;
+        height: 100%;
+        background: linear-gradient(180deg, #6366f1, #8b5cf6);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    &:hover {
+        transform: translateY(-2px) translateX($space-1);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%);
+        box-shadow:
+            0 8px 25px rgba(99, 102, 241, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        border-color: rgba(99, 102, 241, 0.2);
+
+        &::before {
+            opacity: 1;
+        }
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: $space-10;
+        height: $space-10;
+        min-width: $space-10;
+        color: #6366f1;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+        border-radius: $radius-xl;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        transition: all 0.3s ease;
+
+        svg {
+            width: $space-5;
+            height: $space-5;
+        }
+
+        .info-item:hover & {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+            color: #4338ca;
+            transform: scale(1.05);
+        }
+    }
+
+    &__label {
+        font-family: $font-secondary;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        flex-shrink: 0;
+    }
+
+    &__value {
+        font-family: $font-primary;
+        font-size: $font-size-base;
+        font-weight: $font-weight-bold;
+        color: #1e293b;
+        flex: 1;
+        text-shadow: 0 1px 2px rgba(30, 41, 59, 0.05);
+    }
+
+    &.only-value {
+        justify-content: center;
+        text-align: center;
+        padding: $space-3 $space-5;
+
+        .info-item__value {
+            font-size: $font-size-lg;
+            font-weight: $font-weight-bold;
+            color: #1e293b;
+            flex: none;
+        }
+    }
+}
+
+// Enhanced Animations
+@keyframes gentle-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes floating {
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+// Responsive Excellence
+@media (max-width: #{$breakpoint-md}) {
+    .booking_booking-detail {
+        padding: $space-6;
+
+        &__title {
+            font-size: $font-size-3xl;
+            margin-bottom: $space-8;
+        }
+
+        .booking_journey-card__path {
+            flex-direction: row;
+        }
+
+        .booking_journey-card__info {
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: $space-6;
+            width: 100%;
+        }
+
+        .booking_payment-card,
+        .booking_cab-card {
+            grid-template-columns: 1fr;
+            &__info {
+                flex-direction: column;
+                gap: $space-3;
+            }
+        }
+
+        .booking_driver-card {
+            flex-direction: column;
+            text-align: center;
+            gap: $space-6;
+
+            &__avatar {
+                width: $space-20;
+                height: $space-20;
+            }
+
+            &__info {
+                &-items {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: $space-3;
+                }
+            }
+        }
+
+        .booking_passengers-list {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+@media (max-width: #{$breakpoint-sm}) {
+    .booking_booking-detail {
+        padding: $space-4;
+
+        &__title {
+            font-size: $font-size-2xl;
+            margin-bottom: $space-6;
+        }
+
+        .booking_journey-card,
+        .booking_cab-card,
+        .booking_payment-card,
+        .booking_driver-card,
+        .booking_passenger-card {
+            padding: $space-5;
+        }
+
+        .booking_driver-pending {
+            padding: $space-8;
+        }
+
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: $space-2;
+            width: 100%;
+            &__icon {
+                align-self: flex-start;
+            }
+
+            &__value {
+                align-self: stretch;
+                text-align: left;
+            }
+
+            &.only-value {
+                flex-direction: row;
+                align-items: center;
+                text-align: center;
+
+                .info-item__value {
+                    align-self: center;
+                    text-align: center;
+                }
+            }
+        }
+    }
+}
+// Driver Payment Container Styles
+.d_p_container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: $space-6;
+    margin: $space-8 0;
+    padding: 0;
+
+    @media (max-width: $breakpoint-md) {
+        grid-template-columns: 1fr;
+        gap: $space-4;
+        margin: $space-6 0;
+    }
+}
+
+.d_p_card {
+    background: $bg-card;
+    border-radius: $radius-2xl;
+    padding: $space-6;
+    box-shadow: $shadow-md;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: $transition-all;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+
+    // Hover effects
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: $shadow-xl;
+    }
+
+    // Subtle background gradient
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-5;
+        gap: $space-3;
+    }
+}
+
+// Icon wrapper styling
+.d_p_icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-xl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+
+    @media (max-width: $breakpoint-sm) {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+.d_p_icon {
+    font-size: $font-size-2xl;
+    transition: transform 0.3s ease;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-xl;
+    }
+}
+
+// Content area
+.d_p_content {
+    flex: 1;
+    min-width: 0; // Prevents flex item from overflowing
+}
+
+.d_p_title {
+    font-size: $font-size-lg;
+    font-weight: 600;
+    color: $text-secondary;
+    margin: 0 0 $space-2 0;
+    line-height: 1.2;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-base;
+    }
+}
+
+.d_p_amount,
+.d_p_type {
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+    line-height: 1.1;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-xl;
+    }
+}
+
+// Specific card styling
+.d_p_earning {
+    background: linear-gradient(135deg, rgba($brand-success, 0.1) 0%, rgba($brand-success, 0.05) 100%);
+    border-left: 4px solid $brand-success;
+
+    .d_p_icon-wrapper {
+        background: linear-gradient(135deg, $brand-success 0%, color.adjust($brand-success, $lightness: -10%) 100%);
+        box-shadow: 0 8px 20px rgba($brand-success, 0.3);
+    }
+
+    .d_p_icon {
+        color: $text-white;
+    }
+
+    .d_p_amount {
+        color: $brand-success;
+    }
+
+    &:hover .d_p_icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+}
+
+.d_p_order-type {
+    background: linear-gradient(135deg, rgba($brand-primary, 0.1) 0%, rgba($brand-primary, 0.05) 100%);
+    border-left: 4px solid $brand-primary;
+
+    .d_p_icon-wrapper {
+        background: linear-gradient(135deg, $brand-primary 0%, color.adjust($brand-primary, $lightness: -10%) 100%);
+        box-shadow: 0 8px 20px rgba($brand-primary, 0.3);
+    }
+
+    .d_p_icon {
+        color: $text-white;
+    }
+
+    .d_p_type {
+        color: $brand-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: $font-size-xl;
+        font-weight: 600;
+
+        @media (max-width: $breakpoint-sm) {
+            font-size: $font-size-lg;
+        }
+    }
+
+    &:hover .d_p_icon {
+        transform: scale(1.1) rotate(-5deg);
+    }
+}
+
+// Loading skeleton customization
+.d_p_card {
+    .react-loading-skeleton {
+        border-radius: $radius-lg;
+    }
+}
+
+// Error state styling
+.error-state {
+    text-align: center;
+    padding: $space-16;
+    color: $text-secondary;
+
+    h2 {
+        color: $brand-danger;
+        font-size: $font-size-2xl;
+        margin: 0 0 $space-4 0;
+    }
+
+    p {
+        font-size: $font-size-lg;
+        margin: 0;
+    }
+}
+
+// Animation for card entrance
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.d_p_card {
+    animation: cardSlideIn 0.6s ease-out;
+    animation-fill-mode: both;
+
+    &:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    &:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+}
+
+// Dark mode support (if you have dark mode)
+@media (prefers-color-scheme: dark) {
+    .d_p_card {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+
+        &::before {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+        }
+    }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    .d_p_card {
+        border-width: 2px;
+        border-color: currentColor;
+    }
+
+    .d_p_earning {
+        border-left-width: 6px;
+    }
+
+    .d_p_order-type {
+        border-left-width: 6px;
+    }
+}

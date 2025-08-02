@@ -1,0 +1,474 @@
+@use './variables' as *;
+.cab-carousel {
+    width: 100%;
+    background: $bg-card;
+    border-radius: $card-radius;
+    overflow: hidden;
+    box-shadow: $card-shadow;
+    position: relative;
+    border: 1px solid $border-light;
+    transition: $transition-all;
+    animation: cab-carousel-fade-in 0.6s $ease-out;
+    animation-fill-mode: both;
+}
+
+.cab-carousel:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+}
+
+// ==================
+// PLACEHOLDER STATE
+// ==================
+.cab-carousel__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background: $bg-secondary;
+    color: $text-secondary;
+}
+
+.cab-carousel__placeholder-icon {
+    font-size: $font-size-5xl;
+    margin-bottom: $space-4;
+    opacity: 0.5;
+}
+
+.cab-carousel__placeholder-text {
+    margin: 0;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $text-muted;
+}
+
+// ===============
+// MAIN DISPLAY
+// ===============
+.cab-carousel__main {
+    position: relative;
+}
+
+.cab-carousel__image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    cursor: zoom-in;
+    transition: $transition-all;
+}
+
+.cab-carousel__image-wrapper--zoomed {
+    cursor: zoom-out;
+    height: 600px;
+}
+
+.cab-carousel__image-wrapper--zoomed .cab-carousel__main-image {
+    transform: scale(1.5);
+}
+
+.cab-carousel__main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Changed from cover to contain to show full image */
+    object-position: center; /* Center the image */
+    transition: $transition-transform;
+    display: block;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    background: $bg-secondary; /* Add background for letterboxing if needed */
+}
+
+// =================
+// CONTROL BUTTONS
+// =================
+.cab-carousel__zoom-btn {
+    position: absolute;
+    top: $space-4;
+    right: $space-4;
+    background: rgba(44, 62, 80, 0.3); /* Using your $brand-primary with reduced opacity */
+    color: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: $button-radius;
+    padding: $space-3;
+    cursor: pointer;
+    transition: $transition-all;
+    z-index: $z-docked;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+    .cab-carousel__zoom-btn {
+        backdrop-filter: blur(10px);
+    }
+}
+
+.cab-carousel__zoom-btn:hover {
+    background: rgba(52, 152, 219, 0.6); /* Using your $brand-secondary with reduced opacity */
+    transform: scale(1.1);
+    box-shadow: $shadow-md;
+    color: $text-white;
+}
+
+.cab-carousel__zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.cab-carousel__zoom-btn:focus-visible {
+    outline: 2px solid $border-focus;
+    outline-offset: 2px;
+}
+
+.cab-carousel__nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(44, 62, 80, 0.3); /* Using your $brand-primary with reduced opacity */
+    color: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: $radius-full;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: $transition-all;
+    z-index: $z-docked;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+    .cab-carousel__nav-btn {
+        backdrop-filter: blur(10px);
+    }
+}
+
+.cab-carousel__nav-btn:hover {
+    background: rgba(52, 152, 219, 0.6); /* Using your $brand-secondary with reduced opacity */
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: $shadow-lg;
+    color: $text-white;
+}
+
+.cab-carousel__nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.cab-carousel__nav-btn:focus-visible {
+    outline: 2px solid $border-focus;
+    outline-offset: 2px;
+}
+
+.cab-carousel__nav-btn--prev {
+    left: $space-4;
+}
+
+.cab-carousel__nav-btn--next {
+    right: $space-4;
+}
+
+// ==================
+// CONTROLS SECTION
+// ==================
+.cab-carousel__controls {
+    position: absolute;
+    bottom: $space-4;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+    background: rgba(44, 62, 80, 0.3); /* Using your $brand-primary with reduced opacity */
+    padding: $space-3 $space-6;
+    border-radius: $radius-full;
+    z-index: $z-docked;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+    .cab-carousel__controls {
+        backdrop-filter: blur(10px);
+    }
+}
+
+.cab-carousel__counter {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    color: $text-white;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    font-family: $font-primary;
+    opacity: 0.9;
+}
+
+.cab-carousel__counter-divider {
+    opacity: 0.6;
+}
+
+.cab-carousel__autoplay-btn {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    background: rgba(255, 255, 255, 0.1);
+    color: $text-white;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: $button-radius;
+    padding: $space-2 $space-4;
+    cursor: pointer;
+    transition: $transition-colors;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    font-family: $font-primary;
+    opacity: 0.8;
+}
+
+.cab-carousel__autoplay-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 1;
+}
+
+.cab-carousel__autoplay-btn:active {
+    transform: scale(0.95);
+}
+
+.cab-carousel__autoplay-btn:focus-visible {
+    outline: 2px solid $border-focus;
+    outline-offset: 2px;
+}
+
+// ==================
+// THUMBNAIL SECTION
+// ==================
+.cab-carousel__thumbnails {
+    display: flex;
+    gap: $space-3;
+    padding: $space-6;
+    background: $bg-secondary;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: $border-medium $border-light;
+}
+
+.cab-carousel__thumbnails::-webkit-scrollbar {
+    height: 6px;
+}
+
+.cab-carousel__thumbnails::-webkit-scrollbar-track {
+    background: $border-light;
+    border-radius: $radius-sm;
+}
+
+.cab-carousel__thumbnails::-webkit-scrollbar-thumb {
+    background: $border-medium;
+    border-radius: $radius-sm;
+}
+
+.cab-carousel__thumbnails::-webkit-scrollbar-thumb:hover {
+    background: $border-dark;
+}
+
+.cab-carousel__thumbnail {
+    position: relative;
+    width: 80px;
+    height: 60px;
+    border-radius: $input-radius;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: $transition-all;
+    flex-shrink: 0;
+    background: none;
+    padding: 0;
+}
+
+.cab-carousel__thumbnail:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+}
+
+.cab-carousel__thumbnail:hover .cab-carousel__thumbnail-image {
+    transform: scale(1.05);
+}
+
+.cab-carousel__thumbnail:hover .cab-carousel__thumbnail-overlay {
+    opacity: 1;
+}
+
+.cab-carousel__thumbnail:focus-visible {
+    outline: 2px solid $border-focus;
+    outline-offset: 2px;
+}
+
+.cab-carousel__thumbnail--active {
+    border-color: $brand-secondary;
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 4px rgba($brand-secondary, 0.1);
+}
+
+.cab-carousel__thumbnail--active .cab-carousel__thumbnail-overlay {
+    opacity: 1;
+}
+
+.cab-carousel__thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: $transition-transform;
+    display: block;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+}
+
+.cab-carousel__thumbnail-overlay {
+    position: absolute;
+    inset: 0;
+    background: $gradient-primary;
+    opacity: 0;
+    transition: $transition-opacity;
+    mix-blend-mode: multiply;
+}
+
+// ==================
+// PROGRESS INDICATOR
+// ==================
+.cab-carousel__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: $z-base;
+}
+
+.cab-carousel__progress-fill {
+    height: 100%;
+    background: $gradient-primary;
+    animation: cab-carousel-progress 4s linear infinite;
+    transform-origin: left;
+}
+
+// ==================
+// RESPONSIVE DESIGN
+// ==================
+@media (max-width: $breakpoint-md) {
+    .cab-carousel__image-wrapper {
+        height: 250px;
+    }
+
+    .cab-carousel__image-wrapper--zoomed {
+        height: 400px;
+    }
+
+    .cab-carousel__nav-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .cab-carousel__controls {
+        padding: $space-2 $space-4;
+        gap: $space-3;
+    }
+
+    .cab-carousel__thumbnail {
+        width: 60px;
+        height: 45px;
+    }
+
+    .cab-carousel__thumbnails {
+        padding: $space-4;
+        gap: $space-2;
+    }
+}
+
+@media (max-width: $breakpoint-sm) {
+    .cab-carousel__image-wrapper {
+        height: 200px;
+    }
+
+    .cab-carousel__image-wrapper--zoomed {
+        height: 300px;
+    }
+
+    .cab-carousel__autoplay-text {
+        display: none;
+    }
+
+    .cab-carousel__controls {
+        padding: $space-2 $space-3;
+    }
+
+    .cab-carousel__nav-btn {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .cab-carousel__nav-btn--prev {
+        left: $space-2;
+    }
+
+    .cab-carousel__nav-btn--next {
+        right: $space-2;
+    }
+
+    .cab-carousel__zoom-btn {
+        top: $space-2;
+        right: $space-2;
+        padding: $space-2;
+    }
+}
+
+// ==================
+// KEYFRAME ANIMATIONS
+// ==================
+@keyframes cab-carousel-progress {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes cab-carousel-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ==================
+// ACCESSIBILITY & REDUCED MOTION
+// ==================
+@media (prefers-reduced-motion: reduce) {
+    .cab-carousel__main-image,
+    .cab-carousel__thumbnail-image,
+    .cab-carousel__nav-btn,
+    .cab-carousel__zoom-btn,
+    .cab-carousel__autoplay-btn,
+    .cab-carousel__thumbnail {
+        transition: none;
+    }
+
+    .cab-carousel__progress-fill {
+        animation: none;
+    }
+
+    .cab-carousel {
+        animation: none;
+    }
+}

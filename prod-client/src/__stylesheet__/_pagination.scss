@@ -1,0 +1,124 @@
+// Professional Pagination Styles
+.p_g_pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+    button {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        min-width: 100px;
+
+        &:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #334155;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        &:disabled {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+    }
+
+    span {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 500;
+        white-space: nowrap;
+
+        .p_g_current-page {
+            color: #1e293b;
+            font-weight: 600;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 0 0.25rem;
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+    .p_g_pagination-controls {
+        gap: 1rem;
+        margin: 1.5rem 0;
+
+        button {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.8125rem;
+            min-width: 80px;
+        }
+
+        span {
+            font-size: 0.8125rem;
+        }
+    }
+}
+
+// Alternative dark theme (optional)
+@media (prefers-color-scheme: dark) {
+    .p_g_pagination-controls {
+        button {
+            background: #1e293b;
+            border-color: #334155;
+            color: #cbd5e1;
+
+            &:hover:not(:disabled) {
+                background: #334155;
+                border-color: #475569;
+                color: #e2e8f0;
+            }
+
+            &:disabled {
+                background: #0f172a;
+                border-color: #1e293b;
+                color: #475569;
+            }
+
+            &:focus {
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+                border-color: #6366f1;
+            }
+        }
+
+        span {
+            color: #94a3b8;
+
+            .p_g_current-page {
+                color: #e2e8f0;
+                background: linear-gradient(135deg, #6366f1, #4f46e5);
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+    }
+}

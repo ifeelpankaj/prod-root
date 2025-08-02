@@ -1,0 +1,960 @@
+@use './variables' as *;
+@use 'sass:color';
+
+.cabs_page {
+    background-color: $bg-secondary;
+    min-height: 100vh;
+    padding: $space-8;
+
+    .cabs_list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: $space-8;
+    }
+}
+
+.cabs_card {
+    background-color: $bg-card;
+    border-radius: $card-radius;
+    overflow: hidden;
+    box-shadow: $card-shadow;
+    transition: all $duration-base $ease-in-out;
+    height: 40rem;
+    width: 100%;
+    border: 1px solid $border-light;
+    position: relative;
+
+    // Elegant top border accent
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: $gradient-primary;
+        z-index: $z-base + 1;
+    }
+
+    &:hover {
+        box-shadow: $shadow-xl;
+        transform: translateY(-8px);
+        border-color: rgba($brand-secondary, 0.3);
+    }
+
+    .cabs_carousel {
+        display: flex;
+        overflow: hidden;
+        height: 240px;
+        position: relative;
+        background: $bg-tertiary;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0;
+        }
+
+        .cabs_carousel_button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba($bg-dark, 0.8);
+            color: $text-white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: $radius-full;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all $duration-fast $ease-in-out;
+            backdrop-filter: blur(10px);
+            z-index: $z-overlay;
+            box-shadow: $shadow-md;
+
+            &:hover {
+                background: rgba($brand-primary, 0.9);
+                transform: translateY(-50%) scale(1.1);
+                box-shadow: $shadow-lg;
+            }
+
+            &.prev {
+                left: $space-3;
+            }
+
+            &.next {
+                right: $space-3;
+            }
+
+            svg {
+                font-size: $font-size-sm;
+            }
+        }
+    }
+
+    .cabs_info {
+        padding: $card-padding;
+        height: 260px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        h2 {
+            color: $text-heading;
+            font-size: $font-size-2xl;
+            font-weight: $font-weight-bold;
+            font-family: $font-display;
+            margin-bottom: $space-3;
+            line-height: $line-height-tight;
+
+            // Subtle gradient text effect
+            background: linear-gradient(135deg, $text-heading 0%, $brand-secondary 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cabs_price {
+            font-size: $font-size-xl;
+            color: $brand-success;
+            font-weight: $font-weight-bold;
+            font-family: $font-display;
+            margin-bottom: $space-4;
+            display: flex;
+            align-items: center;
+            gap: $space-2;
+        }
+
+        .cabs_description {
+            color: $text-secondary;
+            font-size: $font-size-base;
+            line-height: $line-height-relaxed;
+            margin-bottom: $space-4;
+            flex-grow: 1;
+        }
+
+        .cabs_features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $space-2;
+            margin-bottom: $space-6;
+
+            span {
+                background: linear-gradient(135deg, rgba($brand-primary, 0.08) 0%, rgba($brand-secondary, 0.12) 100%);
+                color: $brand-primary;
+                padding: $space-2 $space-3;
+                border-radius: $radius-full;
+                font-size: $font-size-xs;
+                font-weight: $font-weight-medium;
+                display: flex;
+                align-items: center;
+                gap: $space-1;
+                border: 1px solid rgba($brand-secondary, 0.15);
+                transition: all $duration-fast $ease-in-out;
+
+                &:hover {
+                    background: linear-gradient(135deg, rgba($brand-secondary, 0.12) 0%, rgba($brand-accent, 0.08) 100%);
+                    border-color: rgba($brand-secondary, 0.25);
+                    transform: translateY(-2px);
+                }
+
+                svg {
+                    font-size: $font-size-xs;
+                    opacity: 0.8;
+                }
+            }
+        }
+
+        .cabs_book_button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: $gradient-primary;
+            color: $text-white;
+            padding: $space-4 $space-8;
+            border-radius: $button-radius;
+            text-decoration: none;
+            font-weight: $font-weight-semibold;
+            font-size: $font-size-base;
+            font-family: $font-primary;
+            transition: all $duration-base $ease-in-out;
+            box-shadow: $button-shadow;
+            border: none;
+            cursor: pointer;
+            min-height: $btn-height-md;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+
+            // Ripple effect
+            &::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba($text-white, 0.2);
+                border-radius: $radius-full;
+                transform: translate(-50%, -50%);
+                transition:
+                    width 0.6s,
+                    height 0.6s;
+            }
+
+            &:hover {
+                background: linear-gradient(
+                    135deg,
+                    color.adjust($brand-primary, $lightness: -8%) 0%,
+                    color.adjust($brand-secondary, $lightness: -5%) 100%
+                );
+                box-shadow: $shadow-lg;
+                transform: translateY(-3px);
+
+                &::before {
+                    width: 300px;
+                    height: 300px;
+                }
+            }
+
+            &:active {
+                transform: translateY(-1px);
+                box-shadow: $shadow-md;
+            }
+
+            // Not available state
+            &[href='/'] {
+                background: linear-gradient(135deg, $text-muted 0%, color.adjust($text-muted, $lightness: -10%) 100%);
+                cursor: not-allowed;
+
+                &:hover {
+                    background: linear-gradient(135deg, $text-muted 0%, color.adjust($text-muted, $lightness: -10%) 100%);
+                    transform: none;
+                    box-shadow: $button-shadow;
+
+                    &::before {
+                        width: 0;
+                        height: 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Premium card variant
+.cabs_card.premium {
+    border: 2px solid $color-premium;
+
+    &::before {
+        background: linear-gradient(90deg, $color-premium, color.adjust($color-premium, $lightness: 20%));
+    }
+
+    .cabs_info h2 {
+        background: linear-gradient(135deg, $color-premium 0%, color.adjust($color-premium, $lightness: 15%) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .cabs_features span {
+        background: linear-gradient(135deg, rgba($color-premium, 0.08) 0%, rgba($color-premium, 0.12) 100%);
+        color: $color-premium;
+        border-color: rgba($color-premium, 0.15);
+    }
+}
+
+// Economy card variant
+.cabs_card.economy {
+    border: 2px solid $color-economy;
+
+    &::before {
+        background: linear-gradient(90deg, $color-economy, color.adjust($color-economy, $lightness: 20%));
+    }
+
+    .cabs_info h2 {
+        background: linear-gradient(135deg, $color-economy 0%, color.adjust($color-economy, $lightness: 15%) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+}
+
+// Luxury card variant
+.cabs_card.luxury {
+    border: 2px solid $color-luxury;
+
+    &::before {
+        background: linear-gradient(90deg, $color-luxury, color.adjust($color-luxury, $lightness: 20%));
+        height: 6px;
+    }
+
+    .cabs_info {
+        background: linear-gradient(180deg, rgba($color-luxury, 0.02) 0%, transparent 100%);
+
+        h2 {
+            background: linear-gradient(135deg, $color-luxury 0%, color.adjust($color-luxury, $lightness: 15%) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    }
+}
+
+// Responsive design
+@media (max-width: $breakpoint-md) {
+    .cabs_card {
+        height: auto;
+        min-height: 450px;
+
+        .cabs_carousel {
+            height: 200px;
+
+            .cabs_carousel_button {
+                width: 36px;
+                height: 36px;
+
+                svg {
+                    font-size: 12px;
+                }
+            }
+        }
+
+        .cabs_info {
+            height: auto;
+            padding: $space-5;
+
+            h2 {
+                font-size: $font-size-xl;
+            }
+
+            .cabs_price {
+                font-size: $font-size-lg;
+            }
+
+            .cabs_features {
+                gap: $space-1;
+
+                span {
+                    padding: $space-1 $space-2;
+                    font-size: 10px;
+                }
+            }
+        }
+    }
+}
+
+// ===================================
+// ELEGANT ORDER CARD - MOBILE OPTIMIZED
+// ===================================
+
+.order_order-card {
+    background: $bg-card;
+    border-radius: $card-radius;
+    box-shadow: $card-shadow;
+    width: 100%;
+    max-width: 800px;
+    margin: $space-6 auto;
+    padding: $space-6;
+    position: relative;
+    overflow: hidden;
+    transition: $transition-all;
+    border: 1px solid $border-light;
+    min-height: auto; // Let content dictate height
+
+    // Elegant top gradient line
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: $gradient-primary;
+        z-index: 1;
+    }
+
+    // Subtle background decoration
+    &::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba($brand-accent, 0.03) 0%, transparent 70%);
+        border-radius: $radius-full;
+        z-index: 1;
+    }
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: $shadow-xl;
+        border-color: rgba($brand-accent, 0.3);
+    }
+
+    // ===================================
+    // HEADER SECTION
+    // ===================================
+    .order_order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: $space-6;
+        position: relative;
+        z-index: 3;
+        gap: $space-4;
+
+        h3 {
+            font-size: $font-size-lg;
+            font-weight: $font-weight-bold;
+            color: $text-primary;
+            margin: 0;
+            flex: 1;
+            min-width: 0;
+            line-height: $line-height-tight;
+        }
+
+        .order_status {
+            padding: $space-2 $space-3;
+            border-radius: $radius-full;
+            font-size: $font-size-xs;
+            font-weight: $font-weight-semibold;
+            text-transform: uppercase;
+            background: $gradient-success;
+            color: $text-white;
+            box-shadow: $shadow-sm;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+    }
+
+    // ===================================
+    // ROUTE SECTION - MOBILE OPTIMIZED
+    // ===================================
+    .order_order-route {
+        display: flex;
+        align-items: center;
+        gap: $space-3;
+        padding: $space-4;
+        background: $bg-secondary;
+        border-radius: $radius-lg;
+        border: 1px solid $border-light;
+        margin-bottom: $space-5;
+
+        .order_location {
+            flex: 1;
+            padding: $space-3;
+            background: $bg-card;
+            border-radius: $radius-md;
+            font-weight: $font-weight-medium;
+            color: $text-primary;
+            box-shadow: $shadow-sm;
+            transition: $transition-all;
+            font-size: $font-size-sm;
+            min-width: 0;
+            position: relative;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            &.from {
+                border-left: 3px solid $brand-primary;
+            }
+
+            &.to {
+                border-left: 3px solid $brand-secondary;
+            }
+        }
+
+        .order_route-line {
+            flex: 0 0 40px;
+            height: 2px;
+            background: $gradient-primary;
+            border-radius: $radius-full;
+            position: relative;
+
+            &::before,
+            &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                width: 4px;
+                height: 4px;
+                border-radius: $radius-full;
+                background: $brand-accent;
+                transform: translateY(-50%);
+            }
+
+            &::before {
+                left: -2px;
+            }
+            &::after {
+                right: -2px;
+            }
+        }
+    }
+
+    // ===================================
+    // DETAILS SECTION - STACKED LAYOUT
+    // ===================================
+    .order_order-details {
+        display: flex;
+        flex-direction: column;
+        gap: $space-4;
+        padding: $space-4;
+        background: rgba($brand-accent, 0.03);
+        border-radius: $radius-lg;
+        border: 1px solid rgba($brand-accent, 0.1);
+        margin-bottom: $space-5;
+    }
+
+    .order_booking-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: $space-4;
+
+        .booking-item {
+            display: flex;
+            flex-direction: column;
+            gap: $space-1;
+
+            .label {
+                font-size: $font-size-xs;
+                color: $text-secondary;
+                font-weight: $font-weight-medium;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .value {
+                font-size: $font-size-sm;
+                color: $text-primary;
+                font-weight: $font-weight-semibold;
+
+                &.booking-id {
+                    font-family: $font-mono;
+                    font-size: $font-size-xs;
+                    color: $text-muted;
+                    word-break: break-all;
+                }
+            }
+        }
+    }
+
+    .order_order-amount {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: $space-4;
+        background: rgba($brand-primary, 0.05);
+        border-radius: $radius-md;
+        border: 1px solid rgba($brand-primary, 0.1);
+
+        .amount-label {
+            font-size: $font-size-sm;
+            color: $text-secondary;
+            font-weight: $font-weight-medium;
+        }
+
+        .amount-values {
+            text-align: right;
+
+            .order_total {
+                font-size: $font-size-xl;
+                font-weight: $font-weight-bold;
+                color: $brand-primary;
+                line-height: $line-height-tight;
+                margin-bottom: $space-1;
+            }
+
+            .order_paid {
+                font-size: $font-size-xs;
+                color: $brand-success;
+                font-weight: $font-weight-medium;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+        }
+    }
+
+    // ===================================
+    // ACTION BUTTON - ALWAYS VISIBLE
+    // ===================================
+    .order_detail-button {
+        width: 100%;
+        background: $gradient-primary;
+        color: $text-white;
+        border: none;
+        padding: $space-4;
+        border-radius: $radius-lg;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        cursor: pointer;
+        transition: $transition-all;
+        box-shadow: $shadow-sm;
+        z-index: 4;
+        margin-top: $space-4;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: $shadow-md;
+            text-decoration: none;
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:focus {
+            outline: 2px solid $border-focus;
+            outline-offset: 2px;
+            text-decoration: none;
+        }
+    }
+}
+
+// ===================================
+// RESPONSIVE DESIGN - MOBILE FIRST
+// ===================================
+
+// Mobile Phones (up to 640px)
+@media (max-width: $breakpoint-sm) {
+    .order_order-card {
+        margin: $space-4 $space-2;
+        padding: $space-4;
+
+        .order_order-header {
+            flex-direction: column;
+            gap: $space-3;
+            align-items: stretch;
+
+            h3 {
+                font-size: $font-size-base;
+                line-height: $line-height-snug;
+            }
+
+            .order_status {
+                align-self: flex-end;
+                font-size: 10px;
+                padding: $space-1 $space-2;
+            }
+        }
+
+        .order_order-route {
+            flex-direction: column;
+            gap: $space-3;
+            padding: $space-3;
+
+            .order_location {
+                text-align: center;
+                white-space: normal;
+                padding: $space-3 $space-2;
+                border-left: none;
+                border-top: 3px solid;
+
+                &.from {
+                    border-top-color: $brand-primary;
+                }
+
+                &.to {
+                    border-top-color: $brand-secondary;
+                }
+            }
+
+            .order_route-line {
+                width: 2px;
+                height: 20px;
+                flex: none;
+                margin: 0 auto;
+
+                &::before,
+                &::after {
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+
+                &::before {
+                    top: -2px;
+                }
+                &::after {
+                    bottom: -2px;
+                    top: auto;
+                }
+            }
+        }
+
+        .order_booking-info {
+            grid-template-columns: 1fr;
+            gap: $space-3;
+
+            .booking-item .value.booking-id {
+                font-size: 10px;
+                line-height: $line-height-normal;
+            }
+        }
+
+        .order_order-amount {
+            flex-direction: column;
+            gap: $space-2;
+            text-align: center;
+
+            .amount-values {
+                text-align: center;
+
+                .order_total {
+                    font-size: $font-size-lg;
+                }
+            }
+        }
+    }
+}
+
+// Tablets (641px to 768px)
+@media (min-width: $breakpoint-sm) and (max-width: $breakpoint-md) {
+    .order_order-card {
+        margin: $space-6 $space-3;
+        padding: $space-5;
+
+        .order_order-route {
+            .order_location {
+                font-size: $font-size-xs;
+            }
+        }
+
+        .order_booking-info {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+}
+
+// Desktop (769px and up)
+@media (min-width: $breakpoint-md) {
+    .order_order-card {
+        padding: $space-8;
+
+        .order_order-header {
+            margin-bottom: $space-8;
+
+            h3 {
+                font-size: $font-size-xl;
+                background: $gradient-primary;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+        }
+
+        .order_order-route {
+            padding: $space-5;
+
+            .order_location {
+                font-size: $font-size-sm;
+                padding: $space-4;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: $shadow-md;
+                }
+            }
+
+            .order_route-line {
+                flex: 0 0 60px;
+            }
+        }
+
+        .order_order-details {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .order_booking-info {
+            grid-template-columns: repeat(4, 1fr);
+            flex: 1;
+        }
+
+        .order_order-amount {
+            flex-direction: column;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-left: $space-6;
+
+            .amount-values {
+                .order_total {
+                    font-size: $font-size-2xl;
+                }
+            }
+        }
+
+        // Keep button full-width on all screen sizes
+        .order_detail-button {
+            width: 100%;
+            margin-top: $space-6;
+            padding: $space-4 $space-6;
+            text-decoration: none;
+        }
+    }
+}
+
+// ===================================
+// INFO ITEMS COMPONENT (ENHANCED)
+// ===================================
+
+.booking_info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: $space-3;
+    padding: $space-3;
+    background: rgba($bg-card, 0.8);
+    border-radius: $radius-md;
+    backdrop-filter: blur(10px);
+    border: 1px solid $border-light;
+    transition: $transition-all;
+
+    &:hover {
+        background: $bg-card;
+        transform: translateX(2px);
+        box-shadow: $shadow-sm;
+    }
+
+    i,
+    svg {
+        font-size: $font-size-base;
+        color: $brand-accent;
+        margin-right: $space-3;
+        min-width: 20px;
+    }
+
+    &__label {
+        font-size: $font-size-xs;
+        color: $text-secondary;
+        margin-right: $space-3;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: $font-weight-medium;
+        min-width: 60px;
+    }
+
+    &__value {
+        font-size: $font-size-sm;
+        color: $text-primary;
+        font-weight: $font-weight-semibold;
+        flex: 1;
+    }
+}
+
+// ===================================
+// ANIMATIONS (OPTIMIZED)
+// ===================================
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// Apply subtle animations
+.order_order-card {
+    animation: fadeInUp $duration-base $ease-out;
+}
+
+.booking_info-item {
+    animation: slideInRight $duration-base $ease-out;
+
+    @for $i from 1 through 6 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.05}s;
+        }
+    }
+}
+
+// ===================================
+// ACCESSIBILITY & REDUCED MOTION
+// ===================================
+
+@media (prefers-reduced-motion: reduce) {
+    .order_order-card,
+    .booking_info-item,
+    .order_location,
+    .order_detail-button {
+        animation: none;
+        transition: none;
+    }
+
+    .order_order-card:hover {
+        transform: none;
+    }
+}
+
+// ===================================
+// UTILITY CLASSES
+// ===================================
+
+.glass-effect {
+    background: rgba($bg-card, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid $border-light;
+}
+
+.gradient-text {
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, $brand-warning 0%, $brand-accent 100%);
+    padding: 0.5rem;
+    border-radius: $space-2;
+}
+
+.status-completed {
+    border-radius: $space-2;
+
+    background: $gradient-success;
+    padding: 0.5rem;
+}
+
+.status-cancelled {
+    border-radius: $space-2;
+    padding: $space-2;
+    background: linear-gradient(135deg, $brand-danger 0%, #f11d06 100%);
+}
+
+.status-pending {
+    border-radius: $space-2;
+    padding: $space-2;
+    background: linear-gradient(135deg, $brand-warning 0%, rgb(249, 200, 75) b 50%);
+}
+
+.status-confirmed {
+    border-radius: $space-2;
+    padding: $space-2;
+    background: linear-gradient(135deg, $brand-accent 0%, #c3e6a2 50%);
+}
