@@ -28,6 +28,18 @@ pipeline {
             }
         }
         
+        stage('Setup Admin Environment') {
+            steps {
+                dir('prod-admin') {
+                    sh '''
+                        #!/bin/bash
+                        touch .env
+                        cp ${APP_DIR}/.env .env
+                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                    '''
+                }
+            }
+        }
         stage('Setup Server Environment') {
             steps {
                 dir('prod-server') {
