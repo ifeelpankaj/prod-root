@@ -37,8 +37,8 @@ pipeline {
                         cp ${APP_DIR}/.env.development .env.development
                         cp ${APP_DIR}/.env.production .env.production
                         
-                        # Replace all occurrences of localhost with external IP in ALLOWED_ORIGINS
-                        sed -i "s|localhost|${EXTERNAL_IP}|g" .env.production
+                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
+                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
                     '''
                 }
             }
