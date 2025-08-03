@@ -20,5 +20,6 @@ export const generic_msg = {
     no_order_yet: 'Currently you dont have any bookings',
     order_cancelled:
         'Your booking is cancelled sorry for the inconvience by us if you have made payment we will return it to you within 3 to 4 buisness days',
-    invalid_document: 'Invalid document format. Only JPEG, PNG, and PDF up to 2 MB allowed.'
+    invalid_document: 'Invalid document format. Only JPEG, PNG, and PDF up to 2 MB allowed.',
+    page_not_found: `Oops! The page you're looking for seems to have wandered off into the digital void.`
 };

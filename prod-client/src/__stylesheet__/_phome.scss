@@ -1,11 +1,25 @@
 @use './variables' as *;
-.p_home_container {
-    min-height: 100vh;
-    background: $gradient-hero;
-    position: relative;
-    overflow: hidden;
+@use 'sass:color';
 
-    // Add subtle animated background pattern
+// Professional Booking Form - Classy & Stunning Design
+// Using design system variables for elegance and sophistication
+
+// ===================
+// HERO SECTION LAYOUT
+// ===================
+.p_home_container {
+    height: 100vh;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: $space-8 $space-12;
+    position: relative;
+
+    // Dark overlay for better contrast
     &::before {
         content: '';
         position: absolute;
@@ -13,495 +27,541 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-        animation: float 20s ease-in-out infinite;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+        z-index: 1;
     }
-
-    // Floating animation for background
-    @keyframes float {
-        0%,
-        100% {
-            transform: translateY(0px) rotate(0deg);
-        }
-        33% {
-            transform: translateY(-10px) rotate(1deg);
-        }
-        66% {
-            transform: translateY(5px) rotate(-1deg);
-        }
-    }
-}
-
-// =================
-// CONTENT LAYOUT
-// =================
-.p_home_content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: $space-16;
-    max-width: $container-xl;
-    margin: 0 auto;
-    padding: $space-20 $space-8;
-    min-height: 100vh;
-    align-items: center;
-    position: relative;
-    z-index: $z-base;
 
     @media (max-width: $breakpoint-lg) {
-        grid-template-columns: 1fr;
-        gap: $space-12;
-        text-align: center;
-        padding: $space-16 $space-6;
-    }
-
-    @media (max-width: $breakpoint-sm) {
-        padding: $space-12 $space-4;
-    }
-}
-
-// =================
-// FORM CONTAINER
-// =================
-.p_home_form_container {
-    background: rgba($bg-primary, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: $radius-3xl;
-    padding: $space-12;
-    box-shadow: $shadow-2xl;
-    position: relative;
-
-    // Glass morphism effect
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        border-radius: $radius-3xl;
-        pointer-events: none;
+        padding: $space-6 $space-8;
     }
 
     @media (max-width: $breakpoint-md) {
+        padding: $space-4 $space-6;
+        justify-content: center;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-3 $space-4;
+    }
+}
+
+// ===================
+// BOOKING CARD - STABLE & SMOOTH
+// ===================
+.p_home_booking-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: $radius-3xl;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    padding: $space-10;
+    max-width: 480px;
+    max-height: max-content;
+    width: 100%;
+    margin-left: $space-8;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: slideInLeft $duration-base $ease-out;
+
+    // Fixed height to prevent layout shifts
+    min-height: fit-content;
+    display: flex;
+    flex-direction: column;
+
+    // Premium glow effect
+    &::before {
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        right: -1px;
+        bottom: -1px;
+        background: $gradient-primary;
+        border-radius: $radius-3xl;
+        z-index: -1;
+        opacity: 0.1;
+    }
+
+    @media (max-width: $breakpoint-lg) {
+        margin-left: $space-6;
+        max-width: 450px;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        margin-left: 0;
         padding: $space-8;
-        border-radius: $radius-2xl;
+        max-width: 420px;
     }
 
     @media (max-width: $breakpoint-sm) {
         padding: $space-6;
-        border-radius: $radius-xl;
+        max-width: 100%;
+        margin: 0;
     }
 }
 
-// =================
-// TITLE STYLING
-// =================
-.p_home_title {
+// ===================
+// BRAND TITLE - PREMIUM STYLING
+// ===================
+.p_home_brand-title {
     font-family: $font-display;
     font-size: $font-size-4xl;
-    font-weight: $font-weight-bold;
-    color: $text-heading;
+    font-weight: $font-weight-extrabold;
     text-align: center;
-    margin-bottom: $space-8;
-    position: relative;
-
-    // Gradient text effect
-    background: $gradient-primary;
+    margin: 0 0 $space-10 0;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, $brand-primary 0%, $brand-secondary 50%, $brand-accent 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    position: relative;
 
     // Subtle text shadow for depth
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    &::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        background: rgba(0, 0, 0, 0.1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        z-index: -1;
+    }
 
     @media (max-width: $breakpoint-md) {
         font-size: $font-size-3xl;
-        margin-bottom: $space-6;
+        margin-bottom: $space-8;
     }
 
     @media (max-width: $breakpoint-sm) {
         font-size: $font-size-2xl;
-        margin-bottom: $space-5;
+        margin-bottom: $space-6;
     }
 }
 
-// =================
-// TRIP TYPE TOGGLE
-// =================
-.p_home_trip_toggle {
+// ===================
+// TRIP TOGGLE - SMOOTH & STABLE
+// ===================
+.p_home_trip-toggle {
     display: flex;
-    align-items: center;
-    background: $bg-tertiary;
-    border-radius: $radius-full;
+    background: linear-gradient(145deg, $bg-tertiary 0%, rgba($bg-secondary, 0.8) 100%);
+    border-radius: $radius-2xl;
     padding: $space-1;
     margin-bottom: $space-8;
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba($border-light, 0.5);
     position: relative;
-    cursor: pointer;
-    border: 2px solid $border-light;
-    transition: $transition-all;
-
-    &:hover {
-        border-color: $brand-secondary;
-        box-shadow: $shadow-md;
-    }
-
-    span {
-        flex: 1;
-        padding: $space-3 $space-6;
-        text-align: center;
-        font-family: $font-primary;
-        font-weight: $font-weight-medium;
-        font-size: $font-size-sm;
-        color: $text-secondary;
-        transition: $transition-colors;
-        position: relative;
-        z-index: 2;
-        border-radius: $radius-full;
-
-        &.p_home_active {
-            color: $text-white;
-            font-weight: $font-weight-semibold;
-        }
-    }
+    overflow: hidden;
 
     @media (max-width: $breakpoint-sm) {
         margin-bottom: $space-6;
-
-        span {
-            padding: $space-2 $space-4;
-            font-size: $font-size-xs;
-        }
     }
 }
 
-.p_home_toggle_slider {
-    position: absolute;
-    top: $space-1;
-    left: $space-1;
-    width: calc(50% - #{$space-1});
-    height: calc(100% - #{$space-2});
-    background: $gradient-primary;
-    border-radius: $radius-full;
-    transition: $transition-transform;
-    box-shadow: $shadow-sm;
-}
-
-// =================
-// FORM GROUPS
-// =================
-.p_home_form_group {
-    position: relative;
-    margin-bottom: $space-6;
-
-    &:last-of-type {
-        margin-bottom: $space-8;
-    }
-
-    // Input styling
-    input,
-    .p_home_custom_datepicker {
-        width: 100%;
-        padding: $space-4 $space-4 $space-4 $space-12;
-        border: 2px solid $border-light;
-        border-radius: $input-radius;
-        font-family: $font-primary;
-        font-size: $font-size-base;
-        font-weight: $font-weight-regular;
-        color: $text-primary;
-        background: $bg-primary;
-        transition: $transition-all;
-        height: $input-height-lg;
-
-        &::placeholder {
-            color: $text-muted;
-            font-weight: $font-weight-regular;
-        }
-
-        &:focus {
-            outline: none;
-            border-color: $brand-secondary;
-            box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
-            transform: translateY(-1px);
-        }
-
-        &:hover:not(:focus) {
-            border-color: $border-medium;
-            box-shadow: $shadow-sm;
-        }
-    }
-
-    @media (max-width: $breakpoint-sm) {
-        margin-bottom: $space-4;
-
-        input,
-        .p_home_custom_datepicker {
-            height: $input-height-md;
-            padding: $space-3 $space-3 $space-3 $space-10;
-            font-size: $font-size-sm;
-        }
-    }
-}
-
-// =================
-// INPUT ICONS
-// =================
-.p_home_input_icon {
-    position: absolute;
-    left: $space-4;
-    top: 50%;
-    transform: translateY(-50%);
-    color: $text-muted;
-    font-size: $font-size-lg;
-    z-index: 2;
-    transition: $transition-colors;
-
-    .p_home_form_group:hover &,
-    .p_home_form_group:focus-within & {
-        color: $brand-secondary;
-    }
-
-    @media (max-width: $breakpoint-sm) {
-        left: $space-3;
-        font-size: $font-size-base;
-    }
-}
-
-// =================
-// DATEPICKER CUSTOMIZATION
-// =================
-.p_home_custom_datepicker {
-    cursor: pointer;
-}
-
-:global(.p_home_custom_calendar) {
-    font-family: $font-primary !important;
-    border: none !important;
-    border-radius: $radius-xl !important;
-    box-shadow: $shadow-xl !important;
-    background: $bg-primary !important;
-
-    .react-datepicker__header {
-        background: $gradient-primary !important;
-        border: none !important;
-        border-radius: $radius-lg $radius-lg 0 0 !important;
-        color: $text-white !important;
-    }
-
-    .react-datepicker__current-month {
-        color: $text-white !important;
-        font-weight: $font-weight-semibold !important;
-    }
-
-    .react-datepicker__day-name {
-        color: rgba($text-white, 0.8) !important;
-        font-weight: $font-weight-medium !important;
-    }
-
-    .react-datepicker__day {
-        border-radius: $radius-md !important;
-        transition: $transition-all !important;
-
-        &:hover {
-            background: $brand-secondary !important;
-            color: $text-white !important;
-            transform: scale(1.1) !important;
-        }
-
-        &--selected {
-            background: $brand-accent !important;
-            color: $text-white !important;
-            font-weight: $font-weight-semibold !important;
-        }
-
-        &--today {
-            background: rgba($brand-secondary, 0.2) !important;
-            color: $brand-secondary !important;
-            font-weight: $font-weight-medium !important;
-        }
-    }
-}
-
-:global(.p_home_custom_popper) {
-    z-index: $z-modal !important;
-}
-
-// =================
-// SEARCH BUTTON
-// =================
-.p_home_search_cab_button {
-    width: 100%;
-    padding: $space-4 $space-8;
-    background: $gradient-primary;
+.p_home_toggle-option {
+    flex: 1;
+    background: transparent;
     border: none;
-    border-radius: $button-radius;
-    color: $text-white;
+    padding: $space-4 $space-6;
+    font-family: $font-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+    border-radius: $radius-xl;
+    cursor: pointer;
+    transition: all 0.2s ease-out; // Shorter, smoother transition
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    position: relative;
+    z-index: 1;
+    transform: translateY(0); // Stable base transform
+
+    &:hover:not(.p_home_active) {
+        color: $text-primary;
+        background: rgba($bg-primary, 0.5);
+        // Removed transform to prevent shaking
+    }
+
+    &.p_home_active {
+        background: linear-gradient(135deg, $brand-primary 0%, $brand-secondary 100%);
+        color: $text-white;
+        box-shadow:
+            0 2px 8px rgba($brand-primary, 0.3),
+            0 1px 3px rgba(0, 0, 0, 0.1);
+        // Removed transform to prevent movement
+        font-weight: $font-weight-bold;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-3 $space-4;
+        font-size: $font-size-sm;
+    }
+}
+
+// ===================
+// FORM CONTAINER - STABLE LAYOUT
+// ===================
+.p_home_booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+    flex: 1;
+    // Prevent layout shifts during round trip toggle
+    min-height: 280px; // Fixed minimum height
+
+    @media (max-width: $breakpoint-sm) {
+        gap: $space-5;
+        min-height: 260px;
+    }
+
+    @media (max-width: $breakpoint-xs) {
+        min-height: 320px; // Account for stacked datetime fields
+    }
+}
+
+// ===================
+// FORM GROUPS - CONSISTENT SPACING
+// ===================
+.p_home_form-group {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    position: relative;
+    // Ensure consistent height to prevent jumping
+    min-height: 70px;
+
+    // Round trip specific styling for smooth transitions
+    &.round-trip-fields {
+        opacity: 1;
+        max-height: 200px;
+        overflow: hidden;
+        transition: all 0.3s ease-out;
+        transform: translateY(0);
+
+        &.hidden {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
+            transform: translateY(-10px);
+        }
+    }
+}
+
+// ===================
+// INPUT WRAPPER - SMOOTH INTERACTIONS
+// ===================
+.p_home_input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(145deg, $bg-primary 0%, rgba($bg-secondary, 0.3) 100%);
+    border: 2px solid rgba($border-light, 0.6);
+    border-radius: $radius-xl;
+    transition: all 0.2s ease-out; // Smoother, shorter transition
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    // Stable base transform
+    transform: translateY(0);
+
+    &:hover {
+        border-color: rgba($brand-secondary, 0.5);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba($brand-secondary, 0.2);
+        // Minimal transform to prevent shaking
+        transform: translateY(-1px);
+    }
+
+    &:focus-within {
+        border-color: $brand-secondary;
+        box-shadow:
+            0 0 0 4px rgba($brand-secondary, 0.15),
+            0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px); // Reduced movement
+    }
+}
+
+// ===================
+// INPUT ICONS - STABLE ANIMATIONS
+// ===================
+.p_home_input-icon {
+    color: $brand-secondary;
+    font-size: $font-size-xl;
+    margin: 0 $space-5 0 $space-5;
+    flex-shrink: 0;
+    transition: all 0.2s ease-out; // Smoother transition
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    transform: scale(1); // Stable base transform
+
+    .p_home_input-wrapper:hover & {
+        color: color.adjust($brand-secondary, $lightness: -5%);
+        transform: scale(1.05); // Reduced scale to prevent shaking
+    }
+
+    .p_home_input-wrapper:focus-within & {
+        color: $brand-primary;
+        transform: scale(1.08); // Slightly more on focus
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-lg;
+        margin: 0 $space-4 0 $space-4;
+    }
+}
+
+// ===================
+// FORM INPUTS - ELEGANT STYLING
+// ===================
+.p_home_form-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: $space-5 $space-5 $space-5 0;
     font-family: $font-primary;
     font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    outline: none;
+    cursor: inherit;
+
+    &::placeholder {
+        color: $text-muted;
+        font-weight: $font-weight-regular;
+    }
+
+    &:focus::placeholder {
+        color: rgba($text-muted, 0.6);
+        transform: translateX(4px);
+        transition: $transition-all;
+    }
+
+    &[readonly] {
+        cursor: pointer;
+        color: $text-primary;
+        font-weight: $font-weight-medium;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-4 $space-4 $space-4 0;
+        font-size: $font-size-base;
+    }
+}
+
+// ===================
+// DATETIME ROW - PERFECT ALIGNMENT
+// ===================
+.p_home_datetime-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-4;
+    width: 100%;
+
+    @media (max-width: $breakpoint-sm) {
+        gap: $space-3;
+    }
+
+    @media (max-width: $breakpoint-xs) {
+        grid-template-columns: 1fr;
+        gap: $space-4;
+    }
+}
+
+.p_home_datetime-input {
+    flex: 1;
+    min-width: 0; // Prevent overflow
+
+    .p_home_input-wrapper {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+// ===================
+// SEARCH BUTTON - PREMIUM DESIGN
+// ===================
+.p_home_search-button {
+    background: linear-gradient(135deg, $brand-primary 0%, $brand-secondary 50%, color.adjust($brand-secondary, $lightness: -5%) 100%);
+    border: none;
+    border-radius: $radius-2xl;
+    padding: $space-5 $space-8;
+    font-family: $font-primary;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $text-white;
     cursor: pointer;
     transition: $transition-all;
-    box-shadow: $shadow-md;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: $space-6;
     position: relative;
     overflow: hidden;
-    height: $btn-height-lg;
+    box-shadow:
+        0 8px 24px rgba($brand-primary, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.15);
 
-    // Hover effect
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: $shadow-lg;
-    }
-
-    // Active effect
-    &:active {
-        transform: translateY(0);
-    }
-
-    // Ripple effect
+    // Shine effect
     &::before {
         content: '';
         position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: translate(-50%, -50%);
-        transition:
-            width 0.3s,
-            height 0.3s;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s ease;
     }
 
-    &:active::before {
-        width: 300px;
-        height: 300px;
+    &:hover:not(:disabled) {
+        background: linear-gradient(
+            135deg,
+            color.adjust($brand-primary, $lightness: -5%) 0%,
+            color.adjust($brand-secondary, $lightness: -3%) 50%,
+            color.adjust($brand-secondary, $lightness: -8%) 100%
+        );
+        transform: translateY(-3px) scale(1.02);
+        box-shadow:
+            0 12px 32px rgba($brand-primary, 0.5),
+            0 8px 16px rgba(0, 0, 0, 0.2);
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(-1px) scale(1.01);
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+
+        &:hover {
+            transform: none;
+            box-shadow:
+                0 8px 24px rgba($brand-primary, 0.4),
+                0 4px 12px rgba(0, 0, 0, 0.15);
+        }
     }
 
     @media (max-width: $breakpoint-sm) {
-        height: $btn-height-md;
-        font-size: $font-size-base;
-        padding: $space-3 $space-6;
+        padding: $space-4 $space-6;
+        font-size: $font-size-lg;
+        margin-top: $space-5;
     }
 }
 
-// =================
-// TEXT/CAROUSEL CONTAINER
-// =================
-.p_home_text_container {
+// ===================
+// LOADING CONTENT
+// ===================
+.p_home_loading-content {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: $space-3;
     position: relative;
+    z-index: 1;
 
-    // Add some visual enhancement around the carousel
-    &::before {
-        content: '';
-        position: absolute;
-        top: -$space-8;
-        left: -$space-8;
-        right: -$space-8;
-        bottom: -$space-8;
-        background: linear-gradient(45deg, rgba($brand-secondary, 0.1) 0%, rgba($brand-accent, 0.1) 100%);
-        border-radius: $radius-3xl;
-        z-index: -1;
-    }
-
-    @media (max-width: $breakpoint-lg) {
-        margin-top: $space-8;
+    @media (max-width: $breakpoint-sm) {
+        gap: $space-2;
     }
 }
 
-// =================
-// RESPONSIVE ANIMATIONS
-// =================
-@media (prefers-reduced-motion: reduce) {
-    .p_home_container::before,
-    .p_home_search_cab_button::before {
-        animation: none;
+.p_home_search-icon {
+    font-size: $font-size-2xl;
+    transition: $transition-transform;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+
+    .p_home_search-button:hover:not(:disabled) & {
+        transform: scale(1.2) rotate(10deg);
     }
 
-    * {
-        transition: none !important;
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-xl;
     }
 }
 
-// =================
-// LOADING STATES
-// =================
-.p_home_form_container {
-    &.loading {
-        pointer-events: none;
-        opacity: $utility-opacity-loading;
+// ===================
+// LOADING SPINNER
+// ===================
+.p_home_loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba($text-white, 0.3);
+    border-top: 3px solid $text-white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 
-        &::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40px;
-            height: 40px;
-            border: 3px solid $border-light;
-            border-top: 3px solid $brand-secondary;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            transform: translate(-50%, -50%);
-            z-index: $z-overlay;
-        }
+    @media (max-width: $breakpoint-sm) {
+        width: 20px;
+        height: 20px;
+        border-width: 2px;
+    }
+}
+
+// ===================
+// ANIMATIONS
+// ===================
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px) translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(0) scale(1);
     }
 }
 
 @keyframes spin {
     0% {
-        transform: translate(-50%, -50%) rotate(0deg);
+        transform: rotate(0deg);
     }
     100% {
-        transform: translate(-50%, -50%) rotate(360deg);
+        transform: rotate(360deg);
     }
 }
 
-// =================
-// ACCESSIBILITY IMPROVEMENTS
-// =================
-.p_home_search_cab_button:focus-visible,
-.p_home_form_group input:focus-visible,
-.p_home_custom_datepicker:focus-visible {
-    outline: 2px solid $brand-accent;
+// ===================
+// ACCESSIBILITY & HIGH CONTRAST
+// ===================
+.p_home_input-wrapper:focus-within,
+.p_home_search-button:focus {
+    outline: 3px solid rgba($brand-secondary, 0.6);
     outline-offset: 2px;
 }
 
-// High contrast mode support
 @media (prefers-contrast: high) {
-    .p_home_form_container {
+    .p_home_booking-card {
+        background: $bg-card;
+        backdrop-filter: none;
+        border: 3px solid $border-dark;
+    }
+
+    .p_home_input-wrapper {
+        border-width: 2px;
         background: $bg-primary;
-        border: 2px solid $text-primary;
     }
 
-    .p_home_title {
-        -webkit-text-fill-color: $text-primary;
-        color: $text-primary;
-    }
-
-    .p_home_search_cab_button {
-        background: $text-primary;
-        border: 2px solid $text-primary;
+    .p_home_search-button {
+        background: $brand-primary;
     }
 }
 
-// =================
-// PRINT STYLES
-// =================
-@media print {
-    .p_home_container {
-        background: none;
-        color: black;
-    }
-
-    .p_home_form_container {
-        background: white;
-        border: 1px solid black;
-        box-shadow: none;
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
     }
 }

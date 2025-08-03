@@ -10,6 +10,7 @@ import MessageDisplay from '../../__components__/message.display';
 import { generic_msg } from '../../__constants__/res.message';
 import { motion } from 'framer-motion';
 import CabCard from '../../__components__/cards/cab.card';
+import { date } from '../../__utils__/date.utils';
 
 const DisplayCabs = () => {
     const dispatch = useDispatch();
@@ -75,6 +76,14 @@ const DisplayCabs = () => {
     }
     return (
         <main className="cabs_page">
+            <main className="cabs_review_main">
+                <div className="cabs_summary">
+                    <h2 className="cabs_heading">Review Your Booking</h2>
+                    <p className="cabs_info">
+                        {formData.from} - {formData.to} | {formData.cabType} | {date.formatDate(formData.pickupDate, false)}
+                    </p>
+                </div>
+            </main>
             {!cabs ? (
                 <div className="cabs_loader_container">
                     <MessageDisplay

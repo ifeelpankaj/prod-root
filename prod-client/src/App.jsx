@@ -20,6 +20,8 @@ const BookingDetails = lazy(() => import('./__pages__/Passenger/booking.details'
 
 const DriverOrderDetails = lazy(() => import('./__pages__/Driver/driver.order.details'));
 const DriverCompletedBooking = lazy(() => import('./__pages__/Driver/booking.history'));
+const PassengerHome = lazy(() => import('./__pages__/Passenger/Passenger.home'));
+const NotFoundPage = lazy(() => import('./__pages__/not.found'));
 
 // Non-lazy components
 import Header from './__components__/header';
@@ -51,6 +53,10 @@ function App() {
                         <Route
                             path="/"
                             element={<Home />}
+                        />
+                        <Route
+                            path="/home"
+                            element={<PassengerHome />}
                         />
                         <Route
                             path="/auth"
@@ -112,7 +118,7 @@ function App() {
                         <Route
                             path="/driver-order/:id"
                             element={
-                                <ProtectedHook roles={['Passenger', 'Driver', 'Admin']}>
+                                <ProtectedHook roles={['Driver', 'Admin']}>
                                     <DriverOrderDetails />
                                 </ProtectedHook>
                             }
@@ -124,6 +130,11 @@ function App() {
                                     <DriverCompletedBooking />
                                 </ProtectedHook>
                             }
+                        />
+                        {/* Add the 404 route as the last route - it will catch all unmatched paths */}
+                        <Route
+                            path="*"
+                            element={<NotFoundPage />}
                         />
                     </Routes>
                 </Suspense>

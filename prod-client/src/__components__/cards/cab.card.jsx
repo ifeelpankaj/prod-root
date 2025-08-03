@@ -2,12 +2,13 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-import { FaChevronLeft, FaChevronRight, FaAirFreshener, FaGasPump, FaCar, FaUsers } from 'react-icons/fa';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { priceCalculator } from '../../__utils__/user.utils';
+import Skeleton from 'react-loading-skeleton';
 
 const CabCard = ({ cab = {}, distance, isLoading }) => {
-    const { _id, capacity, modelName, photos, type, rate } = cab;
+    const { _id, modelName, photos, rate } = cab;
     const [currentPhotoIndex, setCurrentPhotoIndex] = React.useState(0);
 
     // Calculate price based on distance and rate
@@ -39,6 +40,81 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
             opacity: 0
         })
     };
+
+    // Skeleton inline styles
+    const skeletonStyles = {
+        image: {
+            height: '200px',
+            borderRadius: '8px'
+        },
+        title: {
+            height: '28px',
+            marginBottom: '12px',
+            borderRadius: '4px'
+        },
+        price: {
+            height: '24px',
+            width: '120px',
+            marginBottom: '16px',
+            borderRadius: '4px'
+        },
+        description: {
+            height: '16px',
+            marginBottom: '8px',
+            borderRadius: '4px'
+        },
+        feature: {
+            height: '20px',
+            width: '80px',
+            marginRight: '12px',
+            borderRadius: '4px',
+            display: 'inline-block'
+        },
+        button: {
+            height: '40px',
+            borderRadius: '6px',
+            marginTop: '16px'
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <motion.section
+                className="cabs_card"
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible">
+                <div className="cabs_carousel">
+                    <Skeleton style={skeletonStyles.image} />
+                </div>
+                <motion.div
+                    className="cabs_info"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}>
+                    <Skeleton style={skeletonStyles.title} />
+
+                    <Skeleton style={skeletonStyles.price} />
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <Skeleton style={skeletonStyles.description} />
+                        <Skeleton style={{ ...skeletonStyles.description, width: '70%' }} />
+                    </div>
+
+                    <div
+                        className="cabs_features"
+                        style={{ marginBottom: '16px' }}>
+                        <Skeleton style={skeletonStyles.feature} />
+                        <Skeleton style={skeletonStyles.feature} />
+                        <Skeleton style={skeletonStyles.feature} />
+                        <Skeleton style={skeletonStyles.feature} />
+                    </div>
+
+                    <Skeleton style={skeletonStyles.button} />
+                </motion.div>
+            </motion.section>
+        );
+    }
 
     return (
         <motion.section
@@ -78,25 +154,25 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}>
                 <h2>{modelName}</h2>
-                {isLoading ? (
-                    <p className="cabs_price">₹ Calculating Price...</p>
-                ) : (
-                    <p className="cabs_price">₹ {priceTotal > 0 ? priceTotal : 'N/A'}</p>
-                )}
+                <p className="cabs_price">₹ {priceTotal > 0 ? priceTotal : 'N/A'}</p>
 
                 <p className="cabs_description">Experience luxury and comfort with our {modelName}. Perfect for your journey 💫 ...</p>
                 <div className="cabs_features">
                     <span>
-                        <FaAirFreshener /> AC
+                        Included Km <p>{distance} Km</p>
                     </span>
                     <span>
-                        <FaGasPump /> {type || 'N/A'}
+                        Extra fare/Km <p>₹ {rate}/Km</p>
                     </span>
                     <span>
-                        <FaCar /> Auto
+                        Fuel Charges <p>Included</p>
+                    </span>
+
+                    <span>
+                        Night Charge <p>Included</p>
                     </span>
                     <span>
-                        <FaUsers /> {capacity} Seater
+                        Driver Charge <p>Included</p>
                     </span>
                 </div>
                 <motion.div
@@ -120,7 +196,6 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
         </motion.section>
     );
 };
-
 // Prop Types
 CabCard.propTypes = {
     cab: PropTypes.shape({

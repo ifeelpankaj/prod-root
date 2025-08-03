@@ -216,7 +216,7 @@ const Auth = () => {
                     <p>
                         {isLogin
                             ? 'To keep connected with us please login with your credentials'
-                            : 'Enter your details and start your journey with us'}
+                            : 'Enter your details and start your journey with us as a driver or passenger'}
                     </p>
                     <button
                         onClick={() => setIsLogin(!isLogin)}

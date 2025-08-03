@@ -8,19 +8,120 @@
 
     .cabs_list {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         gap: $space-8;
     }
-}
 
+    // Review section styling
+    .cabs_review_main {
+        margin-bottom: $space-8;
+
+        .cabs_summary {
+            background-color: $bg-card;
+            border-radius: $card-radius;
+            padding: $space-6;
+            box-shadow: $card-shadow;
+            border: 1px solid $border-light;
+            position: relative;
+            overflow: hidden;
+
+            // Add subtle gradient overlay
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, $brand-primary, $brand-secondary);
+            }
+
+            .cabs_heading {
+                color: $brand-black;
+                font-size: $font-size-2xl;
+                font-weight: $font-weight-bold;
+                margin-bottom: $space-3;
+                letter-spacing: -0.025em;
+
+                // Add icon before heading (optional)
+                &::before {
+                    content: '📋';
+                    margin-right: $space-2;
+                    font-size: $font-size-xl;
+                }
+            }
+
+            .cabs_info {
+                color: $brand-success;
+                font-size: $font-size-xl;
+                line-height: 1.6;
+                margin: 0;
+                padding: $space-4;
+                background-color: $bg-tertiary;
+                border-radius: $radius-md;
+                border-left: 4px solid $brand-primary;
+                font-weight: $font-weight-medium;
+
+                // Make the info more structured
+                display: flex;
+                flex-wrap: wrap;
+                gap: $space-4;
+                align-items: center;
+
+                // Style individual info pieces
+                & > span {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: $space-1;
+
+                    &:not(:last-child)::after {
+                        content: '•';
+                        margin-left: $space-2;
+                        color: $text-muted;
+                    }
+                }
+            }
+
+            // Hover effect for the entire summary card
+            transition: all $duration-base $ease-in-out;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: $shadow-lg;
+            }
+        }
+    }
+
+    // Responsive adjustments
+    @media (max-width: 768px) {
+        padding: $space-4;
+
+        .cabs_review_main .cabs_summary {
+            padding: $space-4;
+
+            .cabs_heading {
+                font-size: $font-size-xl;
+            }
+
+            .cabs_info {
+                font-size: $font-size-base;
+                flex-direction: column;
+                align-items: flex-start;
+
+                & > span:not(:last-child)::after {
+                    display: none;
+                }
+            }
+        }
+    }
+}
 .cabs_card {
     background-color: $bg-card;
     border-radius: $card-radius;
     overflow: hidden;
     box-shadow: $card-shadow;
     transition: all $duration-base $ease-in-out;
-    height: 40rem;
-    width: 100%;
+    height: 45rem;
     border: 1px solid $border-light;
     position: relative;
 
@@ -45,7 +146,7 @@
     .cabs_carousel {
         display: flex;
         overflow: hidden;
-        height: 240px;
+        height: 250px;
         position: relative;
         background: $bg-tertiary;
 
@@ -74,7 +175,8 @@
             backdrop-filter: blur(10px);
             z-index: $z-overlay;
             box-shadow: $shadow-md;
-
+            opacity: 0;
+            visibility: hidden;
             &:hover {
                 background: rgba($brand-primary, 0.9);
                 transform: translateY(-50%) scale(1.1);
@@ -92,6 +194,10 @@
             svg {
                 font-size: $font-size-sm;
             }
+        }
+        &:hover .cabs_carousel_button {
+            opacity: 1;
+            visibility: visible;
         }
     }
 
@@ -134,36 +240,46 @@
             line-height: $line-height-relaxed;
             margin-bottom: $space-4;
             flex-grow: 1;
+            min-height: 4rem;
         }
 
         .cabs_features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: $space-2;
-            margin-bottom: $space-6;
+            margin: 0 0 $space-5;
 
             span {
-                background: linear-gradient(135deg, rgba($brand-primary, 0.08) 0%, rgba($brand-secondary, 0.12) 100%);
-                color: $brand-primary;
-                padding: $space-2 $space-3;
-                border-radius: $radius-full;
-                font-size: $font-size-xs;
-                font-weight: $font-weight-medium;
                 display: flex;
+                justify-content: space-between;
                 align-items: center;
-                gap: $space-1;
-                border: 1px solid rgba($brand-secondary, 0.15);
-                transition: all $duration-fast $ease-in-out;
+                padding: $space-2 0;
+                border-bottom: 1px solid $border-light;
+                font-family: $font-secondary;
+                font-size: $font-size-sm;
 
-                &:hover {
-                    background: linear-gradient(135deg, rgba($brand-secondary, 0.12) 0%, rgba($brand-accent, 0.08) 100%);
-                    border-color: rgba($brand-secondary, 0.25);
-                    transform: translateY(-2px);
+                &:last-child {
+                    border-bottom: none;
                 }
 
-                svg {
+                // Left side text (labels) in dark black
+                color: black;
+                font-weight: $font-weight-semibold;
+
+                p {
+                    width: 4rem;
+                    display: flex;
+                    margin: 0;
+                    color: $brand-success;
+                    font-weight: $font-weight-semibold;
+                    font-size: $font-size-sm;
+                }
+            }
+
+            @media (max-width: $breakpoint-sm) {
+                span {
                     font-size: $font-size-xs;
-                    opacity: 0.8;
+
+                    p {
+                        font-size: $font-size-xs;
+                    }
                 }
             }
         }
