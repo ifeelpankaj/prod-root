@@ -58,10 +58,13 @@ pipeline {
         
         stage('Deploy with Docker') {
             steps {
-                sh 'docker compose down --volumes --remove-orphans
-                    docker builder prune -f  # Clears all build cache
+                sh '''
+                    docker compose down --volumes --remove-orphans
+                    docker builder prune -f
                     docker compose build --no-cache
-                    docker compose up -d'
+                    docker compose up -d
+                '''
+
             }
         }
     }
