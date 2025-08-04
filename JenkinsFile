@@ -1,17 +1,17 @@
 pipeline {
     agent any
-    
+
     environment {
         APP_DIR = '/app'
         EXTERNAL_IP = sh(script: 'curl -s ifconfig.me', returnStdout: true).trim()
     }
-    
+
     stages {
         stage('Cloning') {
             steps {
-                echo "Cloning"
-                git url: "https://github.com/ifeelpankaj/prod-root.git",
-                branch: "master"
+                echo 'Cloning Git Repo'
+                git url: 'https://github.com/ifeelpankaj/prod-root.git',
+                branch: 'master'
             }
         }
         stage('Prepare MongoDB Keyfile') {
@@ -35,7 +35,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Setup Admin Environment') {
             steps {
                 dir('prod-admin') {
@@ -56,26 +56,44 @@ pipeline {
                         touch .env.development .env.production
                         cp ${APP_DIR}/.env.development .env.development
                         cp ${APP_DIR}/.env.production .env.production
-                        
+
                         sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
                         sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
                     '''
                 }
             }
         }
-        
+
         stage('Deploy with Docker') {
             steps {
                 sh '''
-                    docker compose down --volumes --remove-orphans
-                    docker builder prune -f
-                    docker compose build --no-cache
-                    docker compose up -d
-                '''
+            # Clean up existing containers and volumes
+            docker compose down --volumes --remove-orphans
+            docker builder prune -f
+
+            # Build without cache
+            docker compose build --no-cache
+
+            # Start core services first
+            docker compose up -d mongodb
+
+            # Wait for MongoDB to be healthy
+            echo "Waiting for MongoDB to be healthy..."
+            timeout 120 sh -c 'until docker compose ps mongodb | grep -q "healthy"; do sleep 5; done'
+
+            # Initialize replica set
+            docker compose up mongodb-init --abort-on-container-exit
+
+            # Start remaining services
+            docker compose up -d backend frontend admin
+
+            # Verify all services are running
+            docker compose ps
+        '''
             }
         }
     }
-    
+
     post {
         success {
             echo 'Pipeline executed successfully!'
