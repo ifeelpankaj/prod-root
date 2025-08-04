@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 const server = import.meta.env.VITE_SERVER;
 
 // eslint-disable-next-line no-console
-console.log('API BASE URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('API BASE URL:', import.meta.env.VITE_SERVER);
 
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
     try {

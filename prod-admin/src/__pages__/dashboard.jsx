@@ -30,7 +30,7 @@ const Dashboard = () => {
                 toast.error('Logout failed');
             }
         } catch (error) {
-            toast.error(`Logout failed${  error.message}`);
+            toast.error(`Logout failed${error.message}`);
         }
     };
 
@@ -218,7 +218,8 @@ const CategoryItem = ({ color, count, capacity }) => {
                     style={{
                         backgroundColor: color,
                         width: `${percentage}%`
-                    }} />
+                    }}
+                />
             </div>
             <span>Count: {count}</span>
         </div>

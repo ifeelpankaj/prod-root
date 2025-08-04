@@ -8,7 +8,7 @@ export const transactionAPI = createApi({
         baseUrl: `${server}/api/v1/`,
         credentials: 'include',
         prepareHeaders: (headers, { getState }) => {
-            const {token} = getState().auth;
+            const { token } = getState().auth;
             if (token) {
                 headers.set('authorization', `Bearer ${token}`);
                 headers.set('set-cookie', `token = ${token}`);

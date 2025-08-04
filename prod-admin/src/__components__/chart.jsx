@@ -63,7 +63,7 @@ export const BarChart = ({
                 beginAtZero: true,
                 grid: { display: false },
                 ticks: {
-                    callback (value) {
+                    callback(value) {
                         return typeof value === 'number' ? value.toLocaleString() : value;
                     }
                 }
@@ -178,7 +178,7 @@ export const DoughnutChart = ({
             },
             tooltip: {
                 callbacks: {
-                    label (context) {
+                    label(context) {
                         const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
                         const percentage = ((context.parsed / total) * 100).toFixed(1);
                         return `${context.label}: ${context.parsed} (${percentage}%)`;
@@ -250,7 +250,7 @@ export const PieChart = ({
             },
             tooltip: {
                 callbacks: {
-                    label (context) {
+                    label(context) {
                         const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
                         const percentage = ((context.parsed / total) * 100).toFixed(1);
                         return `${context.label}: ${context.parsed} (${percentage}%)`;
@@ -309,7 +309,7 @@ export const LineChart = ({
                 beginAtZero: true,
                 grid: { display: true, color: 'rgba(0,0,0,0.1)' },
                 ticks: {
-                    callback (value) {
+                    callback(value) {
                         return typeof value === 'number' ? value.toLocaleString() : value;
                     }
                 }

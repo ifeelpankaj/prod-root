@@ -87,7 +87,7 @@ const Login = () => {
                 setForgotStep(2);
             }
         } catch (error) {
-            toast.error(`Failed to send OTP: ${  error.message}`);
+            toast.error(`Failed to send OTP: ${error.message}`);
         }
     };
 
@@ -146,7 +146,7 @@ const Login = () => {
                 }, 2000);
             }
         } catch (error) {
-            toast.error(`Failed to reset password: ${  error.message}`);
+            toast.error(`Failed to reset password: ${error.message}`);
         }
     };
 
