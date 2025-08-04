@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { server } from '../store';
 
-const server = import.meta.env.VITE_SERVER;
 export const cabAPI = createApi({
     reducerPath: 'cabAPI',
     baseQuery: fetchBaseQuery({

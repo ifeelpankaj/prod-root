@@ -5,6 +5,9 @@ import { adminAPI } from './api/admin.api';
 import { cabAPI } from './api/cab.api';
 import { orderApi } from './api/order.api';
 import { transactionAPI } from './api/transaction.api';
+
+export const server = import.meta.env.VITE_SERVER || `http://${window.location.hostname}:4000`;
+
 export const store = configureStore({
     reducer: {
         auth: authReducer,
