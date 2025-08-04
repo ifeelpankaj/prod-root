@@ -44,7 +44,6 @@ class DatabaseManager {
                 deprecationErrors: false
             }
         }
-
         this.setupEventListeners()
     }
 
