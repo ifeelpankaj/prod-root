@@ -2,6 +2,9 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 
 const server = import.meta.env.VITE_SERVER;
 
+// eslint-disable-next-line no-console
+console.log('VITE_SERVER:', import.meta.env.VITE_SERVER);
+
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
     try {
         const response = await fetch(`${server}/api/v1/user/login`, {
