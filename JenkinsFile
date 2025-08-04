@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Cloning') {
             steps {
-                echo "Cloning"
+                echo "Cloning your app"
                 git url: "https://github.com/ifeelpankaj/prod-root.git",
                 branch: "master"
             }
