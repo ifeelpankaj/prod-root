@@ -32,18 +32,14 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      - mongodb
-    # Fix: Use correct env file path and add fallback
+      mongodb:
+        condition: service_healthy
     env_file:
       - ./prod-server/.env.development
-    # Alternative: Use environment variables directly if file issues persist
     environment:
       - NODE_ENV=development
-      # Add your specific environment variables here if needed
-      # - DB_CONNECTION_STRING=mongodb://admin:password123@mongodb:27017/prod-db?authSource=admin
     networks:
       - app-network
-    # Add restart policy
     restart: unless-stopped
 
   mongodb:
@@ -59,10 +55,39 @@ services:
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
+      - ./mongo-keyfile:/opt/keyfile:ro
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
     networks:
       - app-network
-    # Add command to ensure proper authentication setup
-    command: mongod --auth
+    # Enable replica set for transactions
+    command: >
+      mongod --auth 
+      --replSet rs0 
+      --bind_ip_all 
+      --keyFile /opt/keyfile/mongodb-keyfile
+    healthcheck:
+      test: |
+        mongosh --port 27017 --eval "
+          try {
+            rs.status();
+            print('Replica set is ready');
+          } catch (e) {
+            if (e.message.includes('no replset config has been received')) {
+              print('Initializing replica set...');
+              rs.initiate({
+                _id: 'rs0',
+                members: [{ _id: 0, host: 'mongodb:27017' }]
+              });
+              print('Replica set initialized');
+            } else {
+              throw e;
+            }
+          }
+        "
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
 
 networks:
   app-network:

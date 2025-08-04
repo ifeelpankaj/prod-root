@@ -320,11 +320,6 @@ export const assignBookingWithRollback = async (req, res, next) => {
             bookings: [...cab.upcomingBookings]
         }
 
-        // Validate cab is ready for assignment
-        if (!cab.isReady) {
-            throw new CustomError('Cab is not ready for assignment. Driver may not be verified.', 400)
-        }
-
         // Check if driver is verified
         const driver = await User.findById(cab.belongsTo._id)
         if (!driver || !driver.isVerifiedDriver) {
@@ -365,6 +360,7 @@ export const assignBookingWithRollback = async (req, res, next) => {
         // Send confirmation email to driver (non-blocking)
         try {
             await sendMailWithRetry(
+                // @ts-ignore
                 cab.belongsTo.email, // Driver's email
                 driver_emails.driver_assignment_email_subject,
                 driver_emails.driver_assignment_email(
@@ -379,6 +375,7 @@ export const assignBookingWithRollback = async (req, res, next) => {
                 )
             )
         } catch (emailError) {
+            // @ts-ignore
             logger.error(generic_msg.email_sending_failed(cab.belongsTo.email), { meta: { error: emailError } })
             // Continue as the assignment is successful
         }

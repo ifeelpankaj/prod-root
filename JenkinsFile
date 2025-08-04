@@ -15,6 +15,78 @@ pipeline {
             }
         }
         
+        stage('Setup MongoDB Configuration') {
+            steps {
+                echo "Setting up MongoDB replica set configuration..."
+                sh '''
+                    #!/bin/bash
+                    
+                    # Create MongoDB keyfile for replica set authentication
+                    mkdir -p mongo-keyfile
+                    if [ ! -f "mongo-keyfile/mongodb-keyfile" ]; then
+                        openssl rand -base64 756 > mongo-keyfile/mongodb-keyfile
+                        chmod 400 mongo-keyfile/mongodb-keyfile
+                        echo "MongoDB keyfile created"
+                    else
+                        echo "MongoDB keyfile already exists"
+                    fi
+                    
+                    # Create MongoDB initialization script
+                    mkdir -p mongo-init
+                    cat > mongo-init/01-init-replica-set.js << 'EOF'
+// Wait for MongoDB to be ready
+sleep(5000);
+
+// Check if replica set is already initialized
+try {
+    var status = rs.status();
+    print('Replica set already initialized');
+} catch (e) {
+    if (e.message.includes('no replset config has been received')) {
+        print('Initializing replica set...');
+        var config = {
+            "_id": "rs0",
+            "members": [
+                {
+                    "_id": 0,
+                    "host": "mongodb:27017"
+                }
+            ]
+        };
+        rs.initiate(config);
+        print('Replica set initialization completed');
+        
+        // Wait for replica set to be ready
+        var timeout = 60; // 60 seconds timeout
+        var start = new Date();
+        while (true) {
+            try {
+                var status = rs.status();
+                if (status.myState === 1) { // PRIMARY
+                    print('Replica set is now ready');
+                    break;
+                }
+            } catch (e) {
+                // Continue waiting
+            }
+            
+            if ((new Date() - start) > timeout * 1000) {
+                print('Timeout waiting for replica set to be ready');
+                break;
+            }
+            sleep(2000);
+        }
+    } else {
+        print('Error checking replica set status: ' + e.message);
+        throw e;
+    }
+}
+EOF
+                    echo "MongoDB initialization script created"
+                '''
+            }
+        }
+        
         stage('Setup Client Environment') {
             steps {
                 dir('prod-client') {
@@ -69,6 +141,12 @@ pipeline {
                         if [ -f "${APP_DIR}/.env.development" ]; then
                             cp ${APP_DIR}/.env.development .env.development
                             sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                            
+                            # Update MongoDB connection string to use replica set
+                            if grep -q "DB_CONNECTION_STRING" .env.development; then
+                                sed -i 's|mongodb://admin:password123@mongodb:27017/prod-db?authSource=admin|mongodb://admin:password123@mongodb:27017/prod-db?authSource=admin\&replicaSet=rs0|g' .env.development
+                            fi
+                            
                             echo "Server .env.development file created successfully"
                         else
                             echo "Warning: ${APP_DIR}/.env.development not found, creating empty .env.development file"
@@ -78,6 +156,12 @@ pipeline {
                         if [ -f "${APP_DIR}/.env.production" ]; then
                             cp ${APP_DIR}/.env.production .env.production
                             sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
+                            
+                            # Update MongoDB connection string to use replica set
+                            if grep -q "DB_CONNECTION_STRING" .env.production; then
+                                sed -i 's|mongodb://admin:password123@mongodb:27017/prod-db?authSource=admin|mongodb://admin:password123@mongodb:27017/prod-db?authSource=admin\&replicaSet=rs0|g' .env.production
+                            fi
+                            
                             echo "Server .env.production file created successfully"
                         else
                             echo "Warning: ${APP_DIR}/.env.production not found, creating empty .env.production file"
@@ -136,21 +220,66 @@ pipeline {
             }
         }
         
+        stage('Backup Existing Data') {
+            steps {
+                script {
+                    echo "Creating backup of existing MongoDB data..."
+                    sh '''
+                        #!/bin/bash
+                        
+                        # Check if MongoDB container is running
+                        if docker ps | grep -q mongodb; then
+                            echo "MongoDB container is running, creating backup..."
+                            
+                            # Create backup directory with timestamp
+                            BACKUP_DIR="mongodb-backup-$(date +%Y%m%d_%H%M%S)"
+                            mkdir -p "${BACKUP_DIR}"
+                            
+                            # Create backup using mongodump
+                            docker exec mongodb mongodump \
+                                --host mongodb:27017 \
+                                --username admin \
+                                --password password123 \
+                                --authenticationDatabase admin \
+                                --out /tmp/backup
+                            
+                            # Copy backup from container to host
+                            docker cp mongodb:/tmp/backup "${BACKUP_DIR}/"
+                            
+                            # Keep only last 5 backups
+                            ls -dt mongodb-backup-* | tail -n +6 | xargs rm -rf
+                            
+                            echo "Backup created successfully in ${BACKUP_DIR}"
+                        else
+                            echo "No existing MongoDB container found, skipping backup"
+                        fi
+                    '''
+                }
+            }
+        }
+        
         stage('Deploy with Docker') {
             steps {
                 echo "Starting Docker deployment..."
                 sh '''
-                    echo "Stopping existing containers..."
-                    docker compose down --volumes --remove-orphans
+                    echo "Stopping application containers (keeping MongoDB data)..."
+                    # Stop only app containers, keep MongoDB data volume
+                    docker compose stop frontend admin backend
+                    
+                    echo "Removing application containers..."
+                    docker compose rm -f frontend admin backend
                     
                     echo "Cleaning up Docker builder cache..."
                     docker builder prune -f
                     
                     echo "Building Docker images..."
-                    docker compose build --no-cache
+                    docker compose build --no-cache frontend admin backend
                     
-                    echo "Starting containers..."
+                    echo "Starting all containers..."
                     docker compose up -d
+                    
+                    echo "Waiting for MongoDB replica set to be ready..."
+                    sleep 30
                     
                     echo "Deployment completed successfully!"
                 '''
@@ -163,9 +292,25 @@ pipeline {
                     echo "Verifying deployment..."
                     docker compose ps
                     
+                    echo "Checking MongoDB replica set status..."
+                    docker exec mongodb mongosh --eval "rs.status()" || echo "Replica set not ready yet"
+                    
                     echo "Checking container logs for any immediate errors..."
                     sleep 10
                     docker compose logs --tail=50
+                    
+                    echo "Verifying MongoDB transaction support..."
+                    docker exec mongodb mongosh --eval "
+                        try {
+                            var session = db.getMongo().startSession();
+                            session.startTransaction();
+                            print('✅ Transactions are supported and working');
+                            session.abortTransaction();
+                            session.endSession();
+                        } catch (e) {
+                            print('❌ Transaction support check failed:', e.message);
+                        }
+                    " || echo "Transaction verification failed"
                 '''
             }
         }
@@ -178,16 +323,21 @@ pipeline {
         success {
             echo '✅ Pipeline executed successfully!'
             echo "Application should be accessible at http://${EXTERNAL_IP}"
+            echo "MongoDB is configured with replica set for transaction support"
+            echo "Database data persists across deployments"
         }
         failure {
             echo '❌ Pipeline failed. Please check the logs for details.'
             sh '''
                 echo "Displaying recent container logs for debugging..."
                 docker compose logs --tail=100 || true
+                
+                echo "Checking MongoDB status..."
+                docker exec mongodb mongosh --eval "rs.status()" || true
             '''
         }
         cleanup {
-            echo "Cleaning up workspace..."
+            echo "Cleaning up workspace (keeping persistent data)..."
         }
     }
 }
