@@ -7,22 +7,131 @@ pipeline {
     }
     
     stages {
+        stage('Initial Debug - Environment Check') {
+            steps {
+                echo "============================================"
+                echo "INITIAL ENVIRONMENT DEBUGGING"
+                echo "============================================"
+                sh '''
+                    echo "Current working directory: $(pwd)"
+                    echo "APP_DIR: ${APP_DIR}"
+                    echo "EXTERNAL_IP: ${EXTERNAL_IP}"
+                    echo ""
+                    echo "=== Checking if APP_DIR exists ==="
+                    if [ -d "${APP_DIR}" ]; then
+                        echo "✅ APP_DIR (${APP_DIR}) exists"
+                        ls -la ${APP_DIR}
+                    else
+                        echo "❌ APP_DIR (${APP_DIR}) does not exist"
+                    fi
+                    echo ""
+                    echo "=== Original .env files in APP_DIR ==="
+                    ls -la ${APP_DIR}/.env* 2>/dev/null || echo "No .env files found in ${APP_DIR}"
+                    echo ""
+                    echo "=== Content of original .env files ==="
+                    if [ -f "${APP_DIR}/.env" ]; then
+                        echo "--- ${APP_DIR}/.env ---"
+                        cat ${APP_DIR}/.env
+                        echo ""
+                    fi
+                    if [ -f "${APP_DIR}/.env.development" ]; then
+                        echo "--- ${APP_DIR}/.env.development ---"
+                        cat ${APP_DIR}/.env.development
+                        echo ""
+                    fi
+                    if [ -f "${APP_DIR}/.env.production" ]; then
+                        echo "--- ${APP_DIR}/.env.production ---"
+                        cat ${APP_DIR}/.env.production
+                        echo ""
+                    fi
+                '''
+            }
+        }
+        
         stage('Cloning') {
             steps {
-                echo "Cloning"
+                echo "============================================"
+                echo "CLONING REPOSITORY"
+                echo "============================================"
                 git url: "https://github.com/ifeelpankaj/prod-root.git",
                 branch: "master"
+                
+                sh '''
+                    echo "Repository cloned successfully"
+                    echo "Current directory contents:"
+                    ls -la
+                    echo ""
+                    echo "=== Checking for project directories ==="
+                    for dir in prod-client prod-admin prod-server; do
+                        if [ -d "$dir" ]; then
+                            echo "✅ $dir directory exists"
+                            echo "Contents of $dir:"
+                            ls -la $dir/ | head -10
+                        else
+                            echo "❌ $dir directory does not exist"
+                        fi
+                        echo ""
+                    done
+                '''
             }
         }
         
         stage('Setup Client Environment') {
             steps {
+                echo "============================================"
+                echo "SETTING UP CLIENT ENVIRONMENT"
+                echo "============================================"
                 dir('prod-client') {
                     sh '''
-                        #!/bin/bash
+                        echo "Setting up client environment..."
+                        echo "Current directory: $(pwd)"
+                        
+                        # Create .env file
                         touch .env
-                        cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        echo "✅ Created .env file"
+                        
+                        # Copy original .env
+                        if [ -f "${APP_DIR}/.env" ]; then
+                            cp ${APP_DIR}/.env .env
+                            echo "✅ Copied .env from ${APP_DIR}"
+                        else
+                            echo "❌ No .env file found in ${APP_DIR}"
+                        fi
+                        
+                        echo ""
+                        echo "=== BEFORE modification ==="
+                        cat .env || echo "No .env content"
+                        
+                        # Replace VITE_SERVER
+                        echo ""
+                        echo "=== Modifying VITE_SERVER ==="
+                        
+                        # Method 1: Try to replace existing VITE_SERVER lines
+                        sed -i 's|^VITE_SERVER=.*|VITE_SERVER=http://'${EXTERNAL_IP}':4000|g' .env
+                        
+                        # Method 2: If no VITE_SERVER line exists, add one
+                        if ! grep -q "^VITE_SERVER=" .env; then
+                            echo "VITE_SERVER=http://${EXTERNAL_IP}:4000" >> .env
+                            echo "✅ Added new VITE_SERVER line"
+                        else
+                            echo "✅ Modified existing VITE_SERVER line"
+                        fi
+                        
+                        echo ""
+                        echo "=== AFTER modification - CLIENT .env ==="
+                        cat .env
+                        
+                        echo ""
+                        echo "=== Verifying CLIENT VITE_SERVER ==="
+                        VITE_SERVER_VALUE=$(grep "VITE_SERVER" .env | cut -d'=' -f2)
+                        echo "CLIENT VITE_SERVER is set to: $VITE_SERVER_VALUE"
+                        
+                        if [ -z "$VITE_SERVER_VALUE" ]; then
+                            echo "❌ ERROR: CLIENT VITE_SERVER is empty!"
+                            exit 1
+                        else
+                            echo "✅ CLIENT VITE_SERVER is properly set"
+                        fi
                     '''
                 }
             }
@@ -30,51 +139,335 @@ pipeline {
         
         stage('Setup Admin Environment') {
             steps {
+                echo "============================================"
+                echo "SETTING UP ADMIN ENVIRONMENT"
+                echo "============================================"
                 dir('prod-admin') {
                     sh '''
-                        #!/bin/bash
-                        touch .env
-                        cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
-                    '''
-                }
-            }
-        }
-        stage('Setup Server Environment') {
-            steps {
-                dir('prod-server') {
-                    sh '''
-                        #!/bin/bash
-                        touch .env.development .env.production
-                        cp ${APP_DIR}/.env.development .env.development
-                        cp ${APP_DIR}/.env.production .env.production
+                        echo "Setting up admin environment..."
+                        echo "Current directory: $(pwd)"
                         
-                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
-                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                        # Create .env file
+                        touch .env
+                        echo "✅ Created .env file"
+                        
+                        # Copy original .env
+                        if [ -f "${APP_DIR}/.env" ]; then
+                            cp ${APP_DIR}/.env .env
+                            echo "✅ Copied .env from ${APP_DIR}"
+                        else
+                            echo "❌ No .env file found in ${APP_DIR}"
+                        fi
+                        
+                        echo ""
+                        echo "=== BEFORE modification ==="
+                        cat .env || echo "No .env content"
+                        
+                        # Replace VITE_SERVER
+                        echo ""
+                        echo "=== Modifying VITE_SERVER ==="
+                        
+                        # Method 1: Try to replace existing VITE_SERVER lines (handles various formats)
+                        sed -i 's|^VITE_SERVER=.*|VITE_SERVER=http://'${EXTERNAL_IP}':4000|g' .env
+                        
+                        # Method 2: If no VITE_SERVER line exists, add one
+                        if ! grep -q "^VITE_SERVER=" .env; then
+                            echo "VITE_SERVER=http://${EXTERNAL_IP}:4000" >> .env
+                            echo "✅ Added new VITE_SERVER line"
+                        else
+                            echo "✅ Modified existing VITE_SERVER line"
+                        fi
+                        
+                        # Method 3: Also handle any localhost references in VITE_SERVER
+                        sed -i 's|VITE_SERVER=.*localhost.*|VITE_SERVER=http://'${EXTERNAL_IP}':4000|g' .env
+                        
+                        echo ""
+                        echo "=== AFTER modification - ADMIN .env ==="
+                        cat .env
+                        
+                        echo ""
+                        echo "=== Verifying ADMIN VITE_SERVER ==="
+                        VITE_SERVER_VALUE=$(grep "VITE_SERVER" .env | cut -d'=' -f2)
+                        echo "ADMIN VITE_SERVER is set to: $VITE_SERVER_VALUE"
+                        
+                        if [ -z "$VITE_SERVER_VALUE" ]; then
+                            echo "❌ ERROR: ADMIN VITE_SERVER is empty!"
+                            exit 1
+                        else
+                            echo "✅ ADMIN VITE_SERVER is properly set"
+                        fi
+                        
+                        echo ""
+                        echo "=== All environment variables in ADMIN .env ==="
+                        while IFS= read -r line; do
+                            if [[ $line == *"="* ]] && [[ ! $line == "#"* ]]; then
+                                echo "  $line"
+                            fi
+                        done < .env
                     '''
                 }
             }
         }
         
+        stage('Setup Server Environment') {
+            steps {
+                echo "============================================"
+                echo "SETTING UP SERVER ENVIRONMENT"
+                echo "============================================"
+                dir('prod-server') {
+                    sh '''
+                        echo "Setting up server environment..."
+                        echo "Current directory: $(pwd)"
+                        
+                        # Create environment files
+                        touch .env.development .env.production
+                        echo "✅ Created server environment files"
+                        
+                        # Copy original files
+                        if [ -f "${APP_DIR}/.env.development" ]; then
+                            cp ${APP_DIR}/.env.development .env.development
+                            echo "✅ Copied .env.development from ${APP_DIR}"
+                        else
+                            echo "❌ No .env.development file found in ${APP_DIR}"
+                        fi
+                        
+                        if [ -f "${APP_DIR}/.env.production" ]; then
+                            cp ${APP_DIR}/.env.production .env.production
+                            echo "✅ Copied .env.production from ${APP_DIR}"
+                        else
+                            echo "❌ No .env.production file found in ${APP_DIR}"
+                        fi
+                        
+                        echo ""
+                        echo "=== BEFORE modification - SERVER FILES ==="
+                        echo "--- .env.development ---"
+                        cat .env.development || echo "No .env.development content"
+                        echo ""
+                        echo "--- .env.production ---"
+                        cat .env.production || echo "No .env.production content"
+                        
+                        # Modify ALLOWED_ORIGINS
+                        echo ""
+                        echo "=== Modifying ALLOWED_ORIGINS ==="
+                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
+                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                        echo "✅ Modified ALLOWED_ORIGINS in both files"
+                        
+                        echo ""
+                        echo "=== AFTER modification - SERVER FILES ==="
+                        echo "--- .env.development ---"
+                        cat .env.development
+                        echo ""
+                        echo "--- .env.production ---"
+                        cat .env.production
+                        
+                        echo ""
+                        echo "=== Verifying SERVER ALLOWED_ORIGINS ==="
+                        echo "Development ALLOWED_ORIGINS:"
+                        grep "ALLOWED_ORIGINS" .env.development || echo "  No ALLOWED_ORIGINS found in development"
+                        echo "Production ALLOWED_ORIGINS:"
+                        grep "ALLOWED_ORIGINS" .env.production || echo "  No ALLOWED_ORIGINS found in production"
+                        
+                        echo ""
+                        echo "=== All environment variables in SERVER files ==="
+                        echo "Development variables:"
+                        while IFS= read -r line; do
+                            if [[ $line == *"="* ]] && [[ ! $line == "#"* ]]; then
+                                echo "  $line"
+                            fi
+                        done < .env.development
+                        
+                        echo ""
+                        echo "Production variables:"
+                        while IFS= read -r line; do
+                            if [[ $line == *"="* ]] && [[ ! $line == "#"* ]]; then
+                                echo "  $line"
+                            fi
+                        done < .env.production
+                    '''
+                }
+            }
+        }
+        
+        stage('Pre-Deploy Verification') {
+            steps {
+                echo "============================================"
+                echo "PRE-DEPLOY VERIFICATION"
+                echo "============================================"
+                sh '''
+                    echo "=== FINAL VERIFICATION OF ALL ENVIRONMENT FILES ==="
+                    echo ""
+                    echo "External IP: ${EXTERNAL_IP}"
+                    echo ""
+                    
+                    echo "=== CLIENT ENVIRONMENT ==="
+                    if [ -f "prod-client/.env" ]; then
+                        echo "CLIENT .env exists ✅"
+                        echo "CLIENT VITE_SERVER: $(grep VITE_SERVER prod-client/.env || echo 'NOT FOUND')"
+                    else
+                        echo "CLIENT .env missing ❌"
+                    fi
+                    echo ""
+                    
+                    echo "=== ADMIN ENVIRONMENT ==="
+                    if [ -f "prod-admin/.env" ]; then
+                        echo "ADMIN .env exists ✅"
+                        echo "ADMIN VITE_SERVER: $(grep VITE_SERVER prod-admin/.env || echo 'NOT FOUND')"
+                    else
+                        echo "ADMIN .env missing ❌"
+                    fi
+                    echo ""
+                    
+                    echo "=== SERVER ENVIRONMENT ==="
+                    if [ -f "prod-server/.env.development" ]; then
+                        echo "SERVER .env.development exists ✅"
+                        echo "SERVER DEV ALLOWED_ORIGINS: $(grep ALLOWED_ORIGINS prod-server/.env.development || echo 'NOT FOUND')"
+                    else
+                        echo "SERVER .env.development missing ❌"
+                    fi
+                    
+                    if [ -f "prod-server/.env.production" ]; then
+                        echo "SERVER .env.production exists ✅"
+                        echo "SERVER PROD ALLOWED_ORIGINS: $(grep ALLOWED_ORIGINS prod-server/.env.production || echo 'NOT FOUND')"
+                    else
+                        echo "SERVER .env.production missing ❌"
+                    fi
+                    echo ""
+                    
+                    echo "=== CHECKING DOCKER COMPOSE ==="
+                    if [ -f "docker-compose.yml" ]; then
+                        echo "docker-compose.yml exists ✅"
+                    else
+                        echo "docker-compose.yml missing ❌"
+                    fi
+                    
+                    echo ""
+                    echo "=== DOCKER STATUS ==="
+                    docker --version
+                    docker compose version
+                    echo "Current containers:"
+                    docker ps -a
+                '''
+            }
+        }
+        
         stage('Deploy with Docker') {
             steps {
+                echo "============================================"
+                echo "DEPLOYING WITH DOCKER"
+                echo "============================================"
                 sh '''
+                    echo "Stopping existing containers..."
                     docker compose down --volumes --remove-orphans
+                    
+                    echo "Cleaning up Docker resources..."
                     docker builder prune -f
+                    
+                    echo "Building images (no cache)..."
                     docker compose build --no-cache
+                    
+                    echo "Starting containers..."
                     docker compose up -d
+                    
+                    echo "Waiting for containers to start..."
+                    sleep 10
+                    
+                    echo "Container status:"
+                    docker compose ps
+                    
+                    echo "Container logs (last 20 lines each):"
+                    for service in $(docker compose config --services); do
+                        echo ""
+                        echo "=== $service logs ==="
+                        docker compose logs --tail=20 $service || echo "No logs for $service"
+                    done
                 '''
-
+            }
+        }
+        
+        stage('Post-Deploy Verification') {
+            steps {
+                echo "============================================"
+                echo "POST-DEPLOY VERIFICATION"
+                echo "============================================"
+                sh '''
+                    echo "=== FINAL CONTAINER STATUS ==="
+                    docker compose ps
+                    
+                    echo ""
+                    echo "=== NETWORK TEST ==="
+                    echo "External IP: ${EXTERNAL_IP}"
+                    
+                    # Test if ports are accessible
+                    echo "Testing port 4000 (backend)..."
+                    timeout 5 bash -c "</dev/tcp/${EXTERNAL_IP}/4000" 2>/dev/null && echo "✅ Port 4000 is accessible" || echo "❌ Port 4000 is not accessible"
+                    
+                    echo "Testing port 4173 (client)..."
+                    timeout 5 bash -c "</dev/tcp/${EXTERNAL_IP}/4173" 2>/dev/null && echo "✅ Port 4173 is accessible" || echo "❌ Port 4173 is not accessible"
+                    
+                    echo "Testing port 4174 (admin)..."
+                    timeout 5 bash -c "</dev/tcp/${EXTERNAL_IP}/4174" 2>/dev/null && echo "✅ Port 4174 is accessible" || echo "❌ Port 4174 is not accessible"
+                    
+                    echo ""
+                    echo "=== APPLICATION URLS ==="
+                    echo "Client: http://${EXTERNAL_IP}:4173"
+                    echo "Admin: http://${EXTERNAL_IP}:4174"
+                    echo "Server: http://${EXTERNAL_IP}:4000"
+                    
+                    echo ""
+                    echo "=== FINAL ENVIRONMENT SUMMARY ==="
+                    echo "CLIENT VITE_SERVER: $(grep VITE_SERVER prod-client/.env 2>/dev/null || echo 'NOT FOUND')"
+                    echo "ADMIN VITE_SERVER: $(grep VITE_SERVER prod-admin/.env 2>/dev/null || echo 'NOT FOUND')"
+                    echo "SERVER ALLOWED_ORIGINS (prod): $(grep ALLOWED_ORIGINS prod-server/.env.production 2>/dev/null || echo 'NOT FOUND')"
+                '''
             }
         }
     }
     
     post {
+        always {
+            echo "============================================"
+            echo "PIPELINE COMPLETED"
+            echo "============================================"
+            sh '''
+                echo "Final container status:"
+                docker compose ps || echo "No containers running"
+                echo ""
+                echo "Disk usage:"
+                df -h
+                echo ""
+                echo "Memory usage:"
+                free -m
+            '''
+        }
         success {
-            echo 'Pipeline executed successfully!'
+            echo '✅ Pipeline executed successfully!'
+            sh '''
+                echo "🎉 DEPLOYMENT SUCCESSFUL 🎉"
+                echo ""
+                echo "Your applications are now running at:"
+                echo "🌐 Client: http://${EXTERNAL_IP}:4173"
+                echo "⚙️  Admin: http://${EXTERNAL_IP}:4174"
+                echo "🖥️  Server: http://${EXTERNAL_IP}:4000"
+                echo ""
+                echo "Check the admin console log to verify VITE_SERVER is correctly set to: http://${EXTERNAL_IP}:4000"
+            '''
         }
         failure {
-            echo 'Pipeline failed. Please check the logs for details.'
+            echo '❌ Pipeline failed. Check the logs above for details.'
+            sh '''
+                echo "🔍 DEBUGGING INFORMATION:"
+                echo ""
+                echo "Container status:"
+                docker compose ps || echo "No containers found"
+                echo ""
+                echo "Recent container logs:"
+                docker compose logs --tail=50 || echo "No logs available"
+                echo ""
+                echo "Environment variables status:"
+                echo "CLIENT VITE_SERVER: $(grep VITE_SERVER prod-client/.env 2>/dev/null || echo 'NOT FOUND')"
+                echo "ADMIN VITE_SERVER: $(grep VITE_SERVER prod-admin/.env 2>/dev/null || echo 'NOT FOUND')"
+            '''
         }
     }
 }
