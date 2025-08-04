@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { server } from '../store';
+const server = import.meta.env.VITE_SERVER || `http://${window.location.hostname}:4000`;
 
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
     try {

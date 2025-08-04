@@ -6,8 +6,8 @@ import { cabAPI } from './api/cab.api';
 import { orderApi } from './api/order.api';
 import { transactionAPI } from './api/transaction.api';
 
-export const server = import.meta.env.VITE_SERVER || `http://${window.location.hostname}:4000`;
-
+// eslint-disable-next-line no-console
+console.log(import.meta.env.VITE_SERVER);
 export const store = configureStore({
     reducer: {
         auth: authReducer,

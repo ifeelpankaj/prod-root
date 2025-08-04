@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { server } from '../store';
+const server = import.meta.env.VITE_SERVER || `http://${window.location.hostname}:4000`;
 
 // Create API slice
 export const adminAPI = createApi({
