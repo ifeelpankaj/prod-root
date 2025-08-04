@@ -17,9 +17,16 @@ pipeline {
         stage('Prepare MongoDB Keyfile') {
             steps {
                 sh '''
+                    # Create directory
                     mkdir -p mongo-keyfile
-                    openssl rand -base64 756 > mongo-keyfile/mongodb-keyfile
-                    chmod 400 mongo-keyfile/mongodb-keyfile
+                    
+                    # Generate keyfile using Docker (avoids permission issues)
+                    docker run --rm -v $(pwd)/mongo-keyfile:/keyfile alpine:latest sh -c "
+                        apk add --no-cache openssl &&
+                        openssl rand -base64 756 > /keyfile/mongodb-keyfile &&
+                        chmod 400 /keyfile/mongodb-keyfile &&
+                        chown 999:999 /keyfile/mongodb-keyfile
+                    "
                 '''
             }
         }
