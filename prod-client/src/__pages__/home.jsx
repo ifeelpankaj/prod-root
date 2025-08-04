@@ -11,10 +11,10 @@ import { useNavigate } from 'react-router-dom';
 const HeroSection = () => {
     const navigate = useNavigate();
     const handleBookNow = () => {
-        navigate('/auth');
+        navigate('/home');
     };
     const handleAuth = () => {
-        navigate('/home');
+        navigate('/auth');
     };
     return (
         <section
