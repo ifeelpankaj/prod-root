@@ -17,7 +17,7 @@ services:
       context: ./prod-admin
       dockerfile: Dockerfile
     ports:
-      - "4174:4173" # Different host port to avoid conflicts
+      - "4174:4173"
     depends_on:
       - backend
     env_file:
@@ -56,58 +56,41 @@ services:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
       - ./mongo-keyfile:/opt/keyfile:ro
+      - ./init-replica.js:/docker-entrypoint-initdb.d/init-replica.js:ro
     networks:
       - app-network
-    # Enable replica set for transactions
     command: >
       mongod --auth 
       --replSet rs0 
       --bind_ip_all 
       --keyFile /opt/keyfile/mongodb-keyfile
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mongosh",
-          "--port",
-          "27017",
-          "--quiet",
-          "--eval",
-          "db.adminCommand('ping')",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
-
-  # Separate service to initialize replica set
-  mongodb-init:
-    image: mongo:7.0
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    networks:
-      - app-network
-    command: >
-      mongosh --host mongodb:27017 --eval "
-        try {
-          rs.status();
-          print('Replica set already initialized');
-        } catch (e) {
-          if (e.message.includes('no replset config has been received')) {
-            print('Initializing replica set...');
-            rs.initiate({
-              _id: 'rs0',
-              members: [{ _id: 0, host: 'mongodb:27017' }]
-            });
-            print('Replica set initialized successfully');
-          } else {
-            print('Error: ' + e.message);
-            quit(1);
+      test: |
+        mongosh --port 27017 --username admin --password password123 --authenticationDatabase admin --eval "
+          try {
+            var status = rs.status();
+            if (status.ok === 1) {
+              print('Replica set is ready');
+              exit(0);
+            }
+          } catch (e) {
+            if (e.message.includes('no replset config has been received')) {
+              print('Initializing replica set...');
+              rs.initiate({
+                _id: 'rs0',
+                members: [{ _id: 0, host: 'mongodb:27017' }]
+              });
+              print('Replica set initialization started');
+              exit(1);
+            }
+            print('Health check failed: ' + e.message);
+            exit(1);
           }
-        }
-      "
-    restart: "no"
+        "
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
 networks:
   app-network:
