@@ -1,4 +1,4 @@
-# 🚀 GCP VM Setup with Jenkins, Docker & GitHub Webhook Integration
+# GCP VM Setup with Jenkins, Docker & GitHub Webhook Integration
 
 ---
 
