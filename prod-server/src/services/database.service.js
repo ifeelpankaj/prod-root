@@ -26,7 +26,6 @@ class DatabaseManager {
             connectTimeoutMS: 30000,
             heartbeatFrequencyMS: 10000,
             bufferCommands: true,
-            bufferMaxEntries: -1,
             retryWrites: true,
             retryReads: true,
             writeConcern: {
@@ -36,13 +35,13 @@ class DatabaseManager {
             },
             readConcern: { level: 'majority' },
             readPreference: 'primary',
-            compressors: ['zstd', 'zlib', 'snappy'],
+            compressors: ['zlib', 'snappy'],
             authSource: 'admin',
-            appName: `${process.env.NODE_ENV || 'development'}-app`,
+            appName: `${config.NODE_ENV || 'development'}-app`,
             serverApi: {
                 version: '1',
-                strict: true,
-                deprecationErrors: true
+                strict: false,
+                deprecationErrors: false
             }
         }
 
