@@ -52,7 +52,7 @@ export const authAPI = createApi({
         //route for reset password
         resetPassword: builder.mutation({
             query: (otp, newPassword) => ({
-                url: '/user/reset/password',
+                url: '/user/modify/password',
                 method: 'PUT',
                 body: otp,
                 newPassword

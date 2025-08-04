@@ -52,7 +52,7 @@ export const cabAPI = createApi({
         }),
         fetchDisplayCabs: builder.query({
             query: () => ({
-                url: '/via/display',
+                url: '/cab/via/display',
                 method: 'GET'
             }),
             providesTags: ['cabs']
@@ -65,7 +65,7 @@ export const cabAPI = createApi({
         }),
         cabRegistration: builder.mutation({
             query: (cabData) => ({
-                url: '/register',
+                url: '/cab/register',
                 method: 'POST',
                 body: cabData
             }),
