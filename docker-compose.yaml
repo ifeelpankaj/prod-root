@@ -34,6 +34,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      mongodb-init: # ADD THIS
+        condition: service_completed_successfully
     env_file:
       - ./prod-server/.env.development
     environment:
