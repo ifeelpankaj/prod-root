@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+    
+    environment {
+        APP_DIR = '/app'
+        EXTERNAL_IP = sh(script: 'curl -s ifconfig.me', returnStdout: true).trim()
+    }
+    
+    stages {
+        stage('Cloning') {
+            steps {
+                echo "Cloning"
+                git url: "https://github.com/ifeelpankaj/prod-root.git",
+                branch: "master"
+            }
+        }
+        
+        stage('Setup Client Environment') {
+            steps {
+                dir('prod-client') {
+                    sh '''
+                        #!/bin/bash
+                        touch .env
+                        cp ${APP_DIR}/.env .env
+                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                    '''
+                }
+            }
+        }
+        
+        stage('Setup Admin Environment') {
+            steps {
+                dir('prod-admin') {
+                    sh '''
+                        #!/bin/bash
+                        touch .env
+                        cp ${APP_DIR}/.env .env
+                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                    '''
+                }
+            }
+        }
+        stage('Setup Server Environment') {
+            steps {
+                dir('prod-server') {
+                    sh '''
+                        #!/bin/bash
+                        touch .env.development .env.production
+                        cp ${APP_DIR}/.env.development .env.development
+                        cp ${APP_DIR}/.env.production .env.production
+                        
+                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
+                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy with Docker') {
+            steps {
+                sh '''
+                    docker compose down --volumes --remove-orphans
+                    docker builder prune -f
+                    docker compose build --no-cache
+                    docker compose up -d
+                '''
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs for details.'
+        }
+    }
+}

@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Cloning') {
             steps {
-                echo "Cloning"
+                echo "Cloning repository"
                 git url: "https://github.com/ifeelpankaj/prod-root.git",
                 branch: "master"
             }
@@ -20,9 +20,17 @@ pipeline {
                 dir('prod-client') {
                     sh '''
                         #!/bin/bash
+                        echo "Setting up client environment..."
                         touch .env
-                        cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        
+                        # Check if source env file exists
+                        if [ -f "${APP_DIR}/.env" ]; then
+                            cp ${APP_DIR}/.env .env
+                            sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                            echo "Client .env file created successfully"
+                        else
+                            echo "Warning: ${APP_DIR}/.env not found, creating empty .env file"
+                        fi
                     '''
                 }
             }
@@ -33,47 +41,153 @@ pipeline {
                 dir('prod-admin') {
                     sh '''
                         #!/bin/bash
+                        echo "Setting up admin environment..."
                         touch .env
-                        cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        
+                        # Check if source env file exists
+                        if [ -f "${APP_DIR}/.env" ]; then
+                            cp ${APP_DIR}/.env .env
+                            sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                            echo "Admin .env file created successfully"
+                        else
+                            echo "Warning: ${APP_DIR}/.env not found, creating empty .env file"
+                        fi
                     '''
                 }
             }
         }
+        
         stage('Setup Server Environment') {
             steps {
                 dir('prod-server') {
                     sh '''
                         #!/bin/bash
+                        echo "Setting up server environment..."
                         touch .env.development .env.production
-                        cp ${APP_DIR}/.env.development .env.development
-                        cp ${APP_DIR}/.env.production .env.production
                         
-                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
-                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                        # Check and copy development env
+                        if [ -f "${APP_DIR}/.env.development" ]; then
+                            cp ${APP_DIR}/.env.development .env.development
+                            sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                            echo "Server .env.development file created successfully"
+                        else
+                            echo "Warning: ${APP_DIR}/.env.development not found, creating empty .env.development file"
+                        fi
+                        
+                        # Check and copy production env
+                        if [ -f "${APP_DIR}/.env.production" ]; then
+                            cp ${APP_DIR}/.env.production .env.production
+                            sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
+                            echo "Server .env.production file created successfully"
+                        else
+                            echo "Warning: ${APP_DIR}/.env.production not found, creating empty .env.production file"
+                        fi
                     '''
+                }
+            }
+        }
+        
+        stage('Validate Environment Files') {
+            steps {
+                script {
+                    echo "Validating required environment files..."
+                    
+                    def validationFailed = false
+                    def missingFiles = []
+                    
+                    // Check prod-client/.env
+                    if (!fileExists('prod-client/.env')) {
+                        missingFiles.add('prod-client/.env')
+                        validationFailed = true
+                    }
+                    
+                    // Check prod-admin/.env
+                    if (!fileExists('prod-admin/.env')) {
+                        missingFiles.add('prod-admin/.env')
+                        validationFailed = true
+                    }
+                    
+                    // Check prod-server/.env.development
+                    if (!fileExists('prod-server/.env.development')) {
+                        missingFiles.add('prod-server/.env.development')
+                        validationFailed = true
+                    }
+                    
+                    // Check prod-server/.env.production
+                    if (!fileExists('prod-server/.env.production')) {
+                        missingFiles.add('prod-server/.env.production')
+                        validationFailed = true
+                    }
+                    
+                    if (validationFailed) {
+                        echo "❌ Validation failed! Missing environment files:"
+                        missingFiles.each { file ->
+                            echo "   - ${file}"
+                        }
+                        error("Environment validation failed. Required .env files are missing.")
+                    } else {
+                        echo "✅ All required environment files are present:"
+                        echo "   - prod-client/.env"
+                        echo "   - prod-admin/.env"
+                        echo "   - prod-server/.env.development"
+                        echo "   - prod-server/.env.production"
+                    }
                 }
             }
         }
         
         stage('Deploy with Docker') {
             steps {
+                echo "Starting Docker deployment..."
                 sh '''
+                    echo "Stopping existing containers..."
                     docker compose down --volumes --remove-orphans
+                    
+                    echo "Cleaning up Docker builder cache..."
                     docker builder prune -f
+                    
+                    echo "Building Docker images..."
                     docker compose build --no-cache
+                    
+                    echo "Starting containers..."
                     docker compose up -d
+                    
+                    echo "Deployment completed successfully!"
+                '''
+            }
+        }
+        
+        stage('Post-Deployment Verification') {
+            steps {
+                sh '''
+                    echo "Verifying deployment..."
+                    docker compose ps
+                    
+                    echo "Checking container logs for any immediate errors..."
+                    sleep 10
+                    docker compose logs --tail=50
                 '''
             }
         }
     }
     
     post {
+        always {
+            echo "Pipeline execution completed."
+        }
         success {
-            echo 'Pipeline executed successfully!'
+            echo '✅ Pipeline executed successfully!'
+            echo "Application should be accessible at http://${EXTERNAL_IP}"
         }
         failure {
-            echo 'Pipeline failed. Please check the logs for details.'
+            echo '❌ Pipeline failed. Please check the logs for details.'
+            sh '''
+                echo "Displaying recent container logs for debugging..."
+                docker compose logs --tail=100 || true
+            '''
+        }
+        cleanup {
+            echo "Cleaning up workspace..."
         }
     }
 }
