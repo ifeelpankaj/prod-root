@@ -22,6 +22,7 @@ const DriverOrderDetails = lazy(() => import('./__pages__/Driver/driver.order.de
 const DriverCompletedBooking = lazy(() => import('./__pages__/Driver/booking.history'));
 const PassengerHome = lazy(() => import('./__pages__/Passenger/Passenger.home'));
 const NotFoundPage = lazy(() => import('./__pages__/not.found'));
+const UpdateCab = lazy(() => import('./__pages__/Driver/update.cab'));
 
 // Non-lazy components
 import Header from './__components__/header';
@@ -135,6 +136,14 @@ function App() {
                         <Route
                             path="*"
                             element={<NotFoundPage />}
+                        />
+                        <Route
+                            path="/my/cab"
+                            element={
+                                <ProtectedHook roles={['Driver', 'Admin']}>
+                                    <UpdateCab />
+                                </ProtectedHook>
+                            }
                         />
                     </Routes>
                 </Suspense>

@@ -129,9 +129,9 @@ const Header = () => {
                                                 <FaBookmark /> My Bookings
                                             </Link>
                                             <Link
-                                                to="/registeredCabs"
+                                                to="/my/cab"
                                                 className="header__user-link">
-                                                <CarFilled /> My Cabs
+                                                <CarFilled /> My Cab
                                             </Link>
                                         </>
                                     )}

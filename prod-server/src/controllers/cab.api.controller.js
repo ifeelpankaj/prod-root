@@ -762,3 +762,21 @@ async function rollbackImages(imageRollbackData) {
         logger.error('Failed to rollback images:', { meta: { rollbackError } })
     }
 }
+
+export const getDriverCab = async (req, res, next) => {
+    try {
+        if (req.user.role !== 'Driver' && req.user.role !== 'Admin') {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+
+        const cab = await Cab.find({ belongsTo: req.user._id }).lean()
+
+        if (!cab || cab.length === 0) {
+            throw new CustomError(generic_msg.resource_not_found('User cab'), 404)
+        }
+
+        httpResponse(req, res, 200, generic_msg.operation_success('Cab found'), cab)
+    } catch (error) {
+        httpError('Get Driver Cab', next, error, req, 500)
+    }
+}

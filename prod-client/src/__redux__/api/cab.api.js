@@ -43,8 +43,24 @@ export const cabAPI = createApi({
                 body: cabData
             }),
             invalidatesTags: ['cabs']
+        }),
+        getDriverOwnedCab: builder.query({
+            query: () => '/cab/owned/by/driver',
+            providesTags: ['cabs'],
+            transformResponse: (response) => {
+                return response.data;
+            }
+        }),
+        updateCab: builder.mutation({
+            query: ({ id, newData }) => ({
+                url: `/cab/update/${id}`,
+                method: 'PUT',
+                body: newData
+            }),
+            invalidatesTags: ['cabs']
         })
     })
 });
 
-export const { useDisplayPassengerCabQuery, useCabDetailsQuery, useCabRegistrationMutation } = cabAPI;
+export const { useDisplayPassengerCabQuery, useCabDetailsQuery, useCabRegistrationMutation, useGetDriverOwnedCabQuery, useUpdateCabMutation } =
+    cabAPI;

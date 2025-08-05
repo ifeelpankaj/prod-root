@@ -2,8 +2,8 @@ import { Router } from 'express'
 
 import { isAuthenticated } from '../middlewares/auth.middleware.js'
 import {
+    getDriverCab,
     // deleteCab,
-    // getDriverOwnedCabs,
     getRateDefinedCab,
     getSingleCabs,
     makeCabReady,
@@ -28,6 +28,7 @@ router.route('/cab/via/:id').get(isAuthenticated, getSingleCabs)
 // router.route('/delete/:id').delete(isAuthenticated, deleteCab)
 
 router.route('/make-cab/ready/:id').get(isAuthenticated, makeCabReady)
+router.route('/cab/owned/by/driver').get(isAuthenticated, getDriverCab)
 
 if (config.ENV !== EApplicationEnvironment.TESTING) {
     router.route('/cab/register').post(isAuthenticated, registerCabWithTransaction)
