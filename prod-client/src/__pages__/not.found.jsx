@@ -57,7 +57,6 @@ const NotFoundPage = () => {
     };
 
     const [isHovered, setIsHovered] = React.useState(false);
-
     const handleGoHome = () => {
         // In a real app, you'd use React Router or Next.js router
         window.history.back();

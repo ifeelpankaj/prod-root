@@ -2425,8 +2425,8 @@ export const assignBookingWithTransaction = async (req, res, next) => {
         // Execute all database operations within a transaction
         await session.withTransaction(
             async () => {
-                // Fetch the order and populate user details
-                const order = await Order.findById(id).populate('userId', 'email username').session(session)
+                // Fetch the order (no population inside transaction for better performance)
+                const order = await Order.findById(id).session(session)
 
                 if (!order) {
                     throw new CustomError(generic_msg.resource_not_found('Booking'), 404)
@@ -2437,8 +2437,8 @@ export const assignBookingWithTransaction = async (req, res, next) => {
                     throw new CustomError('Cannot reassign completed or cancelled booking', 400)
                 }
 
-                // Fetch the cab and populate driver details
-                const cab = await Cab.findById(newCabId).populate('belongsTo', 'email username').session(session)
+                // Fetch the cab (no population inside transaction)
+                const cab = await Cab.findById(newCabId).session(session)
 
                 if (!cab) {
                     throw new CustomError(generic_msg.resource_not_found('Cab'), 404)
@@ -2451,7 +2451,7 @@ export const assignBookingWithTransaction = async (req, res, next) => {
                 }
 
                 // Fetch and validate driver
-                const driver = await User.findById(cab.belongsTo._id).session(session)
+                const driver = await User.findById(cab.belongsTo).session(session)
                 if (!driver || !driver.isVerifiedDriver) {
                     throw new CustomError('Cannot assign booking to unverified driver', 400)
                 }
@@ -2460,8 +2460,12 @@ export const assignBookingWithTransaction = async (req, res, next) => {
                 if (order.bookedCab && order.bookedCab.toString() !== newCabId) {
                     const previousCab = await Cab.findById(order.bookedCab).session(session)
                     if (previousCab) {
+                        // Pass session as parameter to removeBooking
                         // @ts-ignore
-                        await previousCab.removeBooking(order._id).session(session)
+                        const removeResult = await previousCab.removeBooking(order._id, session)
+                        if (!removeResult) {
+                            throw new CustomError('Failed to remove booking from previous cab', 500)
+                        }
                     }
                 }
 
@@ -2475,7 +2479,7 @@ export const assignBookingWithTransaction = async (req, res, next) => {
                 const updatedOrder = await Order.findByIdAndUpdate(
                     order._id,
                     {
-                        driverId: cab.belongsTo._id,
+                        driverId: cab.belongsTo,
                         bookedCab: newCabId,
                         bookingStatus: 'Assigning',
                         driverShare: {
@@ -2491,19 +2495,42 @@ export const assignBookingWithTransaction = async (req, res, next) => {
                         session,
                         runValidators: true // Ensure schema validation runs
                     }
-                ).populate('userId', 'email username')
+                )
 
                 if (!updatedOrder) {
                     throw new CustomError('Failed to update booking', 500)
                 }
 
-                // Add booking to new cab atomically
-                // @ts-ignore
-                await cab.addBooking(order._id, order.departureDate, order.dropOffDate, { session })
+                // Add booking to new cab using direct database operation for transaction safety
+                const addBookingResult = await Cab.findOneAndUpdate(
+                    {
+                        _id: newCabId,
+                        'upcomingBookings.orderId': { $ne: order._id } // Prevent duplicates
+                    },
+                    {
+                        $push: {
+                            upcomingBookings: {
+                                orderId: order._id,
+                                departureDate: order.departureDate,
+                                dropOffDate: order.dropOffDate,
+                                status: 'Upcoming'
+                            }
+                        }
+                    },
+                    {
+                        new: true,
+                        session,
+                        runValidators: true
+                    }
+                )
+
+                if (!addBookingResult) {
+                    throw new CustomError('Failed to add booking to cab or booking already exists', 500)
+                }
 
                 result = {
                     order: updatedOrder,
-                    cab,
+                    cab: addBookingResult,
                     driver,
                     driverCut
                 }
@@ -2516,60 +2543,67 @@ export const assignBookingWithTransaction = async (req, res, next) => {
             }
         )
 
-        // Send confirmation email to driver (outside transaction to avoid blocking)
-        try {
-            // @ts-ignore
-            const formattedPickUpDate = date.formatShortDate(result.order.departureDate)
-            // @ts-ignore
-            const formattedDropOffDate = date.formatShortDate(result.order.dropOffDate)
-            // @ts-ignore
-            const location = result.order.exactLocation || result.order.pickupLocation
+        // Fetch populated data outside transaction for response
+        // eslint-disable-next-line no-unused-vars
+        const [populatedOrder, populatedCab] = await Promise.all([
+            Order.findById(result.order._id).populate('userId', 'email username'),
+            Cab.findById(newCabId).populate('belongsTo', 'email username')
+        ])
 
-            // Use a background job or queue for email sending in production
-            setImmediate(async () => {
-                try {
-                    await sendMailWithRetry(
-                        result.cab.belongsTo.email,
-                        driver_emails.driver_assignment_email_subject,
-                        driver_emails.driver_assignment_email(
-                            result.cab.belongsTo.username,
-                            result.order._id.toString(),
-                            formattedPickUpDate,
-                            location,
-                            formattedDropOffDate,
-                            result.order.paymentMethod,
-                            result.driverCut
-                        )
-                    )
-                } catch (emailError) {
-                    logger.error(generic_msg.email_sending_failed(result.cab.belongsTo.email), {
-                        meta: { error: emailError, orderId: result.order._id }
-                    })
-                }
-            })
-        } catch (emailError) {
-            // Log but don't fail the assignment
-            logger.warn('Email scheduling failed:', emailError)
+        // Extract only needed data for email to prevent memory leaks
+        const emailData = {
+            driverEmail: populatedCab.belongsTo.email,
+            driverUsername: populatedCab.belongsTo.username,
+            orderId: result.order._id.toString(),
+            departureDate: result.order.departureDate,
+            dropOffDate: result.order.dropOffDate,
+            location: result.order.exactLocation || result.order.pickupLocation,
+            paymentMethod: result.order.paymentMethod,
+            driverCut: result.driverCut
         }
+
+        // Send confirmation email to driver (outside transaction to avoid blocking)
+        setImmediate(async () => {
+            try {
+                // @ts-ignore
+                const formattedPickUpDate = date.formatShortDate(emailData.departureDate)
+                // @ts-ignore
+                const formattedDropOffDate = date.formatShortDate(emailData.dropOffDate)
+
+                await sendMailWithRetry(
+                    emailData.driverEmail,
+                    driver_emails.driver_assignment_email_subject,
+                    driver_emails.driver_assignment_email(
+                        emailData.driverUsername,
+                        emailData.orderId,
+                        formattedPickUpDate,
+                        emailData.location,
+                        formattedDropOffDate,
+                        emailData.paymentMethod,
+                        emailData.driverCut
+                    )
+                )
+            } catch (emailError) {
+                logger.error(generic_msg.email_sending_failed(emailData.driverEmail), {
+                    meta: { error: emailError, orderId: emailData.orderId }
+                })
+            }
+        })
 
         // Log successful assignment
         logger.info('Booking assigned successfully', {
             meta: {
-                // @ts-ignore
                 orderId: result.order._id,
                 cabId: newCabId,
-                // @ts-ignore
                 driverId: result.driver._id,
                 assignedBy: req.user.id
             }
         })
 
         return httpResponse(req, res, 200, generic_msg.operation_success('Cab Assigned'), {
-            // @ts-ignore
             orderId: result.order._id,
             cabId: newCabId,
-            // @ts-ignore
-            driverName: result.cab.belongsTo.username,
+            driverName: populatedCab.belongsTo.username,
             assignedAt: new Date()
         })
     } catch (error) {
@@ -2577,7 +2611,9 @@ export const assignBookingWithTransaction = async (req, res, next) => {
         logger.error('Booking assignment failed:', {
             meta: {
                 error: error.message,
-                stack: error.stack
+                stack: error.stack,
+                orderId: req.params.id,
+                newCabId: req.body.newCabId
             }
         })
 
