@@ -349,15 +349,20 @@ export const paymentVerificationWithTransaction = async (req, res, next) => {
         }
 
         // Create payment record within transaction
-        const createdPayment = await Payment.create(
-            {
-                order: order._id,
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature
-            },
+        // ✅ CORRECT - Wrap the document in an array
+        const createdPaymentArray = await Payment.create(
+            [
+                {
+                    order: order._id,
+                    razorpay_order_id,
+                    razorpay_payment_id,
+                    razorpay_signature
+                }
+            ],
             { session }
         )
+
+        const createdPayment = createdPaymentArray[0]
         if (
             !createdPayment ||
             // @ts-ignore
