@@ -726,7 +726,12 @@ export const completeBookingWithManualRollback = async (req, res, next) => {
                 paidAt: order.driverShare?.paidAt,
                 via: order.driverShare?.Via
             }
+            const today = new Date()
+            const dropOffDate = new Date(order.dropOffDate)
 
+            if (dropOffDate >= today) {
+                throw new CustomError('Booking can only be completed after the drop-off date has passed', 400)
+            }
             const cab = await Cab.findById(order.bookedCab)
             if (!cab) {
                 throw new CustomError(generic_msg.resource_not_found('Cab'), 404)
@@ -1399,7 +1404,12 @@ export const completeBookingWithTransaction = async (req, res, next) => {
         if (!order) {
             throw new CustomError(generic_msg.resource_not_found('Order'), 404)
         }
+        const today = new Date()
+        const dropOffDate = new Date(order.dropOffDate)
 
+        if (dropOffDate >= today) {
+            throw new CustomError('Booking can only be completed after the drop-off date has passed', 400)
+        }
         const cab = await Cab.findById(order.bookedCab).session(session)
         if (!cab) {
             throw new CustomError(generic_msg.resource_not_found('Cab'), 404)

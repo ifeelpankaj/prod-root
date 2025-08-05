@@ -2960,6 +2960,9 @@ export const modifyBookingAdminWithTransaction = async (req, res, next) => {
     // Start a session for the transaction
     const session = await mongoose.startSession()
 
+    // Declare auditData outside the transaction
+    let auditData = null
+
     try {
         const orderId = req.params.id
         const { pickupLocation, departureDate, dropOffDate, exactLocation, destination, numberOfPassengers, passengers } = req.body
@@ -3101,7 +3104,6 @@ export const modifyBookingAdminWithTransaction = async (req, res, next) => {
                         const newPassengers = existingBooking.passengers.map((p) => p.toObject())
 
                         for (let i = 0; i < passengersToAdd; i++) {
-                            // @ts-ignore
                             newPassengers.push({
                                 firstName: `Passenger${currentPassengersLength + i + 1}`,
                                 lastName: 'ToBeUpdated',
@@ -3175,9 +3177,8 @@ export const modifyBookingAdminWithTransaction = async (req, res, next) => {
                     throw new CustomError('Failed to update booking', 500)
                 }
 
-                // Log the modification for audit trail (outside transaction for performance)
                 // Store data for logging after transaction commits
-                this.auditData = {
+                auditData = {
                     orderId,
                     originalData,
                     updateFields,
@@ -3196,15 +3197,15 @@ export const modifyBookingAdminWithTransaction = async (req, res, next) => {
         )
 
         // Transaction completed successfully, now log the audit data
-        if (config.ENV !== EApplicationEnvironment.PRODUCTION && this.auditData) {
-            logger.info(`Booking ${this.auditData.orderId} modified by admin`, {
+        if (config.ENV !== EApplicationEnvironment.PRODUCTION && auditData) {
+            logger.info(`Booking ${auditData.orderId} modified by admin`, {
                 meta: {
-                    originalData: this.auditData.originalData,
-                    updatedFields: this.auditData.updateFields,
+                    originalData: auditData.originalData,
+                    updatedFields: auditData.updateFields,
                     adminAction: 'MODIFY_BOOKING',
                     passengerChange: {
-                        from: this.auditData.originalData.numberOfPassengers,
-                        to: this.auditData.updatedBooking.numberOfPassengers
+                        from: auditData.originalData.numberOfPassengers,
+                        to: auditData.updatedBooking.numberOfPassengers
                     }
                 }
             })
@@ -3216,9 +3217,9 @@ export const modifyBookingAdminWithTransaction = async (req, res, next) => {
 
         const responseData = {
             booking: finalBooking,
-            modifiedFields: Object.keys(this.auditData?.updateFields || {}),
+            modifiedFields: Object.keys(auditData?.updateFields || {}),
             passengerInfo: {
-                originalCount: this.auditData?.originalData.numberOfPassengers,
+                originalCount: auditData?.originalData.numberOfPassengers,
                 newCount: finalBooking.numberOfPassengers,
                 cabCapacity: cab.capacity,
                 availableSlots: cab.capacity - finalBooking.numberOfPassengers
