@@ -37,7 +37,7 @@ services:
       mongodb-init: # ADD THIS
         condition: service_completed_successfully
     env_file:
-      - ./prod-server/.env.development
+      - ./prod-server/.env.production
     environment:
       - NODE_ENV=development
     networks:

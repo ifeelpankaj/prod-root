@@ -232,3 +232,116 @@ Restart Jenkins or reboot VM if needed.
 | Pipeline Created and Triggered | ✅     |
 
 ---
+
+## 🐳 Docker Management (Post-Deployment)
+
+### Check Running Containers
+
+```bash
+docker ps
+```
+
+### View Logs
+
+```bash
+docker logs <container_id>
+```
+
+### Check All Containers
+
+```bash
+docker ps -a
+```
+
+---
+
+## 🍃 MongoDB Container Access
+
+### Enter Container Shell
+
+```bash
+docker exec -it <mongodb_service_name> mongosh
+```
+
+### Authentication & Exploration
+
+```js
+use admin
+db.auth("admin", "password123")
+show dbs
+use prod-db
+show collections
+db.users.find().limit(5)
+```
+
+### Grant Admin Role
+
+```js
+db.users.updateOne({ username: "Admin" }, { $set: { role: "Admin" } });
+```
+
+---
+
+## ⚠️ Common Issue: Vite Preview Not Accessible
+
+### Problem:
+
+Your Vite apps bind to `localhost` inside Docker containers → not accessible from outside.
+
+### ✅ Fix: Bind to `0.0.0.0`
+
+#### Option 1: Modify `package.json` (Recommended)
+
+```json
+{
+  "scripts": {
+    "preview": "vite preview --host 0.0.0.0"
+  }
+}
+```
+
+#### Option 2: Add `vite.config.js`
+
+```js
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  preview: {
+    host: "0.0.0.0",
+    port: 4173, // or 4174 for admin
+  },
+});
+```
+
+### Rebuild Containers
+
+```bash
+docker-compose down
+docker-compose up --build
+```
+
+---
+
+## ✅ Endpoints (After Fix)
+
+- **Frontend** → http\://<VM-IP>:4173
+- **Admin Panel** → http\://<VM-IP>:4174
+- **Backend API** → http\://<VM-IP>:4000
+- **Jenkins** → http\://<VM-IP>:8080
+
+---
+
+## 📋 Summary
+
+This setup enables:
+
+- GCP-hosted VM with proper firewall access
+- Jenkins CI/CD pipelines with GitHub Webhook integration
+- Dockerized Node.js stack (frontend, backend, admin)
+- MongoDB container access
+- Vite preview servers accessible via browser
+- Secure and production-ready deployment environment
+
+---
+
+Let me know if you'd like this content also formatted for GitHub Pages or need badges/status indicators added.
