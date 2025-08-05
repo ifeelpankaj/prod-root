@@ -64,7 +64,7 @@ const fileLogFormat = format.printf((info) => {
 })
 
 const consoleTransport = () => {
-    if (config.ENV === EApplicationEnvironment.DEVELOPMENT) {
+    if (config.ENV !== EApplicationEnvironment.PRODUCTION) {
         return [
             new transports.Console({
                 level: 'info',

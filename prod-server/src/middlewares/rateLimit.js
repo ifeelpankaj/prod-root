@@ -6,7 +6,7 @@ import { generic_msg } from '../constants/res.message.js'
 
 // eslint-disable-next-line consistent-return
 export default (req, _res, next) => {
-    if (config.ENV === EApplicationEnvironment.DEVELOPMENT) {
+    if (config.ENV !== EApplicationEnvironment.PRODUCTION) {
         return next()
     }
 

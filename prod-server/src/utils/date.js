@@ -11,6 +11,7 @@ export default {
                 ? { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }
                 : { year: 'numeric', month: 'long', day: 'numeric' }
 
+            // @ts-ignore
             return new Intl.DateTimeFormat('en-US', options).format(date)
         } catch (error) {
             // console.error('Error formatting date:', error)

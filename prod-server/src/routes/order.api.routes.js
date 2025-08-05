@@ -7,14 +7,15 @@ import {
     getOrderDetail,
     getOrderDetailForCustomer,
     // paymentVerification,
-    paymentVerificationWithManualRollback
+    paymentVerificationWithManualRollback,
+    paymentVerificationWithTransaction
 } from '../controllers/order.api.controller.js'
+import config from '../config/config.js'
+import { EApplicationEnvironment } from '../constants/application.js'
 
 const router = Router()
 
 router.route('/place').post(isAuthenticated, bookCab)
-
-router.route('/payment/verification').post(isAuthenticated, paymentVerificationWithManualRollback)
 
 router.route('/my').get(isAuthenticated, getMyBookings)
 
@@ -23,5 +24,12 @@ router.route('/customer/:id').get(isAuthenticated, getOrderDetailForCustomer)
 router.route('/:id').get(isAuthenticated, getOrderDetail)
 
 router.route('/pending').get(isAuthenticated, getAllPendingOrder)
+
+// Environment-specific payment verification route
+if (config.ENV === EApplicationEnvironment.PRODUCTION) {
+    router.route('/payment/verification').post(isAuthenticated, paymentVerificationWithTransaction)
+} else {
+    router.route('/payment/verification').post(isAuthenticated, paymentVerificationWithManualRollback)
+}
 
 export default router

@@ -56,9 +56,9 @@ app.use(
 
         cookie: {
             maxAge: 1000 * 60 * 60 * 2, // 1000ms * 60s * 60min * 2hrs
-            secure: config.ENV === EApplicationEnvironment.DEVELOPMENT ? false : true,
-            httpOnly: config.ENV === EApplicationEnvironment.DEVELOPMENT ? false : true,
-            sameSite: config.ENV === EApplicationEnvironment.DEVELOPMENT ? false : 'none'
+            secure: config.ENV !== EApplicationEnvironment.PRODUCTION ? false : true,
+            httpOnly: config.ENV !== EApplicationEnvironment.PRODUCTION ? false : true,
+            sameSite: config.ENV !== EApplicationEnvironment.PRODUCTION ? false : 'none'
         }
     })
 )

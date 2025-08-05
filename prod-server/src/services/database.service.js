@@ -147,7 +147,16 @@ class DatabaseManager {
             this.connectionPromise = null
         }
     }
+    async connectLocally() {
+        try {
+            await mongoose.connect(config.DB_URI)
 
+            return mongoose.connection
+        } catch (err) {
+            //   console.error("Failed to connect to MongoDB", err);
+            throw err
+        }
+    }
     async _performConnection() {
         try {
             logger.info(' Connecting to MongoDB...', {
@@ -573,6 +582,7 @@ const databaseManager = new DatabaseManager()
 // Enhanced export with additional utility methods
 export default {
     connect: () => databaseManager.connect(),
+    connectLocally: () => databaseManager.connectLocally(),
     waitForConnection: (timeout) => databaseManager.waitForConnection(timeout),
     testTransactionSupport: () => databaseManager.testTransactionSupport(),
     getConnectionInfo: () => databaseManager.getConnectionInfo(),

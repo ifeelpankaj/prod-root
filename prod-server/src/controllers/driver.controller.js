@@ -1,6 +1,5 @@
 import { driver_msg, generic_msg } from '../constants/res.message.js'
 import { User } from '../models/user.model.js'
-import { delCache } from '../services/cacheService.js'
 import httpResponse from '../utils/httpResponse.js'
 import fs from 'fs'
 import logger from '../utils/logger.js'
@@ -13,6 +12,7 @@ import { Order } from '../models/order.model.js'
 import { sendMailWithRetry } from '../services/email.service.js'
 import { driver_emails } from '../constants/emails.js'
 import { Transaction } from '../models/transaction.model.js'
+import mongoose from 'mongoose'
 
 export const getDriverUpcommingBookings = async (req, res, next) => {
     try {
@@ -135,6 +135,7 @@ export const confirmBooking = async (req, res, next) => {
     let originalCab = null
     let orderUpdated = false
     let cabUpdated = false
+    // @ts-ignore
     let _emailSent = false
     let orderId = null
 
@@ -265,8 +266,6 @@ export const driverVerificationWithManualRollback = async (req, res, next) => {
     let user = null // Define user variable in outer scope
 
     try {
-        delCache(['all_user', 'all_drivers'])
-
         if (req.user.role !== 'Driver') {
             throw new CustomError(generic_msg.unauthorized_access, 403)
         }
@@ -983,4 +982,533 @@ export const getDriverAllTransaction = async (req, res, next) => {
     } catch (error) {
         return httpError('Get all transaction for driver', next, error, req, 500)
     }
+}
+
+//New route with transaction
+
+export const driverVerificationWithTransaction = async (req, res, next) => {
+    const tmpDir = './tmp'
+    const uploadedFiles = [] // Track uploaded files for cleanup
+    let session = null
+
+    try {
+        if (req.user.role !== 'Driver') {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+
+        // Start database transaction
+        session = await mongoose.startSession()
+        session.startTransaction()
+
+        const user = await User.findById(req.user._id).session(session)
+        if (!user) {
+            throw new CustomError(generic_msg.resource_not_found('User'), 404)
+        }
+
+        await fs.promises.mkdir(tmpDir, { recursive: true }).catch((error) => {
+            logger.error(`Failed to create temp directory:`, { meta: { error } })
+            throw new CustomError('Failed to create temp directory', 500)
+        })
+
+        if (!req.files || !req.files.document) {
+            throw new CustomError(driver_msg.invalid_doc_format, 400)
+        }
+
+        const documents = Array.isArray(req.files.document) ? req.files.document : [req.files.document]
+        const docNames = [].concat(req.body['docName[]'] || [])
+
+        const allowedFormats = ['image/jpeg', 'image/png', 'application/pdf']
+        documents.forEach((doc) => {
+            if (!allowedFormats.includes(doc.mimetype)) {
+                throw new CustomError(driver_msg.invalid_doc_format, 400)
+            }
+            if (doc.size > 2 * 1024 * 1024) {
+                throw new CustomError(driver_msg.doc_too_large, 400)
+            }
+        })
+
+        // Upload documents to Cloudinary
+        const uploadedDocuments = await Promise.all(
+            documents.map(async (doc, index) => {
+                try {
+                    const uploadResult = await cloudinary.v2.uploader.upload(doc.tempFilePath, {
+                        folder: 'TandT/DriverDocuments',
+                        resource_type: 'auto'
+                    })
+
+                    // Track for potential cleanup
+                    uploadedFiles.push(uploadResult.public_id)
+
+                    fs.unlinkSync(doc.tempFilePath)
+
+                    return {
+                        docName: docNames[index] || `Document ${index + 1}`,
+                        public_id: uploadResult.public_id,
+                        url: uploadResult.secure_url,
+                        uploadedAt: new Date()
+                    }
+                } catch (uploadError) {
+                    logger.error(`Document upload failed: ${doc.name}`, { meta: { error: uploadError } })
+                    throw new CustomError(driver_msg.doc_upload_failure, 500)
+                }
+            })
+        )
+
+        // Validate bank details
+        const accNo = req.body['bankDetails[accNo]']
+        const accountHolderName = req.body['bankDetails[accountHolderName]']
+        const ifsc = req.body['bankDetails[ifsc]']
+        const bankName = req.body['bankDetails[bankName]']
+
+        if (!accNo || !ifsc || !bankName || !accountHolderName) {
+            throw new CustomError(driver_msg.missing_bank_details, 400)
+        }
+
+        if (!/^\d+$/.test(accNo) || !/^[A-Za-z]{4}[0-9]{7}$/.test(ifsc)) {
+            throw new CustomError(driver_msg.invalid_bank_details, 400)
+        }
+
+        // Initialize wallet properly
+        if (!user.wallet) {
+            user.wallet = {
+                balance: 0,
+                currency: 'INR',
+                bankDetails: {}
+            }
+        }
+
+        if (typeof user.wallet.balance !== 'number') {
+            user.wallet.balance = 0
+        }
+        if (!user.wallet.currency) {
+            user.wallet.currency = 'INR'
+        }
+        if (!user.wallet.bankDetails) {
+            user.wallet.bankDetails = {}
+        }
+
+        // Update user data within transaction
+        user.wallet.bankDetails = {
+            accountHolderName,
+            accNo: Number(accNo),
+            ifsc,
+            bankName
+        }
+
+        user.driverDocuments.push(...uploadedDocuments)
+        user.isDocumentSubmited = true
+
+        // Save user within transaction
+        await user.save({ session })
+
+        // Commit transaction - database changes are now permanent
+        await session.commitTransaction()
+
+        return httpResponse(req, res, 200, driver_msg.doc_upload_success, uploadedDocuments, null)
+    } catch (error) {
+        // Rollback database transaction
+        if (session) {
+            try {
+                await session.abortTransaction()
+            } catch (rollbackError) {
+                logger.error('Transaction rollback failed:', rollbackError)
+            }
+        }
+
+        // Clean up uploaded files from Cloudinary (external service cleanup)
+        if (uploadedFiles.length > 0) {
+            try {
+                await Promise.all(
+                    uploadedFiles.map((publicId) =>
+                        cloudinary.v2.uploader.destroy(publicId).catch((err) => logger.error('Failed to delete uploaded file:', err))
+                    )
+                )
+            } catch (cleanupError) {
+                logger.error('File cleanup failed:', cleanupError)
+            }
+        }
+
+        return httpError('DOCUMENT VERIFICATION', next, error, req, 500)
+    } finally {
+        // End session
+        if (session) {
+            await session.endSession()
+        }
+
+        // Clean up temporary directory
+        if (fs.existsSync(tmpDir)) {
+            await fs.promises.rm(tmpDir, { recursive: true })
+        }
+    }
+}
+export const cancelBookingWithTransaction = async (req, res, next) => {
+    const maxRetries = 3
+
+    // Authorization check - done once outside the retry loop for efficiency
+    if (req.user.role !== 'Driver' && req.user.role !== 'Admin') {
+        throw new CustomError(generic_msg.unauthorized_access, 403)
+    }
+
+    const { orderId } = req.body
+
+    if (!orderId) {
+        throw new CustomError('Order ID is required to cancel the booking', 400)
+    }
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        // Declare session in loop scope to avoid unsafe references
+        let currentSession = null
+
+        try {
+            // Start a new database session for transaction
+            // This ensures all operations are atomic - either all succeed or all fail
+            currentSession = await mongoose.startSession()
+
+            // Begin transaction with read concern 'snapshot' and write concern 'majority'
+            // This provides strong consistency and durability guarantees
+            await currentSession.withTransaction(
+                async () => {
+                    // Find the order within the transaction
+                    // Using currentSession ensures this read is part of the transaction
+                    const order = await Order.findById(orderId).session(currentSession)
+                    if (!order) {
+                        throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+                    }
+
+                    let cab = null
+
+                    // Handle cab booking removal if order has a booked cab
+                    if (order.bookedCab) {
+                        // Find cab within the same transaction to maintain consistency
+                        cab = await Cab.findById(order.bookedCab).session(currentSession)
+                        if (!cab) {
+                            throw new CustomError(generic_msg.resource_not_found('Cab'), 404)
+                        }
+
+                        // Remove booking from cab's upcoming bookings array
+                        if (cab.upcomingBookings && Array.isArray(cab.upcomingBookings)) {
+                            const originalLength = cab.upcomingBookings.length
+
+                            // Filter out the booking by comparing both orderId and _id
+                            // This handles different booking storage formats
+                            // @ts-ignore
+                            cab.upcomingBookings = cab.upcomingBookings.filter(
+                                (booking) => booking.orderId?.toString() !== orderId.toString() && booking._id?.toString() !== orderId.toString()
+                            )
+
+                            // Only save if we actually removed something
+                            if (cab.upcomingBookings.length !== originalLength) {
+                                await cab.save({ session: currentSession })
+                            }
+                        }
+
+                        // Handle custom removeBooking method if it exists
+                        // Note: Custom methods need to be transaction-aware
+                        // @ts-ignore
+                        if (typeof cab.removeBooking === 'function') {
+                            // Most custom methods don't support sessions, so we handle this carefully
+                            // If the method doesn't accept session, it won't be part of the transaction
+                            try {
+                                // @ts-ignore
+                                await cab.removeBooking(orderId, { session: currentSession })
+                            } catch {
+                                // Fallback: if method doesn't support session, use manual removal above
+                                // The manual removal already happened, so we just log the fallback
+                                logger.warn('removeBooking method may not support transactions, using manual removal')
+                            }
+                        }
+                    }
+
+                    // Update order fields within the transaction
+                    // Reset booking status to 'Pending' and remove driver assignment
+                    order.bookingStatus = 'Pending'
+                    order.driverId = null
+
+                    // Clean up driver-related fields
+                    // Check if driverShare exists before trying to modify it
+                    if (order.driverShare) {
+                        // Set the entire driverShare object to undefined
+                        // This removes all driver-related financial information
+                        order.driverShare = undefined
+                    }
+
+                    // Note: We intentionally keep bookedCab unchanged
+                    // This maintains the cab-order association even after driver cancellation
+                    // This allows the booking to be reassigned to another driver for the same cab
+
+                    // Save order changes within the transaction
+                    await order.save({ session: currentSession })
+                },
+                {
+                    // Transaction options for better reliability
+                    readConcern: { level: 'snapshot' }, // Ensures consistent reads
+                    writeConcern: { w: 'majority' }, // Ensures writes are acknowledged by majority of replica set
+                    readPreference: 'primary' // Always read from primary to avoid stale data
+                }
+            )
+
+            // If we reach here, transaction was successful
+            // currentSession will be automatically ended when it goes out of scope
+            return httpResponse(req, res, 201, generic_msg.operation_success('Cancel Booking by driver'), null, null, null)
+        } catch (err) {
+            // Transaction automatically rolls back on any error
+            // No manual rollback needed - this is the key advantage of transactions
+
+            // Handle MongoDB write conflicts with exponential backoff retry
+            if (err.message && err.message.includes('Write conflict')) {
+                if (attempt < maxRetries) {
+                    const delay = Math.pow(2, attempt) * 100 // Exponential backoff: 100ms, 200ms, 400ms
+                    logger.info(`Write conflict detected, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`)
+
+                    // Wait before retry to allow conflicting operations to complete
+                    await new Promise((resolve) => setTimeout(resolve, delay))
+                    continue // Retry the entire operation
+                } else {
+                    logger.error('Max retries exceeded for write conflict')
+                    return httpError('CANCEL BOOKING', next, new CustomError(generic_msg.operation_failed('Cancel Booking by driver'), 409), req)
+                }
+            } else {
+                // Handle all other errors (validation, network, business logic, etc.)
+                logger.error('Booking cancellation failed:', { meta: { error: err } })
+                return httpError('CANCEL BOOKING', next, err, req, 500)
+            }
+        } finally {
+            // Cleanup: End session if it exists
+            // This ensures proper resource cleanup even if errors occur
+            if (currentSession) {
+                await currentSession.endSession()
+            }
+        }
+    }
+
+    // Fallback error if all retry attempts are exhausted
+    // This should rarely be reached due to the error handling above
+    return httpError('CANCEL BOOKING', next, new CustomError('Failed to cancel booking after multiple attempts', 500), req)
+}
+export const confirmBookingWithTransaction = async (req, res, next) => {
+    // Start a session for the transaction
+    const session = await mongoose.startSession()
+
+    try {
+        // Check authorization
+        if (req.user.role !== 'Driver' && req.user.role !== 'Admin') {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+
+        const { orderId } = req.body
+
+        if (!orderId) {
+            throw new CustomError('Order ID is required to confirm the booking', 400)
+        }
+
+        // Start transaction
+        const result = await session.withTransaction(
+            async () => {
+                // Find the order within transaction
+                const order = await Order.findById(orderId)
+                    .populate({
+                        path: 'userId',
+                        select: 'username email phoneNumber'
+                    })
+                    .session(session)
+
+                if (!order) {
+                    throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+                }
+
+                // Find the cab with this booking within transaction
+                const cab = await Cab.findOne({ 'upcomingBookings.orderId': orderId }).session(session)
+
+                if (!cab) {
+                    throw new CustomError('Cab with this booking not found', 404)
+                }
+
+                const bookingIndex = cab.upcomingBookings.findIndex((booking) => booking.orderId.toString() === orderId)
+
+                if (bookingIndex === -1) {
+                    throw new CustomError(`Booking not found in cab's upcoming bookings`, 404)
+                }
+
+                // Update order status within transaction
+                order.bookingStatus = 'Confirmed'
+                await order.save({ session })
+
+                // Update cab booking acceptance within transaction
+                cab.upcomingBookings[bookingIndex].accepted = true
+                await cab.save({ session })
+
+                // Return data needed for email notification
+                return {
+                    userEmail: order.userId.email,
+                    username: order.userId.username
+                }
+            },
+            {
+                // Transaction options
+                readPreference: 'primary',
+                readConcern: { level: 'local' },
+                writeConcern: { w: 'majority' }
+            }
+        )
+
+        // Send email notification after successful transaction (non-blocking)
+        // This is outside the transaction to avoid blocking the transaction for external service calls
+        if (result) {
+            setImmediate(async () => {
+                try {
+                    await sendMailWithRetry(
+                        result.userEmail,
+                        driver_emails.booking_confirmed_email_subject,
+                        driver_emails.booking_confirmed_email(result.username)
+                    )
+                } catch (emailError) {
+                    logger.error(generic_msg.email_sending_failed(result.userEmail), {
+                        error: emailError
+                    })
+                }
+            })
+        }
+
+        httpResponse(req, res, 200, generic_msg.operation_success('Confirmed Booking'), null, null, null)
+    } catch (error) {
+        // Transaction will automatically rollback on error
+        logger.error('Booking confirmation failed:', error)
+        httpError('CONFIRM BOOKING', next, error, req, 500)
+    } finally {
+        // Always end the session
+        await session.endSession()
+    }
+}
+export const completeBookingWithTransaction = async (req, res, next) => {
+    const maxRetries = 3
+
+    const bookingOperation = async (session) => {
+        const { role } = req.user
+        const { orderId } = req.body
+
+        // Validation
+        if (!['Driver', 'Admin'].includes(role)) {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+        if (!orderId) {
+            throw new CustomError(generic_msg.invalid_input('Order id'), 400)
+        }
+
+        // Fetch documents within transaction
+        const order = await Order.findById(orderId).session(session)
+        if (!order) {
+            throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+        }
+
+        const cab = await Cab.findById(order.bookedCab).session(session)
+        if (!cab) {
+            throw new CustomError(generic_msg.resource_not_found('Cab'), 404)
+        }
+
+        const bookingIndex = cab.upcomingBookings.findIndex((booking) => booking.orderId.toString() === orderId.toString())
+        if (bookingIndex === -1) {
+            throw new CustomError('Booking not found in cab reservations', 404)
+        }
+
+        const driver = await User.findById(cab.belongsTo).session(session)
+        if (!driver) {
+            throw new CustomError(generic_msg.resource_not_found('Driver'), 404)
+        }
+
+        // Business logic validation
+        const driverCut = order.driverShare?.driverCut || 0
+        if (driverCut < 0) {
+            throw new CustomError('Invalid driver cut amount', 400)
+        }
+
+        const existingTransaction = await Transaction.findOne({ orderId: order._id }).session(session)
+        if (existingTransaction) {
+            throw new CustomError('Transaction already exists for this order', 400)
+        }
+
+        // Perform all operations
+        // @ts-ignore
+        cab.removeBooking(orderId, session)
+        await cab.save({ session })
+
+        const transactionData = {
+            userId: driver._id,
+            type: order.paymentMethod === 'Hybrid' ? 'credit' : 'debit',
+            amount: driverCut,
+            description: order.paymentMethod === 'Online' ? 'You will get paid by us' : 'You have been paid by the passenger',
+            isPending: order.paymentMethod === 'Online',
+            orderId: order._id,
+            createdAt: new Date()
+        }
+
+        const newTransaction = new Transaction(transactionData)
+        await newTransaction.save({ session })
+
+        order.bookingStatus = 'Completed'
+        order.paidAmount = order.bookingAmount
+
+        if (order.paymentMethod === 'Hybrid') {
+            order.driverShare = {
+                ...order.driverShare,
+                Via: 'Customer',
+                status: 'Paid',
+                paidAt: new Date()
+            }
+        }
+
+        await order.save({ session })
+
+        return { orderId, message: 'Booking completed successfully' }
+    }
+
+    try {
+        const result = await withTransaction(bookingOperation, maxRetries)
+
+        logger.info(' Booking completed successfully', { orderId: result.orderId })
+
+        return httpResponse(req, res, 200, generic_msg.operation_success('Booking completed by driver'), null, null, null)
+    } catch (err) {
+        logger.error('Booking completion failed:', {
+            meta: {
+                error: err.message,
+                stack: err.stack
+            }
+        })
+        return httpError('COMPLETE BOOKING', next, err, req, 500)
+    }
+}
+
+// Reusable transaction wrapper utility
+async function withTransaction(operation, maxRetries = 3) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const session = await mongoose.startSession()
+
+        try {
+            await session.startTransaction()
+
+            const result = await operation(session)
+
+            await session.commitTransaction()
+            return result
+        } catch (err) {
+            await session.abortTransaction()
+
+            // Retry logic for transient errors
+            const shouldRetry =
+                err.message?.includes('Write conflict') || (err.name === 'MongoServerError' && err.hasErrorLabel('TransientTransactionError'))
+
+            if (shouldRetry && attempt < maxRetries) {
+                const delay = Math.pow(2, attempt) * 100
+                logger.info(`Transaction error, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`)
+                await new Promise((resolve) => setTimeout(resolve, delay))
+                continue
+            }
+
+            throw err
+        } finally {
+            await session.endSession()
+        }
+    }
+
+    throw new Error('Transaction failed after maximum retries')
 }

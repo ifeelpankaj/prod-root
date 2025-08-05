@@ -13,6 +13,7 @@ import logger from '../utils/logger.js'
 import { sendMailWithRetry } from '../services/email.service.js'
 import { order_emails } from '../constants/emails.js'
 import date from '../utils/date.js'
+import mongoose from 'mongoose'
 
 export const bookCab = async (req, res, next) => {
     const cashOrderId = `Cash_${generateNumericOTP(9)}`
@@ -98,115 +99,6 @@ export const bookCab = async (req, res, next) => {
         httpError('CAB BOOKING', next, error, req, 500)
     }
 }
-
-// export const paymentVerification = async (req, res, next) => {
-//     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
-
-//     try {
-//         // Log the start of the verification process
-//         logger.info(`Verifying payment for order ID: ${razorpay_order_id}, payment ID: ${razorpay_payment_id}`)
-
-//         // Find the corresponding order in the database
-//         const order = await Order.findOne({ razorpayOrderId: razorpay_order_id })
-//         if (!order) {
-//             throw new CustomError(responseMessage.ORDER_NOT_FOUND_ERROR, 404)
-//         }
-
-//         // Verify if payment already exists (Idempotency check)
-//         const paymentExists = await Payment.findOne({ razorpay_payment_id })
-//         if (paymentExists) {
-//             httpResponse(req, res, 200, 'Payment already verified', order, null)
-//             return
-//         }
-
-//         // Create HMAC to verify the signature
-//         const hmac = crypto.createHmac('sha256', config.RAZORPAY_API_SECRET)
-//         hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`)
-//         const expectedSignature = hmac.digest('hex')
-
-//         // Use timingSafeEqual to prevent timing attacks
-//         const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf-8')
-//         const razorpaySignatureBuffer = Buffer.from(razorpay_signature, 'utf-8')
-//         const isAuthentic = crypto.timingSafeEqual(expectedSignatureBuffer, razorpaySignatureBuffer)
-
-//         // Check if the payment is authentic
-//         if (isAuthentic) {
-//             // Start a database session for transaction
-//             const session = await Order.startSession()
-//             session.startTransaction()
-
-//             try {
-//                 // Create payment record
-//                 await Payment.create(
-//                     [
-//                         {
-//                             order: order._id,
-//                             razorpay_order_id,
-//                             razorpay_payment_id,
-//                             razorpay_signature
-//                         }
-//                     ],
-//                     { session }
-//                 )
-
-//                 // Update the order payment status based on payment method
-//                 if (order.paymentMethod === 'Hybrid') {
-//                     order.paidAmount = Math.round(order.bookingAmount * EApplicationEnvironment.HYBRID_PAYMENT_PERCENTAGE) // 10% paid in Hybrid
-//                     order.paymentStatus = 'Partially-Paid'
-//                     order.order_expire = null // Remove expiry for partially paid orders
-//                 } else if (order.paymentMethod === 'Online') {
-//                     order.paidAmount = order.bookingAmount // Full payment
-//                     order.paymentStatus = 'Paid'
-//                     order.order_expire = null // No expiry for fully paid orders
-//                 }
-
-//                 // Save the updated order within the transaction
-//                 await order.save({ session })
-//                 // Commit the transaction
-//                 await session.commitTransaction()
-//                 session.endSession()
-
-//                 // Send confirmation email
-//                 try {
-//                     const formattedPickUpDate = date.formatShortDate(order.departureDate)
-//                     const formattedDropOffDate = date.formatShortDate(order.dropOffDate)
-//                     const location = order.exactLocation || order.pickupLocation
-
-//                     await sendMailWithRetry(
-//                         req.user.email,
-//                         responseMessage.ORDER_CREATION_EMAIL_SUBJECT,
-//                         emails.ORDER_CREATION_SUCCESS_EMAIL(
-//                             req.user.username,
-//                             formattedPickUpDate,
-//                             order._id,
-//                             location,
-//                             formattedDropOffDate,
-//                             order.paymentMethod,
-//                             order.paidAmount,
-//                             order.bookingAmount
-//                         )
-//                     )
-//                 } catch (emailError) {
-//                     logger.error(responseMessage.EMAIL_SENDING_FAILED(req.user.email), { meta: { error: emailError } })
-//                     // Continue as the payment is successful
-//                 }
-
-//                 // Respond with success
-//                 httpResponse(req, res, 200, responseMessage.PAYMENT_VERIFICATION_SUCCESS, { order, paymentId: razorpay_payment_id }, null)
-//             } catch (error) {
-//                 // Abort the transaction in case of any error
-//                 await session.abortTransaction()
-//                 session.endSession()
-//                 logger.error(`Transaction failed for order ID: ${razorpay_order_id}`, error)
-//                 httpError('Payment Error', next, error, req, 500)
-//             }
-//         } else {
-//             throw new CustomError(responseMessage.PAYMENT_VERIFICATION_FAILURE(razorpay_order_id), 400)
-//         }
-//     } catch (error) {
-//         httpError('PAYMENT VERIFICATION', next, error, req, 500)
-//     }
-// }
 
 export const getMyBookings = async (req, res, next) => {
     try {
@@ -414,5 +306,119 @@ export const getOrderDetail = async (req, res, next) => {
         return httpResponse(req, res, 200, generic_msg.operation_success('Get order details'), order, null)
     } catch (error) {
         return httpError('GET ORDER DETAILS', next, error, req, 500)
+    }
+}
+
+///Transaction Enable route
+export const paymentVerificationWithTransaction = async (req, res, next) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
+
+    // @ts-ignore
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    try {
+        logger.info(`Verifying payment for order ID: ${razorpay_order_id}, payment ID: ${razorpay_payment_id}`)
+
+        // Find the corresponding order in the database
+        const order = await Order.findOne({ razorpayOrderId: razorpay_order_id }).session(session)
+        if (!order) {
+            throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+        }
+
+        // Verify if payment already exists (Idempotency check)
+        const paymentExists = await Payment.findOne({ razorpay_payment_id }).session(session)
+        if (paymentExists) {
+            await session.commitTransaction()
+            httpResponse(req, res, 200, 'Payment already verified', order, null)
+            return
+        }
+
+        // Create HMAC to verify the signature
+        const hmac = crypto.createHmac('sha256', config.RAZORPAY_API_SECRET)
+        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        const expectedSignature = hmac.digest('hex')
+
+        // Use timingSafeEqual to prevent timing attacks
+        const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf-8')
+        const razorpaySignatureBuffer = Buffer.from(razorpay_signature, 'utf-8')
+        const isAuthentic = crypto.timingSafeEqual(expectedSignatureBuffer, razorpaySignatureBuffer)
+
+        if (!isAuthentic) {
+            throw new CustomError(order_msg.payment_verification_fail(razorpay_order_id), 400)
+        }
+
+        // Create payment record within transaction
+        const createdPayment = await Payment.create(
+            {
+                order: order._id,
+                razorpay_order_id,
+                razorpay_payment_id,
+                razorpay_signature
+            },
+            { session }
+        )
+        if (
+            !createdPayment ||
+            // @ts-ignore
+            !createdPayment._id ||
+            // @ts-ignore
+            createdPayment.razorpay_payment_id !== razorpay_payment_id ||
+            // @ts-ignore
+            createdPayment.razorpay_order_id !== razorpay_order_id
+        ) {
+            throw new CustomError('Payment record creation failed or data mismatch', 500)
+        }
+        // Update order payment status
+        if (order.paymentMethod === 'Hybrid') {
+            order.paidAmount = Math.round(order.bookingAmount * EApplicationEnvironment.HYBRID_PAYMENT_PERCENTAGE)
+            order.paymentStatus = 'Partially-Paid'
+            order.order_expire = null
+        } else if (order.paymentMethod === 'Online') {
+            order.paidAmount = order.bookingAmount
+            order.paymentStatus = 'Paid'
+            order.order_expire = null
+        }
+
+        await order.save({ session })
+
+        // Commit the transaction
+        await session.commitTransaction()
+
+        // Send email after successful transaction (non-blocking)
+        setImmediate(async () => {
+            try {
+                const formattedPickUpDate = date.formatShortDate(order.departureDate)
+                const formattedDropOffDate = date.formatShortDate(order.dropOffDate)
+                const location = order.exactLocation || order.pickupLocation
+
+                await sendMailWithRetry(
+                    req.user.email,
+                    order_emails.order_creation_email_subject,
+                    order_emails.order_creation_email_success(
+                        req.user.username,
+                        formattedPickUpDate,
+                        order._id.toString(),
+                        location,
+                        formattedDropOffDate,
+                        order.paymentMethod,
+                        order.paidAmount,
+                        order.bookingAmount
+                    )
+                )
+            } catch (emailError) {
+                logger.error(generic_msg.email_sending_failed(req.user.email), { meta: { error: emailError } })
+            }
+        })
+
+        logger.info(`Payment verification successful for order ID: ${razorpay_order_id}`)
+        httpResponse(req, res, 200, order_msg.payment_verification_success, { order: order.toObject(), paymentId: razorpay_payment_id }, null)
+    } catch (error) {
+        // Rollback transaction on error
+        await session.abortTransaction()
+        logger.error(`Payment verification failed for order ID: ${razorpay_order_id}`, { meta: { error } })
+        httpError('PAYMENT VERIFICATION', next, error, req, 500)
+    } finally {
+        await session.endSession()
     }
 }

@@ -13,7 +13,9 @@ import {
     allUserAdmin,
     // assignBooking,
     assignBookingWithRollback,
+    assignBookingWithTransaction,
     cancelAdminOrder,
+    cancelAdminOrderExplicit,
     getAdminAvailableCabs,
     getAllTransactionAdmin,
     // getAvailableCabs,
@@ -24,11 +26,15 @@ import {
     getUserBooking,
     getUserUpcomingBookings,
     modifyBookingAdmin,
+    modifyBookingAdminWithTransaction,
     payoutController,
+    payoutControllerWithTransactions,
     // pendingPaymentInfo,
     // verifyDriver,
     verifyDriverWithRollback
 } from '../controllers/admin.controller.js'
+import config from '../config/config.js'
+import { EApplicationEnvironment } from '..//constants/application.js'
 
 const router = Router()
 
@@ -48,8 +54,6 @@ router.route('/admin/cabs').get(isAuthenticated, allCabsAdmin)
 
 router.route('/admin/orders').get(isAuthenticated, allOrdersAdmin)
 
-router.route('/admin/assign/booking/:id').patch(isAuthenticated, assignBookingWithRollback)
-
 router.route('/admin/free/cabs').get(isAuthenticated, getAdminAvailableCabs)
 
 router.route('/admin/stats').get(isAuthenticated, adminStats)
@@ -68,15 +72,28 @@ router.route('/admin/user/drivers').get(isAuthenticated, allAdminDriver)
 
 router.route('/admin/order/upcomming/bookings').get(isAuthenticated, allUpcommingBookingsAdmin)
 
-router.route('/admin/order/modify/:id').put(isAuthenticated, modifyBookingAdmin)
-
-router.route('/admin/order/cancel/:id').patch(isAuthenticated, cancelAdminOrder)
-
 //transaction
 router.route('/admin/transactions').get(isAuthenticated, getAllTransactionAdmin)
 
 router.route('/admin/transaction/:id').get(isAuthenticated, getTransactionDetails)
 
-router.route('/payout').post(isAuthenticated, payoutController)
+//Condition api routes
+if (config.ENV === EApplicationEnvironment.PRODUCTION) {
+    router.route('/payout').post(isAuthenticated, payoutControllerWithTransactions) //done
+
+    router.route('/admin/order/modify/:id').put(isAuthenticated, modifyBookingAdminWithTransaction) //done
+
+    router.route('/admin/order/cancel/:id').patch(isAuthenticated, cancelAdminOrderExplicit) //done
+
+    router.route('/admin/assign/booking/:id').patch(isAuthenticated, assignBookingWithTransaction) //done
+} else {
+    router.route('/payout').post(isAuthenticated, payoutController) //done
+
+    router.route('/admin/order/modify/:id').put(isAuthenticated, modifyBookingAdmin) //done
+
+    router.route('/admin/order/cancel/:id').patch(isAuthenticated, cancelAdminOrder) //done
+
+    router.route('/admin/assign/booking/:id').patch(isAuthenticated, assignBookingWithRollback) //done
+}
 
 export default router

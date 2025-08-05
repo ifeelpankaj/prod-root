@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Cab } from '../models/cab.model.js'
 import { Order } from '../models/order.model.js'
 import { User } from '../models/user.model.js'
@@ -2267,8 +2268,8 @@ export const getRollbackHistoryController = async (req, res, next) => {
             throw new CustomError(generic_msg.unauthorized_access, 403)
         }
 
-        // eslint-disable-next-line no-unused-vars
-        const { transactionId, payoutId, userId, limit = 50, skip = 0 } = req.query
+        // @ts-ignore
+        const { transactionId, payoutId, userId } = req.query
 
         // This would query a RollbackLog collection if you create one
         // For now, return a placeholder response
@@ -2393,5 +2394,815 @@ export const allAdminDriver = async (req, res, next) => {
         return httpResponse(req, res, 200, generic_msg.operation_success('Admin all drivers'), drivers, null, pagination)
     } catch (error) {
         return httpError('ALL ADMIN DRIVER', next, error, req, 500)
+    }
+}
+//New route with transaction
+export const assignBookingWithTransaction = async (req, res, next) => {
+    // Start a session for the transaction
+    const session = await mongoose.startSession()
+
+    try {
+        // Authorization check (done outside transaction for early exit)
+        if (req.user.role !== 'Admin') {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+
+        const { id } = req.params
+        const { newCabId } = req.body
+
+        // Input validation (done outside transaction for early exit)
+        if (!id || !newCabId) {
+            throw new CustomError(generic_msg.invalid_input('Id or cabId'), 400)
+        }
+
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(newCabId)) {
+            throw new CustomError(generic_msg.invalid_input('Invalid ID format'), 400)
+        }
+
+        let result
+
+        // Execute all database operations within a transaction
+        await session.withTransaction(
+            async () => {
+                // Fetch the order and populate user details
+                const order = await Order.findById(id).populate('userId', 'email username').session(session)
+
+                if (!order) {
+                    throw new CustomError(generic_msg.resource_not_found('Booking'), 404)
+                }
+
+                // Check if booking is in a valid state for assignment
+                if (order.bookingStatus === 'Completed' || order.bookingStatus === 'Cancelled') {
+                    throw new CustomError('Cannot reassign completed or cancelled booking', 400)
+                }
+
+                // Fetch the cab and populate driver details
+                const cab = await Cab.findById(newCabId).populate('belongsTo', 'email username').session(session)
+
+                if (!cab) {
+                    throw new CustomError(generic_msg.resource_not_found('Cab'), 404)
+                }
+
+                // Check for duplicate booking using the schema method
+                // @ts-ignore
+                if (cab.hasBooking(order._id)) {
+                    throw new CustomError('Booking is already assigned to this cab', 400)
+                }
+
+                // Fetch and validate driver
+                const driver = await User.findById(cab.belongsTo._id).session(session)
+                if (!driver || !driver.isVerifiedDriver) {
+                    throw new CustomError('Cannot assign booking to unverified driver', 400)
+                }
+
+                // Remove booking from previous cab if it was assigned to one
+                if (order.bookedCab && order.bookedCab.toString() !== newCabId) {
+                    const previousCab = await Cab.findById(order.bookedCab).session(session)
+                    if (previousCab) {
+                        // @ts-ignore
+                        await previousCab.removeBooking(order._id).session(session)
+                    }
+                }
+
+                // Calculate driver cut based on payment method
+                let driverCut = order.bookingAmount // Full amount by default
+                if (order.paymentMethod === 'Online') {
+                    driverCut = order.bookingAmount - EApplicationEnvironment.HYBRID_PAYMENT_PERCENTAGE * order.bookingAmount
+                }
+
+                // Update order details atomically
+                const updatedOrder = await Order.findByIdAndUpdate(
+                    order._id,
+                    {
+                        driverId: cab.belongsTo._id,
+                        bookedCab: newCabId,
+                        bookingStatus: 'Assigning',
+                        driverShare: {
+                            driverCut,
+                            Via: order.paymentMethod !== 'Online' ? 'Customer' : 'Us',
+                            paidAt: null
+                        },
+                        assignedAt: new Date(),
+                        lastModified: new Date()
+                    },
+                    {
+                        new: true,
+                        session,
+                        runValidators: true // Ensure schema validation runs
+                    }
+                ).populate('userId', 'email username')
+
+                if (!updatedOrder) {
+                    throw new CustomError('Failed to update booking', 500)
+                }
+
+                // Add booking to new cab atomically
+                // @ts-ignore
+                await cab.addBooking(order._id, order.departureDate, order.dropOffDate, { session })
+
+                result = {
+                    order: updatedOrder,
+                    cab,
+                    driver,
+                    driverCut
+                }
+            },
+            {
+                readPreference: 'primary',
+                readConcern: { level: 'local' },
+                writeConcern: { w: 'majority' },
+                maxTimeMS: 30000 // 30 second timeout
+            }
+        )
+
+        // Send confirmation email to driver (outside transaction to avoid blocking)
+        try {
+            // @ts-ignore
+            const formattedPickUpDate = date.formatShortDate(result.order.departureDate)
+            // @ts-ignore
+            const formattedDropOffDate = date.formatShortDate(result.order.dropOffDate)
+            // @ts-ignore
+            const location = result.order.exactLocation || result.order.pickupLocation
+
+            // Use a background job or queue for email sending in production
+            setImmediate(async () => {
+                try {
+                    await sendMailWithRetry(
+                        result.cab.belongsTo.email,
+                        driver_emails.driver_assignment_email_subject,
+                        driver_emails.driver_assignment_email(
+                            result.cab.belongsTo.username,
+                            result.order._id.toString(),
+                            formattedPickUpDate,
+                            location,
+                            formattedDropOffDate,
+                            result.order.paymentMethod,
+                            result.driverCut
+                        )
+                    )
+                } catch (emailError) {
+                    logger.error(generic_msg.email_sending_failed(result.cab.belongsTo.email), {
+                        meta: { error: emailError, orderId: result.order._id }
+                    })
+                }
+            })
+        } catch (emailError) {
+            // Log but don't fail the assignment
+            logger.warn('Email scheduling failed:', emailError)
+        }
+
+        // Log successful assignment
+        logger.info('Booking assigned successfully', {
+            meta: {
+                // @ts-ignore
+                orderId: result.order._id,
+                cabId: newCabId,
+                // @ts-ignore
+                driverId: result.driver._id,
+                assignedBy: req.user.id
+            }
+        })
+
+        return httpResponse(req, res, 200, generic_msg.operation_success('Cab Assigned'), {
+            // @ts-ignore
+            orderId: result.order._id,
+            cabId: newCabId,
+            // @ts-ignore
+            driverName: result.cab.belongsTo.username,
+            assignedAt: new Date()
+        })
+    } catch (error) {
+        // Log the error with context
+        logger.error('Booking assignment failed:', {
+            meta: {
+                error: error.message,
+                stack: error.stack
+            }
+        })
+
+        // Transaction will be automatically rolled back due to error
+        return httpError('ASSIGNING CAB', next, error, req, error.statusCode || 500)
+    } finally {
+        // Always end the session
+        await session.endSession()
+    }
+}
+
+export const cancelAdminOrderExplicit = async (req, res, next) => {
+    const session = await mongoose.startSession()
+
+    try {
+        // Check authorization first (before starting transaction)
+        if (req.user.role !== 'Admin') {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+
+        const orderId = req.params.id
+        if (!orderId) {
+            throw new CustomError(generic_msg.invalid_input('orderId'), 400)
+        }
+
+        // Start transaction explicitly
+        session.startTransaction()
+
+        // Find the order within the transaction
+        const order = await Order.findById(orderId).session(session)
+        if (!order) {
+            throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+        }
+
+        // Check if order is already cancelled
+        if (order.bookingStatus === 'Cancelled') {
+            throw new CustomError('Order is already cancelled', 400)
+        }
+
+        // If order has a driver assigned, handle cab booking removal
+        if (order.driverId && order.bookedCab) {
+            const cab = await Cab.findById(order.bookedCab).session(session)
+            if (!cab) {
+                throw new CustomError(generic_msg.resource_not_found('Cab'), 404)
+            }
+
+            // Remove the booking from cab
+            // @ts-ignore
+            const bookingRemoved = await cab.removeBooking(orderId, session)
+            if (!bookingRemoved) {
+                throw new CustomError('Failed to remove booking from cab during cancellation', 500)
+            }
+        }
+
+        // Update order fields
+        if (order.driverId) {
+            order.driverId = undefined
+        }
+
+        // Reset driver share fields
+        if (order.driverShare) {
+            order.driverShare = {
+                driverCut: 0,
+                Via: 'Cancelled',
+                status: 'Cancelled',
+                paidAt: new Date()
+            }
+        }
+
+        // Update booking status to cancelled
+        order.bookingStatus = 'Cancelled'
+
+        // Save the updated order within the transaction
+        await order.save({ session })
+
+        // Commit the transaction
+        await session.commitTransaction()
+
+        httpResponse(req, res, 200, generic_msg.operation_success('Cancel Admin order'), null)
+    } catch (error) {
+        // Abort the transaction on error
+        await session.abortTransaction()
+        httpError('CANCEL ADMIN ORDER', next, error, req, 500)
+    } finally {
+        // Always end the session
+        await session.endSession()
+    }
+}
+
+export const payoutControllerWithTransactions = async (req, res, next) => {
+    // Start a MongoDB session for transaction
+    const session = await mongoose.startSession()
+
+    try {
+        // Authorization check
+        if (!req.user || req.user.role !== 'Admin') {
+            throw new CustomError(generic_msg.unauthorized_access, 403)
+        }
+
+        // Enhanced input validation
+        const { transactionId, amount, orderId } = req.body
+
+        if (!transactionId || !amount || !orderId) {
+            throw new CustomError(generic_msg.invalid_input('Amount or transactionId or orderId'), 400)
+        }
+
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(transactionId) || !mongoose.Types.ObjectId.isValid(orderId)) {
+            throw new CustomError('Invalid ID format', 400)
+        }
+
+        // Validate amount
+        if (typeof amount !== 'number' || amount <= 0 || amount > 1000000) {
+            throw new CustomError('Invalid amount. Must be a positive number less than 1,000,000', 400)
+        }
+
+        // Start transaction
+        await session.withTransaction(async () => {
+            // Fetch and validate transaction
+            const transaction = await Transaction.findById(transactionId).session(session)
+            if (!transaction) {
+                throw new CustomError(generic_msg.resource_not_found('Transaction'), 404)
+            }
+
+            // Validate transaction belongs to the order
+            if (transaction.orderId.toString() !== orderId) {
+                throw new CustomError('Transaction does not belong to the specified order', 400)
+            }
+
+            // Validate transaction amount matches requested amount
+            if (transaction.amount !== amount) {
+                throw new CustomError('Transaction amount mismatch', 400)
+            }
+
+            // Fetch user
+            const user = await User.findById(transaction.userId).session(session)
+            if (!user) {
+                throw new CustomError(generic_msg.resource_not_found('User'), 404)
+            }
+
+            // Comprehensive validation checks
+            if (!transaction.isPending) {
+                throw new CustomError('Transaction is not in pending state', 400)
+            }
+
+            if (
+                !user.wallet.bankDetails ||
+                !user.wallet.bankDetails.accountHolderName ||
+                !user.wallet.bankDetails.accNo ||
+                !user.wallet.bankDetails.ifsc
+            ) {
+                throw new CustomError('Incomplete bank details', 400)
+            }
+
+            // Fetch and validate order
+            const order = await Order.findById(orderId).session(session)
+            if (!order) {
+                throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+            }
+
+            // Check if order is already paid
+            if (order.driverShare && order.driverShare.status === 'Paid') {
+                throw new CustomError('Order has already been paid', 400)
+            }
+
+            // STEP 1: Setup Razorpay account if needed
+            let setupResult = null
+            if (!user.wallet.bankDetails.fundAcc) {
+                try {
+                    logger.info('Setting up Razorpay account', {
+                        userId: user._id,
+                        orderId
+                    })
+
+                    setupResult = await setupRazorpayAccount(user, orderId)
+
+                    if (!setupResult) {
+                        throw new CustomError('Failed to get setup result from Razorpay', 500)
+                    }
+
+                    // Check if fund account was created successfully
+                    if (setupResult.fundAccountId) {
+                        // Update user with fund account ID within transaction
+                        const userUpdateResult = await User.updateOne(
+                            { _id: user._id },
+                            { $set: { 'wallet.bankDetails.fundAcc': setupResult.fundAccountId } },
+                            { session }
+                        )
+
+                        if (userUpdateResult.modifiedCount === 0) {
+                            throw new CustomError('Failed to update user fund account', 500)
+                        }
+
+                        // Update local user object
+                        user.wallet.bankDetails.fundAcc = setupResult.fundAccountId
+
+                        logger.info('Fund account created and saved', {
+                            fundAccountId: setupResult.fundAccountId
+                        })
+                    }
+
+                    // Check validation status
+                    if (setupResult.validationStatus !== 'created') {
+                        throw new CustomError(`Fund account validation failed with status: ${setupResult.validationStatus}`, 400)
+                    }
+
+                    logger.info('Razorpay account setup completed successfully', {
+                        fundAccountId: setupResult.fundAccountId,
+                        validationStatus: setupResult.validationStatus
+                    })
+                } catch (error) {
+                    logger.error('Razorpay account setup failed:', error)
+                    throw new CustomError(`Failed to set up Razorpay account: ${error.message}`, 500)
+                }
+            }
+
+            // STEP 2: Execute fund transfer
+            let transferResult
+            try {
+                logger.info('Initiating fund transfer', {
+                    fundAccountId: user.wallet.bankDetails.fundAcc,
+                    amount,
+                    userId: user._id
+                })
+
+                transferResult = await fundTransfer(user.wallet.bankDetails.fundAcc, amount, user, orderId)
+
+                if (!transferResult || !transferResult.id) {
+                    throw new CustomError('Invalid transfer response', 500)
+                }
+
+                logger.info('Fund transfer completed successfully', {
+                    payoutId: transferResult.id,
+                    mode: transferResult.mode
+                })
+            } catch (error) {
+                logger.error('Fund transfer failed:', error)
+                throw new CustomError(`Failed to transfer funds: ${error.message}`, 500)
+            }
+
+            // STEP 3: Update transaction status within transaction
+            const transactionUpdateResult = await Transaction.updateOne(
+                { _id: transactionId },
+                {
+                    $set: {
+                        isPending: false,
+                        type: 'credit',
+                        payoutId: transferResult.id,
+                        transactionDate: new Date(),
+                        description: `Payout via ${transferResult.mode}`
+                    }
+                },
+                { session }
+            )
+
+            if (transactionUpdateResult.modifiedCount === 0) {
+                throw new CustomError('Failed to update transaction status', 500)
+            }
+
+            // STEP 4: Update user wallet balance within transaction
+            const walletUpdateResult = await User.updateOne({ _id: user._id }, { $inc: { 'wallet.balance': amount } }, { session })
+
+            if (walletUpdateResult.modifiedCount === 0) {
+                throw new CustomError('Failed to update wallet balance', 500)
+            }
+
+            // STEP 5: Update order status within transaction
+            const orderUpdateResult = await Order.updateOne(
+                { _id: orderId },
+                {
+                    $set: {
+                        'driverShare.Via': transferResult.mode,
+                        'driverShare.status': 'Paid',
+                        'driverShare.paidAt': new Date()
+                    }
+                },
+                { session }
+            )
+
+            if (orderUpdateResult.modifiedCount === 0) {
+                throw new CustomError('Failed to update order status', 500)
+            }
+
+            // Store transferResult for later use outside transaction
+            req.transferResult = transferResult
+            req.processedUser = user
+            req.processedOrder = { orderId, setupResult }
+        })
+
+        // STEP 6: Send notification email (outside transaction - non-critical)
+        try {
+            await sendMailWithRetry(
+                req.processedUser.email,
+                transaction_emails.payout_email_subject(orderId),
+                transaction_emails.payout_email_success(req.processedUser.username, amount, orderId)
+            )
+            logger.info(`Payout email sent successfully to user ${req.processedUser.email}`)
+        } catch (emailError) {
+            logger.error(`Failed to send payout email to user ${req.processedUser.email}:`, emailError)
+            // Don't fail the entire operation for email failure
+        }
+
+        // Prepare success response
+        const responseData = {
+            payoutId: req.transferResult.id,
+            amount,
+            mode: req.transferResult.mode,
+            status: 'completed',
+            transactionId,
+            orderId,
+            processedAt: new Date(),
+            ...(req.processedOrder.setupResult && {
+                newFundAccount: {
+                    contactId: req.processedOrder.setupResult.contactId,
+                    fundAccountId: req.processedOrder.setupResult.fundAccountId
+                }
+            })
+        }
+
+        logger.info('Payout completed successfully', {
+            payoutId: req.transferResult.id,
+            userId: req.processedUser._id,
+            amount,
+            orderId
+        })
+
+        httpResponse(req, res, 200, generic_msg.operation_success('Payment released for driver'), responseData, null, null)
+    } catch (error) {
+        logger.error('Payout controller error:', {
+            error: error.message,
+            stack: error.stack,
+            transactionId: req.body?.transactionId,
+            orderId: req.body?.orderId
+        })
+
+        httpError('PAYOUT_CONTROLLER', next, error, req, error.statusCode || 500)
+    } finally {
+        // End the session
+        await session.endSession()
+    }
+}
+
+export const modifyBookingAdminWithTransaction = async (req, res, next) => {
+    // Start a session for the transaction
+    const session = await mongoose.startSession()
+
+    try {
+        const orderId = req.params.id
+        const { pickupLocation, departureDate, dropOffDate, exactLocation, destination, numberOfPassengers, passengers } = req.body
+
+        // Validation
+        if (!orderId) {
+            throw new CustomError(generic_msg.invalid_input('OrderId'), 400)
+        }
+
+        // Start transaction
+        await session.withTransaction(
+            async () => {
+                // Find the existing booking within transaction
+                const existingBooking = await Order.findById(orderId).session(session)
+                if (!existingBooking) {
+                    throw new CustomError(generic_msg.resource_not_found('Order'), 404)
+                }
+
+                // Get the cab to check capacity within transaction
+                const cab = await Cab.findById(existingBooking.bookedCab).session(session)
+                if (!cab) {
+                    throw new CustomError('Associated cab not found', 404)
+                }
+
+                // Store original data for logging
+                const originalData = {
+                    pickupLocation: existingBooking.pickupLocation,
+                    departureDate: existingBooking.departureDate,
+                    dropOffDate: existingBooking.dropOffDate,
+                    exactLocation: existingBooking.exactLocation,
+                    destination: existingBooking.destination,
+                    numberOfPassengers: existingBooking.numberOfPassengers,
+                    passengers: existingBooking.passengers
+                }
+
+                // Prepare update object with only provided fields
+                const updateFields = {}
+
+                if (pickupLocation !== undefined) {
+                    updateFields.pickupLocation = pickupLocation
+                }
+
+                if (departureDate !== undefined) {
+                    // Validate date format if provided
+                    const parsedDepartureDate = new Date(departureDate)
+                    if (isNaN(parsedDepartureDate.getTime())) {
+                        throw new CustomError('Invalid departureDate format', 400)
+                    }
+
+                    // Ensure departureDate is not in the past (allow some buffer for admin modifications)
+                    const now = new Date()
+                    if (parsedDepartureDate < now) {
+                        logger.warn(`Admin setting departure date in past for booking ${orderId}`)
+                    }
+
+                    updateFields.departureDate = parsedDepartureDate
+                }
+
+                if (dropOffDate !== undefined) {
+                    // Validate date format if provided
+                    const parsedDropOffDate = new Date(dropOffDate)
+                    if (isNaN(parsedDropOffDate.getTime())) {
+                        throw new CustomError('Invalid dropOffDate format', 400)
+                    }
+
+                    // Ensure dropOffDate is after departureDate (use updated or existing)
+                    const finalDepartureDate = updateFields.departureDate || existingBooking.departureDate
+                    if (parsedDropOffDate <= finalDepartureDate) {
+                        throw new CustomError('Drop off date must be after departure date', 400)
+                    }
+
+                    updateFields.dropOffDate = parsedDropOffDate
+                }
+
+                if (exactLocation !== undefined) {
+                    updateFields.exactLocation = exactLocation
+                }
+
+                if (destination !== undefined) {
+                    updateFields.destination = destination
+                }
+
+                // Handle passengers modification - allow adding passengers up to cab capacity
+                if (passengers !== undefined) {
+                    // Validate passengers array
+                    if (!Array.isArray(passengers)) {
+                        throw new CustomError('Passengers must be an array', 400)
+                    }
+
+                    // Check if passengers array length exceeds cab capacity
+                    if (passengers.length > cab.capacity) {
+                        throw new CustomError(`Number of passengers (${passengers.length}) cannot exceed cab capacity (${cab.capacity})`, 400)
+                    }
+
+                    // Must have at least 1 passenger
+                    if (passengers.length < 1) {
+                        throw new CustomError('At least one passenger is required', 400)
+                    }
+
+                    // Validate each passenger object
+                    for (let i = 0; i < passengers.length; i++) {
+                        const passenger = passengers[i]
+                        if (!passenger.firstName || !passenger.lastName) {
+                            throw new CustomError(`Passenger ${i + 1}: firstName and lastName are required`, 400)
+                        }
+
+                        if (passenger.age !== undefined && (!Number.isInteger(passenger.age) || passenger.age < 0)) {
+                            throw new CustomError(`Passenger ${i + 1}: Age must be a non-negative integer`, 400)
+                        }
+
+                        // Optional: Validate gender if provided
+                        if (passenger.gender && !['Male', 'Female', 'Other'].includes(passenger.gender)) {
+                            throw new CustomError(`Passenger ${i + 1}: Invalid gender value`, 400)
+                        }
+                    }
+
+                    updateFields.passengers = passengers
+                    // Auto-update numberOfPassengers to match passengers array length
+                    updateFields.numberOfPassengers = passengers.length
+                }
+
+                // Handle numberOfPassengers modification (only if passengers array is not provided)
+                if (numberOfPassengers !== undefined && passengers === undefined) {
+                    if (!Number.isInteger(numberOfPassengers) || numberOfPassengers < 1) {
+                        throw new CustomError('Number of passengers must be a positive integer', 400)
+                    }
+
+                    // Check if numberOfPassengers exceeds cab capacity
+                    if (numberOfPassengers > cab.capacity) {
+                        throw new CustomError(`Number of passengers (${numberOfPassengers}) cannot exceed cab capacity (${cab.capacity})`, 400)
+                    }
+
+                    // Adjust the passengers array based on numberOfPassengers
+                    const currentPassengersLength = existingBooking.passengers.length
+
+                    if (numberOfPassengers > currentPassengersLength) {
+                        // Convert existing passengers to plain objects and add placeholder passengers
+                        const passengersToAdd = numberOfPassengers - currentPassengersLength
+                        const newPassengers = existingBooking.passengers.map((p) => p.toObject())
+
+                        for (let i = 0; i < passengersToAdd; i++) {
+                            // @ts-ignore
+                            newPassengers.push({
+                                firstName: `Passenger${currentPassengersLength + i + 1}`,
+                                lastName: 'ToBeUpdated',
+                                age: undefined,
+                                gender: undefined
+                            })
+                        }
+                        updateFields.passengers = newPassengers
+                    } else if (numberOfPassengers < currentPassengersLength) {
+                        // Remove excess passengers and convert to plain objects
+                        updateFields.passengers = existingBooking.passengers.slice(0, numberOfPassengers).map((p) => p.toObject())
+                    }
+
+                    updateFields.numberOfPassengers = numberOfPassengers
+                }
+
+                // Check if there are any fields to update
+                if (Object.keys(updateFields).length === 0) {
+                    throw new CustomError('No valid fields provided for update', 400)
+                }
+
+                // Handle cab booking updates if booking is in Assigning or Confirmed status
+                if (existingBooking.bookingStatus === 'Assigning' || existingBooking.bookingStatus === 'Confirmed') {
+                    // Remove the current booking from cab's upcoming bookings within transaction
+                    const cabUpdateResult = await Cab.findByIdAndUpdate(
+                        existingBooking.bookedCab,
+                        { $pull: { upcomingBookings: { bookingId: orderId } } },
+                        { session, new: true }
+                    )
+
+                    if (!cabUpdateResult) {
+                        throw new CustomError('Failed to remove existing booking from cab', 500)
+                    }
+
+                    // Determine the dates to use for re-adding the booking
+                    const newDepartureDate = updateFields.departureDate || existingBooking.departureDate
+                    const newDropOffDate = updateFields.dropOffDate || existingBooking.dropOffDate
+
+                    // Add the booking back with updated information within transaction
+                    const cabAddResult = await Cab.findByIdAndUpdate(
+                        existingBooking.bookedCab,
+                        {
+                            $push: {
+                                upcomingBookings: {
+                                    bookingId: existingBooking._id,
+                                    departureDate: newDepartureDate,
+                                    dropOffDate: newDropOffDate
+                                }
+                            }
+                        },
+                        { session, new: true }
+                    )
+
+                    if (!cabAddResult) {
+                        throw new CustomError('Failed to add updated booking to cab', 500)
+                    }
+                }
+
+                // Perform the order update within transaction
+                const updatedBooking = await Order.findByIdAndUpdate(
+                    orderId,
+                    { $set: updateFields },
+                    {
+                        new: true,
+                        runValidators: true,
+                        session
+                    }
+                ).populate('userId bookedCab driverId')
+
+                if (!updatedBooking) {
+                    throw new CustomError('Failed to update booking', 500)
+                }
+
+                // Log the modification for audit trail (outside transaction for performance)
+                // Store data for logging after transaction commits
+                this.auditData = {
+                    orderId,
+                    originalData,
+                    updateFields,
+                    updatedBooking,
+                    cab
+                }
+
+                return updatedBooking
+            },
+            {
+                // Transaction options
+                readPreference: 'primary',
+                readConcern: { level: 'local' },
+                writeConcern: { w: 'majority' }
+            }
+        )
+
+        // Transaction completed successfully, now log the audit data
+        if (config.ENV !== EApplicationEnvironment.PRODUCTION && this.auditData) {
+            logger.info(`Booking ${this.auditData.orderId} modified by admin`, {
+                meta: {
+                    originalData: this.auditData.originalData,
+                    updatedFields: this.auditData.updateFields,
+                    adminAction: 'MODIFY_BOOKING',
+                    passengerChange: {
+                        from: this.auditData.originalData.numberOfPassengers,
+                        to: this.auditData.updatedBooking.numberOfPassengers
+                    }
+                }
+            })
+        }
+
+        // Get the final updated booking data (re-fetch to ensure consistency)
+        const finalBooking = await Order.findById(orderId).populate('userId bookedCab driverId')
+        const cab = await Cab.findById(finalBooking.bookedCab)
+
+        const responseData = {
+            booking: finalBooking,
+            modifiedFields: Object.keys(this.auditData?.updateFields || {}),
+            passengerInfo: {
+                originalCount: this.auditData?.originalData.numberOfPassengers,
+                newCount: finalBooking.numberOfPassengers,
+                cabCapacity: cab.capacity,
+                availableSlots: cab.capacity - finalBooking.numberOfPassengers
+            }
+        }
+
+        httpResponse(req, res, 200, generic_msg.operation_success('Admin Modify booking'), responseData)
+    } catch (error) {
+        logger.error('Error in modifyBookingAdmin:', {
+            meta: {
+                error: error.message,
+                orderId: req.params.id,
+                stack: error.stack
+            }
+        })
+
+        // No manual rollback needed - transaction will automatically rollback on error
+        httpError('ADMIN UPDATE BOOKING', next, error, req, 500)
+    } finally {
+        // Always end the session
+        await session.endSession()
     }
 }

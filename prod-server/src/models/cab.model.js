@@ -55,7 +55,7 @@ cabSchema.methods.addBooking = async function (orderId, departureDate, dropOffDa
 
         const newBooking = { orderId, departureDate, dropOffDate, status: 'Upcoming' }
         this.upcomingBookings.push(newBooking)
-        // this.updateUpcomingBookings()
+        this.updateUpcomingBookings()
         await this.save()
     } catch (err) {
         // If it's already a CustomError, re-throw it
@@ -100,10 +100,10 @@ cabSchema.methods.removeBooking = async function (orderId, session = null) {
     }
 }
 
-// cabSchema.pre('save', function (next) {
-//     this.updateUpcomingBookings()
-//     next()
-// })
+cabSchema.pre('save', function (next) {
+    this.updateUpcomingBookings()
+    next()
+})
 
 cabSchema.index({ capacity: 1, 'upcomingBookings.departureDate': 1 })
 

@@ -1,6 +1,7 @@
 import config from '../config/config.js'
 
 export const EApplicationEnvironment = {
+    TESTING: 'testing',
     PRODUCTION: 'production',
     DEVELOPMENT: 'development',
     HYBRID_PAYMENT_PERCENTAGE: parseFloat(config.HYBRID_PAYMENT_PERCENTAGE) || 0.1,
