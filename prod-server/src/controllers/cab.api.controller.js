@@ -514,7 +514,8 @@ export const registerCabWithTransaction = async (req, res, next) => {
                 }
 
                 // Check if user already has a cab
-                if (user.haveCab) {
+
+                if (user.haveCab && req.user.role !== 'Admin') {
                     throw new CustomError('User already has a registered cab', 400)
                 }
 
