@@ -78,7 +78,7 @@ router.route('/admin/transactions').get(isAuthenticated, getAllTransactionAdmin)
 router.route('/admin/transaction/:id').get(isAuthenticated, getTransactionDetails)
 
 //Condition api routes
-if (config.ENV === EApplicationEnvironment.PRODUCTION) {
+if (config.ENV !== EApplicationEnvironment.TESTING) {
     router.route('/payout').post(isAuthenticated, payoutControllerWithTransactions) //done
 
     router.route('/admin/order/modify/:id').put(isAuthenticated, modifyBookingAdminWithTransaction) //done

@@ -29,7 +29,7 @@ router.route('/cab/via/:id').get(isAuthenticated, getSingleCabs)
 
 router.route('/make-cab/ready/:id').get(isAuthenticated, makeCabReady)
 
-if (config.ENV === EApplicationEnvironment.PRODUCTION) {
+if (config.ENV !== EApplicationEnvironment.TESTING) {
     router.route('/cab/register').post(isAuthenticated, registerCabWithTransaction)
 
     router.route('/cab/update/:id').put(isAuthenticated, updateCabWithTransaction)

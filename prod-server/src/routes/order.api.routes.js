@@ -26,7 +26,7 @@ router.route('/:id').get(isAuthenticated, getOrderDetail)
 router.route('/pending').get(isAuthenticated, getAllPendingOrder)
 
 // Environment-specific payment verification route
-if (config.ENV === EApplicationEnvironment.PRODUCTION) {
+if (config.ENV !== EApplicationEnvironment.TESTING) {
     router.route('/payment/verification').post(isAuthenticated, paymentVerificationWithTransaction)
 } else {
     router.route('/payment/verification').post(isAuthenticated, paymentVerificationWithManualRollback)

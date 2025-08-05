@@ -37,7 +37,7 @@ router.route('/wallet-balance').get(isAuthenticated, getDriverWalletBalance)
 
 router.route('/get-all-transaction').get(isAuthenticated, getDriverAllTransaction)
 
-if (config.ENV === EApplicationEnvironment.PRODUCTION) {
+if (config.ENV !== EApplicationEnvironment.TESTING) {
     router.route('/confirm-driver-booking').put(isAuthenticated, confirmBookingWithTransaction)
 
     router.route('/cancel-driver-booking').put(isAuthenticated, cancelBookingWithTransaction)
