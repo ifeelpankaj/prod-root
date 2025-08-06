@@ -60,7 +60,7 @@ pipeline {
                     chmod 644 logstash/config/logstash.yml
                     chmod 644 logstash/pipeline/logstash.conf
                     
-                    echo "✅ All ELK configuration files found and permissions set!"
+                    echo "All ELK configuration files found and permissions set!"
                     echo "Configuration files:"
                     ls -la filebeat/
                     ls -la logstash/config/
