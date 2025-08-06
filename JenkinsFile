@@ -38,9 +38,6 @@ pipeline {
             steps {
                 sh '''
                     echo "Verifying ELK Stack configuration files..."
-                    
-                    echo "Current working directory: $(pwd)"
-                    ls -R
 
                     # Check if configuration files exist
                     if [ ! -f "filebeat/filebeat.yml" ]; then
