@@ -9,12 +9,27 @@ pipeline {
     stages {
         stage('Cloning') {
             steps {
-                echo "Cloning"
+                echo "Cloning your app"
                 git url: "https://github.com/ifeelpankaj/prod-root.git",
                 branch: "master"
             }
         }
-        
+        stage('Prepare MongoDB Keyfile') {
+            steps {
+                sh '''
+                    # Create directory
+                    mkdir -p mongo-keyfile
+                    
+                    # Generate keyfile using Docker (avoids permission issues)
+                    docker run --rm -v $(pwd)/mongo-keyfile:/keyfile alpine:latest sh -c "
+                        apk add --no-cache openssl &&
+                        openssl rand -base64 756 > /keyfile/mongodb-keyfile &&
+                        chmod 400 /keyfile/mongodb-keyfile &&
+                        chown 999:999 /keyfile/mongodb-keyfile
+                    "
+                '''
+            }
+        }
         stage('Setup Client Environment') {
             steps {
                 dir('prod-client') {
@@ -59,13 +74,31 @@ pipeline {
         stage('Deploy with Docker') {
             steps {
                 sh '''
-                    docker compose down --volumes --remove-orphans
-                    docker builder prune -f
-                    docker compose build --no-cache
-                    docker compose up -d
-                '''
-            }
-        }
+            # Clean up existing containers and volumes
+            docker compose down --remove-orphans
+            docker builder prune -f
+            
+            # Build without cache
+            docker compose build --no-cache
+            
+            # Start core services first
+            docker compose up -d mongodb
+            
+            # Wait for MongoDB to be healthy
+            echo "Waiting for MongoDB to be healthy..."
+            timeout 120 sh -c 'until docker compose ps mongodb | grep -q "healthy"; do sleep 5; done'
+            
+            # Initialize replica set
+            docker compose up mongodb-init --abort-on-container-exit
+            
+            # Start remaining services
+            docker compose up -d backend frontend admin
+            
+            # Verify all services are running
+            docker compose ps
+        '''
+    }
+}
     }
     
     post {
@@ -77,6 +110,7 @@ pipeline {
         }
     }
 }
+
 
 
 services:
@@ -113,18 +147,16 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      - mongodb
-    # Fix: Use correct env file path and add fallback
+      mongodb:
+        condition: service_healthy
+      mongodb-init: # ADD THIS
+        condition: service_completed_successfully
     env_file:
-      - ./prod-server/.env.development
-    # Alternative: Use environment variables directly if file issues persist
+      - ./prod-server/.env.production
     environment:
       - NODE_ENV=development
-      # Add your specific environment variables here if needed
-      # - DB_CONNECTION_STRING=mongodb://admin:password123@mongodb:27017/prod-db?authSource=admin
     networks:
       - app-network
-    # Add restart policy
     restart: unless-stopped
 
   mongodb:
@@ -140,10 +172,63 @@ services:
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
+      - ./mongo-keyfile:/opt/keyfile:ro
     networks:
       - app-network
-    # Add command to ensure proper authentication setup
-    command: mongod --auth
+    # Enable replica set for transactions
+    command: >
+      mongod --auth 
+      --replSet rs0 
+      --bind_ip_all 
+      --keyFile /opt/keyfile/mongodb-keyfile
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--port",
+          "27017",
+          "--quiet",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # Separate service to initialize replica set
+  mongodb-init:
+    image: mongo:7.0
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app-network
+    command: >
+      mongosh --host mongodb:27017 --username admin --password password123 --authenticationDatabase admin --eval "
+        try {
+          rs.status();
+          print('Replica set already initialized');
+        } catch (e) {
+          if (e.message.includes('no replset config has been received') || e.message.includes('not running with --replSet')) {
+            print('Initializing replica set...');
+            rs.initiate({
+              _id: 'rs0',
+              members: [{ _id: 0, host: 'mongodb:27017' }]
+            });
+            print('Waiting for replica set to be ready...');
+            while (rs.isMaster().ismaster !== true) {
+              sleep(1000);
+            }
+            print('Replica set initialized successfully');
+          } else {
+            print('Error: ' + e.message);
+            quit(1);
+          }
+        }
+      "
+    restart: "no"
 
 networks:
   app-network:
@@ -159,3 +244,319 @@ volumes:
 
 
 
+
+
+# ELK Stack Setup for GCP VM with Winston JSON Logs
+
+## Prerequisites for GCP VM
+
+### 1. VM Requirements
+Your GCP VM should have at least:
+- **4GB RAM** (Elasticsearch needs memory)
+- **20GB disk space**
+- **Ubuntu 20.04 or later**
+
+### 2. Update VM Memory Settings
+```bash
+# Check current memory
+free -h
+
+# If you have less than 4GB, consider upgrading your VM instance
+# Or reduce Elasticsearch memory in docker-compose:
+# ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+```
+
+### 3. Install Docker and Docker Compose (if not already installed)
+```bash
+# Update packages
+sudo apt update
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Logout and login again to apply docker group changes
+exit
+# SSH back into your VM
+```
+
+## Step-by-Step Setup
+
+### Step 1: Prepare Your Project Directory
+```bash
+cd /path/to/your/project
+```
+
+### Step 2: Create ELK Configuration
+Run this script to create all necessary configuration files:
+
+```bash
+#!/bin/bash
+
+# Create necessary directories
+mkdir -p logstash/config
+mkdir -p logstash/pipeline  
+mkdir -p filebeat
+
+# Create Filebeat configuration for Winston JSON logs
+cat > filebeat/filebeat.yml << 'EOF'
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /logs/development.log
+    - /logs/production.log
+  fields:
+    service: backend
+  fields_under_root: true
+  # Handle JSON multiline logs
+  multiline.pattern: '^\{'
+  multiline.negate: true
+  multiline.match: after
+  multiline.max_lines: 500
+  exclude_lines: ['^$']
+  # Parse JSON at filebeat level
+  json.keys_under_root: true
+  json.add_error_key: true
+  
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "backend-logs-%{+yyyy.MM.dd}"
+
+setup.template:
+  name: "backend-logs"
+  pattern: "backend-logs-*"
+  enabled: true
+
+logging.level: info
+EOF
+
+# Create Logstash configuration
+cat > logstash/config/logstash.yml << 'EOF'
+http.host: "0.0.0.0"
+xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+path.config: /usr/share/logstash/pipeline
+EOF
+
+# Create Logstash pipeline for Winston logs
+cat > logstash/pipeline/logstash.conf << 'EOF'
+input {
+  beats { port => 5044 }
+}
+
+filter {
+  # Parse JSON logs from Winston
+  if [message] {
+    json { source => "message" }
+  }
+  
+  # Convert Winston timestamp format to Elasticsearch
+  if [timestamp] {
+    date {
+      match => [ "timestamp", "dd MMM yyyy HH:mm" ]
+      target => "@timestamp"
+      timezone => "Asia/Kolkata"
+    }
+  }
+  
+  # Determine environment from file path
+  if [log][file][path] =~ /development\.log$/ {
+    mutate {
+      add_field => { "log_type" => "development" }
+      add_field => { "environment" => "development" }
+    }
+  } else if [log][file][path] =~ /production\.log$/ {
+    mutate {
+      add_field => { "log_type" => "production" }  
+      add_field => { "environment" => "production" }
+    }
+  }
+  
+  # Handle error objects in meta field
+  if [meta] {
+    ruby {
+      code => "
+        meta = event.get('meta')
+        if meta.is_a?(Hash)
+          meta.each do |key, value|
+            if value.is_a?(Hash) && value['name'] && value['message'] && value['trace']
+              event.set('error_name', value['name'])
+              event.set('error_message', value['message']) 
+              event.set('error_stack', value['trace'])
+            end
+          end
+        end
+      "
+    }
+  }
+  
+  mutate {
+    add_field => { "application" => "backend" }
+    add_field => { "service" => "backend" }
+    remove_field => [ "host", "agent", "ecs", "input" ]
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["elasticsearch:9200"]
+    index => "backend-logs-%{+YYYY.MM.dd}"
+  }
+}
+EOF
+
+echo "Configuration files created!"
+```
+
+### Step 3: Update Docker Compose
+Replace your docker-compose.yml with the version that includes ELK stack services.
+
+### Step 4: Configure GCP Firewall (if accessing externally)
+```bash
+# If you want to access Kibana from outside the VM
+gcloud compute firewall-rules create allow-kibana \
+  --allow tcp:5601 \
+  --source-ranges 0.0.0.0/0 \
+  --description "Allow Kibana access"
+
+# For Elasticsearch (optional, for debugging)
+gcloud compute firewall-rules create allow-elasticsearch \
+  --allow tcp:9200 \
+  --source-ranges 0.0.0.0/0 \
+  --description "Allow Elasticsearch access"
+```
+
+### Step 5: Increase VM Memory Limits
+```bash
+# Increase max map count for Elasticsearch
+sudo sysctl -w vm.max_map_count=262144
+
+# Make it permanent
+echo 'vm.max_map_count=262144' | sudo tee -a /etc/sysctl.conf
+```
+
+### Step 6: Start the Stack
+```bash
+# Make sure your logs directory exists
+ls -la prod-server/logs/
+
+# Start all services
+docker-compose up -d
+
+# Check service status
+docker-compose ps
+
+# Monitor logs
+docker-compose logs -f elasticsearch
+docker-compose logs -f logstash  
+docker-compose logs -f kibana
+docker-compose logs -f filebeat
+```
+
+### Step 7: Verify Setup
+```bash
+# Check Elasticsearch health
+curl http://localhost:9200/_cluster/health
+
+# Check if indices are being created
+curl http://localhost:9200/_cat/indices?v
+
+# Check if logs are being indexed
+curl http://localhost:9200/backend-logs-*/_search?pretty&size=5
+```
+
+### Step 8: Access Kibana
+1. **Internal Access**: http://localhost:5601
+2. **External Access**: http://YOUR_VM_EXTERNAL_IP:5601
+
+### Step 9: Configure Kibana Index Pattern
+1. Open Kibana in browser
+2. Go to **Stack Management** → **Index Patterns**
+3. Create index pattern: `backend-logs-*`
+4. Select `@timestamp` as time field
+5. Go to **Discover** to view logs
+
+## Your Winston Log Structure in Kibana
+
+Your logs will appear in Kibana with this structure:
+```json
+{
+  "@timestamp": "2025-08-05T14:30:00.000Z",
+  "level": "INFO",
+  "message": "Your log message",
+  "timestamp": "05 Aug 2025 14:30",
+  "meta": {
+    // Your metadata
+  },
+  "service": "backend",
+  "environment": "production",
+  "log_type": "production"
+}
+```
+
+## Useful Kibana Queries
+
+- **Filter by log level**: `level: "ERROR"`
+- **Filter by environment**: `environment: "production"`  
+- **Search in message**: `message: "database"`
+- **View errors with stack traces**: `error_name: *`
+
+## Troubleshooting
+
+### Common Issues:
+
+1. **Elasticsearch won't start**:
+   ```bash
+   # Check memory
+   free -h
+   # Increase VM memory or reduce ES heap size
+   ```
+
+2. **No logs appearing**:
+   ```bash
+   # Check filebeat logs
+   docker-compose logs filebeat
+   
+   # Check if log files exist
+   docker-compose exec backend ls -la /app/logs/
+   ```
+
+3. **Permission issues**:
+   ```bash
+   # Fix log file permissions
+   sudo chmod 644 prod-server/logs/*.log
+   ```
+
+4. **Memory issues**:
+   ```bash
+   # Monitor memory usage
+   docker stats
+   
+   # Reduce memory allocation in docker-compose.yml
+   ```
+
+## Performance Optimization
+
+For better performance on GCP VM:
+
+1. **Use SSD persistent disk**
+2. **Increase VM memory to 8GB+ for production**
+3. **Set up log rotation**:
+   ```javascript
+   // In your Winston config, add log rotation
+   new transports.File({
+     filename: 'logs/production.log',
+     maxsize: 100 * 1024 * 1024, // 100MB
+     maxFiles: 5,
+     tailable: true
+   })
+   ```
+
+4. **Enable index lifecycle management in Elasticsearch**
+
+Your setup is now ready to visualize your Winston JSON logs in Kibana!

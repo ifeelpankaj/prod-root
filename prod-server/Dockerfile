@@ -21,9 +21,5 @@ COPY . .
 # Expose the port your app runs on
 EXPOSE 4000
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:4000/api/v1/system/health || exit 1
-
 # Start the application
-CMD [ "npm", "run", "dev" ]
+CMD [ "npm", "run", "start" ]
