@@ -130,8 +130,20 @@ pipeline {
                 sh '''
                     echo "Deploying application with ELK Stack..."
                     # Adding logs folder to view logs in vm 
+                    echo "Creating logs directory on host..."
                     mkdir -p prod-server/logs
                     chmod 755 prod-server/logs
+
+                    # Set proper ownership (Docker typically uses uid 1000 for node user)
+                    sudo chown -R $USER:$USER prod-server/logs
+
+                    # Create empty log files to ensure they exist
+                    touch prod-server/logs/production.log
+                    touch prod-server/logs/development.log
+                    chmod 644 prod-server/logs/*.log
+
+                    echo "Logs directory prepared:"
+                    ls -la prod-server/logs/
                     # Clean up existing containers and volumes
                     docker compose down --remove-orphans
                     docker builder prune -f
@@ -188,7 +200,7 @@ pipeline {
                     
                     # Check application services
                     echo "Application Health:"
-                    curl -f http://localhost:4000/api/v1/system/04health || echo "Backend health check failed"
+                    curl -f http://localhost:4000/api/v1/system/health || echo "Backend health check failed"
                     curl -f http://localhost:4173 || echo "Frontend health check failed"
                     curl -f http://localhost:4174 || echo "Admin health check failed"
                     
