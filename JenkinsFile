@@ -74,6 +74,10 @@ pipeline {
         stage('Deploy with Docker') {
             steps {
                 sh '''
+            # Create a directory for log 
+            mkdir -p prod-server/logs
+            chmod 755 prod-server/logs
+            
             # Clean up existing containers and volumes
             docker compose down --remove-orphans
             docker builder prune -f

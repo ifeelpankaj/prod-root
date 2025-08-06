@@ -78,7 +78,10 @@ const consoleTransport = () => {
 const fileTransport = () => {
     return [
         new transports.File({
-            filename: path.join(__dirname, '../', '../', 'logs', `${config.ENV}.log`),
+            filename:
+                config.ENV !== EApplicationEnvironment.PRODUCTION
+                    ? path.join(__dirname, '../', '../', 'logs', `${config.ENV}.log`)
+                    : path.join(process.cwd(), 'logs', `${config.ENV}.log`),
             level: 'info',
             format: format.combine(format.timestamp(), fileLogFormat)
         })

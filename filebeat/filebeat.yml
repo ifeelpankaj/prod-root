@@ -1,97 +1,40 @@
 filebeat.inputs:
-- type: log
-  enabled: true
-  paths:
-    - /logs/development.log
-    - /logs/production.log
-  fields:
-    service: backend
-  fields_under_root: true
-  # Since your logs are JSON formatted, we need to handle multi-line JSON objects
-  multiline.pattern: '^\{'
-  multiline.negate: true
-  multiline.match: after
-  exclude_lines: ['^
-  
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
-  index: "backend-logs-%{+yyyy.MM.dd}"
-
-setup.template:
-  name: "backend-logs"
-  pattern: "backend-logs-*"
-  enabled: true
-  settings:
-    index.number_of_shards: 1
-    index.number_of_replicas: 0
-
-setup.ilm:
-  enabled: false
-
-logging.level: info
-logging.to_files: true
-logging.files:
-  path: /var/log/filebeat
-  name: filebeat
-  keepfiles: 7
-  permissions: 0644, '^\s*
-  
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
-  index: "backend-logs-%{+yyyy.MM.dd}"
-
-setup.template:
-  name: "backend-logs"
-  pattern: "backend-logs-*"
-  enabled: true
-  settings:
-    index.number_of_shards: 1
-    index.number_of_replicas: 0
-
-setup.ilm:
-  enabled: false
-
-logging.level: info
-logging.to_files: true
-logging.files:
-  path: /var/log/filebeat
-  name: filebeat
-  keepfiles: 7
-  permissions: 0644]
-  # Parse JSON directly in Filebeat
-  processors:
-    - decode_json_fields:
-        fields: ["message"]
-        target: ""
-        overwrite_keys: true
-    - add_fields:
-        target: log_source
-        fields:
-          file: "%{[log][file][path]}"
-    - script:
-        lang: javascript
-        source: >
-          function process(event) {
-            var logPath = event.Get("log.file.path");
-            if (logPath && logPath.includes("development.log")) {
-              event.Put("environment", "development");
-            } else if (logPath && logPath.includes("production.log")) {
-              event.Put("environment", "production");
+  - type: log
+    enabled: true
+    paths:
+      - /logs/development.log
+      - /logs/production.log
+    fields:
+      service: backend
+      application: prod-server
+    fields_under_root: true
+    # Handle multi-line JSON (Winston pretty-prints with 4 spaces)
+    multiline.pattern: '^\{'
+    multiline.negate: true
+    multiline.match: after
+    # Parse JSON directly in Filebeat
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          target: ""
+          overwrite_keys: true
+      - script:
+          lang: javascript
+          source: >
+            function process(event) {
+              var logPath = event.Get("log.file.path");
+              if (logPath && logPath.includes("development.log")) {
+                event.Put("environment", "development");
+              } else if (logPath && logPath.includes("production.log")) {
+                event.Put("environment", "production");
+              }
             }
-          }
-  
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
-  index: "backend-logs-%{+yyyy.MM.dd}"
 
-setup.template:
-  name: "backend-logs"
-  pattern: "backend-logs-*"
-  enabled: true
-  settings:
-    index.number_of_shards: 1
-    index.number_of_replicas: 0
+# REMOVE ELASTICSEARCH OUTPUT - Send to Logstash instead
+output.logstash:
+  hosts: ["logstash:5044"]
 
+# Remove direct Elasticsearch configuration
 setup.ilm:
   enabled: false
 
