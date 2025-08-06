@@ -14,60 +14,6 @@ pipeline {
                 branch: "master"
             }
         }
-        stage('System Prerequisites') {
-            steps {
-                sh '''
-                    echo "Setting up system requirements for ELK Stack..."
-                    
-                    # Set vm.max_map_count for Elasticsearch (required)
-                    sudo sysctl -w vm.max_map_count=262144
-                    
-                    # Make it persistent
-                    if ! grep -q "vm.max_map_count=262144" /etc/sysctl.conf; then
-                        echo "vm.max_map_count=262144" |sudo tee -a /etc/sysctl.conf
-                    fi
-                    
-                    # Check system resources
-                    echo "System Resources:"
-                    free -h
-                    df -h .
-                '''
-            }
-        }
-        stage('Verify ELK Configuration') {
-            steps {
-                sh '''
-                    echo "Verifying ELK Stack configuration files..."
-
-                    # Check if configuration files exist
-                    if [ ! -f "filebeat/filebeat.yml" ]; then
-                        echo "ERROR: filebeat/filebeat.yml not found!"
-                        exit 1
-                    fi
-                    
-                    if [ ! -f "logstash/config/logstash.yml" ]; then
-                        echo "ERROR: logstash/config/logstash.yml not found!"
-                        exit 1
-                    fi
-                    
-                    if [ ! -f "logstash/pipeline/logstash.conf" ]; then
-                        echo "ERROR: logstash/pipeline/logstash.conf not found!"
-                        exit 1
-                    fi
-                    
-                    # Set proper permissions
-                    chmod 644 filebeat/filebeat.yml
-                    chmod 644 logstash/config/logstash.yml
-                    chmod 644 logstash/pipeline/logstash.conf
-                    
-                    echo "All ELK configuration files found and permissions set!"
-                    echo "Configuration files:"
-                    ls -la filebeat/
-                    ls -la logstash/config/
-                    ls -la logstash/pipeline/
-                '''
-            }
-        }
         stage('Prepare MongoDB Keyfile') {
             steps {
                 sh '''
@@ -128,124 +74,39 @@ pipeline {
         stage('Deploy with Docker') {
             steps {
                 sh '''
-                    echo "Deploying application with ELK Stack..."
-                    
-                    # Clean up existing containers and volumes
-                    docker compose down --remove-orphans
-                    docker builder prune -f
-                    
-                    # Build without cache
-                    docker compose build --no-cache
-                    
-                    # Start MongoDB first
-                    echo "Starting MongoDB..."
-                    docker compose up -d mongodb
-                    
-                    # Wait for MongoDB to be healthy
-                    echo "Waiting for MongoDB to be healthy..."
-                    timeout 120 sh -c 'until docker compose ps mongodb | grep -q "healthy"; do sleep 5; done'
-                    
-                    # Initialize replica set
-                    echo "Initializing MongoDB replica set..."
-                    docker compose up mongodb-init --abort-on-container-exit
-                    
-                    # Start Elasticsearch first (it takes longest to start)
-                    echo "Starting Elasticsearch..."
-                    docker compose up -d elasticsearch
-                    
-                    # Wait for Elasticsearch to be healthy
-                    echo "Waiting for Elasticsearch to be healthy (this may take 2-3 minutes)..."
-                    timeout 300 sh -c 'until docker compose ps elasticsearch | grep -q "healthy"; do sleep 10; done'
-                    
-                    # Start remaining ELK services
-                    echo "Starting Logstash and Kibana..."
-                    docker compose up -d logstash kibana filebeat
-                    
-                    # Start application services
-                    echo "Starting application services..."
-                    docker compose up -d backend frontend admin
-                    
-                    # Wait a moment for services to stabilize
-                    sleep 30
-                    
-                    # Verify all services are running
-                    echo "Verifying all services..."
-                    docker compose ps
-                    
-                    # Check ELK Stack health
-                    echo "Checking ELK Stack health..."
-                    timeout 60 sh -c 'until curl -s http://localhost:9200/_cluster/health | grep -q "yellow\\|green"; do sleep 5; done' || echo "Elasticsearch not fully ready yet"
-                    timeout 60 sh -c 'until curl -s http://localhost:5601/api/status | grep -q "available"; do sleep 5; done' || echo "Kibana not fully ready yet"
-                '''
-            }
-        }
-        stage('Post-Deployment Health Check') {
-            steps {
-                sh '''
-                    echo "Performing post-deployment health checks..."
-                    
-                    # Check application services
-                    echo "Application Health:"
-                    curl -f http://localhost:4000/api/v1/system/04health || echo "Backend health check failed"
-                    curl -f http://localhost:4173 || echo "Frontend health check failed"
-                    curl -f http://localhost:4174 || echo "Admin health check failed"
-                    
-                    # Check ELK Stack
-                    echo "ELK Stack Health:"
-                    curl -s http://localhost:9200/_cluster/health | jq '.' || echo "Elasticsearch not responding"
-                    curl -s http://localhost:9200/_cat/indices?v || echo "No indices created yet"
-                    curl -s http://localhost:5601/api/status || echo "Kibana not responding"
-                    
-                    # Check if logs are being processed
-                    echo "Log Processing Status:"
-                    docker compose logs --tail=20 filebeat
-                    docker compose logs --tail=20 logstash
-                    
-                    echo "Deployment complete!"
-                    echo "Access URLs:"
-                    echo "- Application: http://${EXTERNAL_IP}:4173"
-                    echo "- Admin Panel: http://${EXTERNAL_IP}:4174"
-                    echo "- API: http://${EXTERNAL_IP}:4000"
-                    echo "- Kibana Dashboard: http://${EXTERNAL_IP}:5601"
-                    echo "- Elasticsearch: http://${EXTERNAL_IP}:9200"
-                '''
-            }
-        }
+            # Clean up existing containers and volumes
+            docker compose down --remove-orphans
+            docker builder prune -f
+            
+            # Build without cache
+            docker compose build --no-cache
+            
+            # Start core services first
+            docker compose up -d mongodb
+            
+            # Wait for MongoDB to be healthy
+            echo "Waiting for MongoDB to be healthy..."
+            timeout 120 sh -c 'until docker compose ps mongodb | grep -q "healthy"; do sleep 5; done'
+            
+            # Initialize replica set
+            docker compose up mongodb-init --abort-on-container-exit
+            
+            # Start remaining services
+            docker compose up -d backend frontend admin
+            
+            # Verify all services are running
+            docker compose ps
+        '''
     }
-
+}
+    }
     
     post {
         success {
-            echo '''
-            🎉 Pipeline executed successfully!
-            
-            Your application and ELK Stack are now running:
-            - Kibana Dashboard: Create index pattern "backend-logs-*" 
-            - Monitor your Winston logs in real-time
-            - Set up alerts and dashboards as needed
-            '''
+            echo 'Pipeline executed successfully!'
         }
         failure {
-            sh '''
-                echo "Pipeline failed. Collecting debug information..."
-                echo "Docker Services Status:"
-                docker compose ps
-                
-                echo "ELK Stack Logs:"
-                docker compose logs elasticsearch | tail -50
-                docker compose logs logstash | tail -50
-                docker compose logs filebeat | tail -50
-                
-                echo "Application Logs:"
-                docker compose logs backend | tail -50
-            '''
-            echo 'Pipeline failed. Please check the logs above for details.'
-        }
-        always {
-            sh '''
-                echo "Cleanup: Removing unused Docker resources..."
-                docker system prune -f --volumes || true
-            '''
+            echo 'Pipeline failed. Please check the logs for details.'
         }
     }
 }
