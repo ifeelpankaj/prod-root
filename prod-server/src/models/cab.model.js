@@ -91,7 +91,7 @@ cabSchema.methods.removeBooking = async function (orderId, session = null) {
         }
 
         // Update the current document with the new data
-        this.upcomingBookings = updatedCab.upcomingBookings
+        // this.upcomingBookings = updatedCab.upcomingBookings
 
         return true
     } catch (err) {
@@ -100,10 +100,10 @@ cabSchema.methods.removeBooking = async function (orderId, session = null) {
     }
 }
 
-cabSchema.pre('save', function (next) {
-    this.updateUpcomingBookings()
-    next()
-})
+// cabSchema.pre('save', function (next) {
+//     this.updateUpcomingBookings()
+//     next()
+// })
 
 cabSchema.index({ capacity: 1, 'upcomingBookings.departureDate': 1 })
 
