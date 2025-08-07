@@ -129,18 +129,23 @@ pipeline {
             steps {
                 sh '''
                     echo "Deploying application with ELK Stack..."
-                    # Create logs directory with proper permissions (no sudo needed)
-                    echo "Creating logs directory on host..."
-                    mkdir -p prod-server/logs
-                    chmod 755 prod-server/logs
                     
-                    # Create empty log files
-                    touch prod-server/logs/production.log
-                    touch prod-server/logs/development.log
-                    chmod 644 prod-server/logs/*.log
+                    # Use Docker to create logs directory with proper permissions
+                    echo "Setting up logs directory using Docker..."
                     
-                    echo "Logs directory prepared:"
-                    ls -la prod-server/logs/
+                    # Use alpine container to create logs directory
+                    docker run --rm \
+                        -v $(pwd)/prod-server:/app \
+                        -w /app \
+                        alpine:latest \
+                        sh -c "
+                            mkdir -p logs && 
+                            touch logs/production.log logs/development.log && 
+                            chmod -R 777 logs &&
+                            ls -la logs/
+                        "
+                    
+                    echo "Logs directory created successfully using Docker"
                     # Clean up existing containers and volumes
                     docker compose down --remove-orphans
                     docker builder prune -f
