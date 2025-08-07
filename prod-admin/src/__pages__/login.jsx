@@ -1,22 +1,22 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState } from 'react';
+/* eslint-disable react/self-closing-comp */
+
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, X, Mail, Lock, Shield, ArrowRight, Zap, Star } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../__redux__/thunks/auth.thunk';
 import { toast } from 'react-toastify';
-import { CircleX, Eye, EyeOff } from 'lucide-react';
+import { login } from '../__redux__/thunks/auth.thunk';
 import { useForgetPasswordMutation, useResetPasswordMutation } from '../__redux__/api/auth.api';
-
 const Login = () => {
-    // Redux hooks
+    // Login state
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    // Login state
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = React.useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    // eslint-disable-next-line no-unused-vars
+    const [isAnimating, setIsAnimating] = useState(false);
 
     // Forgot password state
     const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -24,15 +24,27 @@ const Login = () => {
     const [otp, setOtp] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [forgotStep, setForgotStep] = useState(1); // 1: email, 2: otp+password, 3: success
+    const [forgotStep, setForgotStep] = useState(1);
     // eslint-disable-next-line no-unused-vars
     const [otpSent, setOtpSent] = useState(false);
-
-    // RTK Query mutations
     const [forgetPassword, { isLoading: forgetPasswordLoading }] = useForgetPasswordMutation();
     const [resetPassword, { isLoading: resetPasswordLoading }] = useResetPasswordMutation();
+    // Particle animation state
+    const [particles, setParticles] = useState([]);
 
-    // Login handler
+    useEffect(() => {
+        // Generate particles for animation
+        const newParticles = Array.from({ length: 50 }, (_, i) => ({
+            id: i,
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            size: Math.random() * 3 + 1,
+            speed: Math.random() * 2 + 1,
+            opacity: Math.random() * 0.5 + 0.2
+        }));
+        setParticles(newParticles);
+    }, []);
+
     const handleLogin = async (e) => {
         e.preventDefault();
 
@@ -65,7 +77,6 @@ const Login = () => {
             toast.error('Please enter your email');
             return;
         }
-
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(forgotEmail)) {
@@ -74,7 +85,7 @@ const Login = () => {
         }
 
         try {
-            const response = await forgetPassword({ email: forgotEmail });
+            const response = await forgetPassword(forgotEmail);
 
             if (response.error) {
                 toast.error(response.error.data?.message || 'Failed to send OTP');
@@ -126,7 +137,6 @@ const Login = () => {
 
         try {
             const response = await resetPassword({
-                email: forgotEmail,
                 otp,
                 newPassword
             });
@@ -150,12 +160,6 @@ const Login = () => {
         }
     };
 
-    // Resend OTP
-    const handleResendOTP = async () => {
-        await handleSendOTP();
-    };
-
-    // Close modal and reset all states
     const closeForgotPasswordModal = () => {
         setShowForgotPassword(false);
         setForgotEmail('');
@@ -163,225 +167,275 @@ const Login = () => {
         setNewPassword('');
         setConfirmPassword('');
         setForgotStep(1);
-        setOtpSent(false);
-    };
-
-    // Go back to previous step
-    const goBackStep = () => {
-        if (forgotStep === 2) {
-            setForgotStep(1);
-            setOtp('');
-            setNewPassword('');
-            setConfirmPassword('');
-        }
     };
 
     return (
-        <div className="login-page">
-            <div className="login-container">
-                {/* Header */}
-                <div className="login-header">
-                    <div className="admin-badge">Admin Center</div>
-                    <h1 className="login-title">Welcome Back</h1>
-                    <p className="login-subtitle">Sign in to your admin account</p>
-                </div>
+        <div className="login_container">
+            {/* Animated Background */}
+            <div className="login_background">
+                {/* Gradient Orbs */}
+                <div className="login_orb login_orb--primary"></div>
+                <div className="login_orb login_orb--secondary"></div>
+                <div className="login_orb login_orb--accent"></div>
 
-                {/* Login Form */}
-                <form
-                    onSubmit={handleLogin}
-                    className="login-form">
-                    <div className="form-group">
-                        <label
-                            htmlFor="email"
-                            className="form-label">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            className="form-input"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            disabled={isLoading}
-                            required
-                        />
-                    </div>
+                {/* Floating Particles */}
+                {particles.map((particle) => (
+                    <div
+                        key={particle.id}
+                        className="login_particle"
+                        style={{
+                            left: `${particle.x}%`,
+                            top: `${particle.y}%`,
+                            width: `${particle.size}px`,
+                            height: `${particle.size}px`,
+                            opacity: particle.opacity,
+                            animationDuration: `${particle.speed}s`,
+                            animationDelay: `${particle.id * 0.1}s`
+                        }}
+                    />
+                ))}
 
-                    <div className="form-group">
-                        <label
-                            htmlFor="password"
-                            className="form-label">
-                            Password
-                        </label>
-                        <div className="password-wrapper">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                className="form-input password-input"
-                                placeholder="Enter your password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={isLoading}
-                                required
-                            />
-                            <button
-                                type="button"
-                                className="password-toggle"
-                                onClick={() => setShowPassword(!showPassword)}
-                                disabled={isLoading}>
-                                {showPassword ? <EyeOff /> : <Eye />}
-                            </button>
+                {/* Grid Pattern */}
+                <div className="login_grid"></div>
+            </div>
+
+            {/* Main Content */}
+            <div className="login_content">
+                <div className="login_wrapper">
+                    {/* Logo & Header */}
+                    <div className="login_header">
+                        <div className="login_logo">
+                            <Shield className="login_logo-icon" />
+                        </div>
+                        <h1 className="login_title">Admin Center</h1>
+                        <div className="login_subtitle">
+                            <div className="login_status-dot login_status-dot--active"></div>
+                            <span>Secure • Professional • Powerful</span>
+                            <div className="login_status-dot login_status-dot--secondary"></div>
                         </div>
                     </div>
 
-                    <div className="forgot-password-container">
+                    {/* Login Card */}
+                    <div className={`login_card ${isAnimating ? 'login_card--animating' : ''}`}>
+                        {/* Email Field */}
+                        <div className="login_field-group">
+                            <label className="login_label">Email Address</label>
+                            <div className="login_input-wrapper">
+                                <Mail className="login_input-icon" />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="login_input"
+                                    placeholder="Enter your admin email"
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password Field */}
+                        <div className="login_field-group">
+                            <label className="login_label">Password</label>
+                            <div className="login_input-wrapper">
+                                <Lock className="login_input-icon" />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="login_input"
+                                    placeholder="Enter your password"
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="login_password-toggle"
+                                    disabled={isLoading}>
+                                    {showPassword ? <EyeOff className="login_toggle-icon" /> : <Eye className="login_toggle-icon" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Forgot Password */}
+                        <div className="login_forgot-wrapper">
+                            <button
+                                onClick={() => setShowForgotPassword(true)}
+                                className="login_forgot-link"
+                                disabled={isLoading}>
+                                Forgot Password?
+                            </button>
+                        </div>
+
+                        {/* Login Button */}
                         <button
-                            type="button"
-                            className="forgot-password"
-                            onClick={() => setShowForgotPassword(true)}
-                            disabled={isLoading}>
-                            Forgot Password?
+                            onClick={handleLogin}
+                            disabled={isLoading || !email || !password}
+                            className={`login_submit-btn ${isLoading ? 'login_submit-btn--loading' : ''}`}>
+                            <div className="login_btn-content">
+                                {isLoading ? (
+                                    <>
+                                        <div className="login_spinner"></div>
+                                        <span>Authenticating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Access Admin Center</span>
+                                        <ArrowRight className="login_btn-arrow" />
+                                    </>
+                                )}
+                            </div>
                         </button>
+
+                        {/* Security Badge */}
+                        <div className="login_security-badge">
+                            <div className="login_security-content">
+                                <Zap className="login_security-icon" />
+                                <span className="login_security-text">Secured with enterprise-grade encryption</span>
+                                <div className="login_security-dots">
+                                    <div className="login_security-dot login_security-dot--green"></div>
+                                    <div className="login_security-dot login_security-dot--blue"></div>
+                                    <div className="login_security-dot login_security-dot--purple"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <button
-                        type="submit"
-                        className={`login-button ${isLoading ? 'loading' : ''}`}
-                        disabled={isLoading}>
-                        {isLoading ? 'Signing In...' : 'Sign In'}
-                    </button>
-                </form>
+                    {/* Footer */}
+                    <div className="login_footer">
+                        <p>© 2025 Admin Center. All rights reserved.</p>
+                    </div>
+                </div>
             </div>
 
             {/* Forgot Password Modal */}
             {showForgotPassword && (
-                <div
-                    className="modal-overlay"
-                    onClick={(e) => e.target === e.currentTarget && closeForgotPasswordModal()}>
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>Reset Password</h2>
+                <div className="login_modal-overlay">
+                    <div className="login_modal">
+                        <div className="login_modal-header">
+                            <h2 className="login_modal-title">Reset Password</h2>
                             <button
-                                className="modal-close"
                                 onClick={closeForgotPasswordModal}
-                                disabled={forgetPasswordLoading || resetPasswordLoading}>
-                                <CircleX />
+                                className="login_modal-close">
+                                <X className="login_close-icon" />
                             </button>
                         </div>
 
-                        <div className="modal-body">
-                            {forgotStep === 1 && (
-                                // Step 1: Enter Email
-                                <>
-                                    <p className="modal-description">Enter your email address and will send you an OTP to reset your password.</p>
-                                    <div className="form-group">
-                                        <label className="form-label">Email Address</label>
+                        {forgotStep === 1 && (
+                            <div className="login_modal-content">
+                                <div className="login_modal-intro">
+                                    <div className="login_modal-icon login_modal-icon--mail">
+                                        <Mail />
+                                    </div>
+                                    <p className="login_modal-description">Enter your email address to receive a secure reset code.</p>
+                                </div>
+                                <div className="login_field-group">
+                                    <div className="login_input-wrapper">
+                                        <Mail className="login_input-icon" />
                                         <input
                                             type="email"
-                                            className="form-input"
-                                            placeholder="Enter your email"
                                             value={forgotEmail}
                                             onChange={(e) => setForgotEmail(e.target.value)}
-                                            disabled={forgetPasswordLoading}
-                                            autoFocus
+                                            className="login_input"
+                                            placeholder="Enter your email address"
                                         />
                                     </div>
-                                    <button
-                                        className="modal-button"
-                                        onClick={handleSendOTP}
-                                        disabled={forgetPasswordLoading || !forgotEmail.trim()}>
-                                        {forgetPasswordLoading ? 'Sending...' : 'Send OTP'}
-                                    </button>
-                                </>
-                            )}
+                                </div>
+                                <button
+                                    onClick={handleSendOTP}
+                                    disabled={forgetPasswordLoading || !forgotEmail.trim()}
+                                    className="login_modal-btn login_modal-btn--primary">
+                                    Send Reset Code
+                                </button>
+                            </div>
+                        )}
 
-                            {forgotStep === 2 && (
-                                // Step 2: Enter OTP and New Password
-                                <>
-                                    <p className="modal-description">
-                                        Enter the 6-digit OTP sent to <strong>{forgotEmail}</strong> and create a new password.
+                        {forgotStep === 2 && (
+                            <div className="login_modal-content">
+                                <div className="login_modal-intro">
+                                    <div className="login_modal-icon login_modal-icon--lock">
+                                        <Lock />
+                                    </div>
+                                    <p className="login_modal-description">
+                                        Enter the 6-digit code sent to <span className="login_email-highlight">{forgotEmail}</span>
                                     </p>
+                                </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">OTP Code</label>
-                                        <input
-                                            type="text"
-                                            className="form-input otp-input"
-                                            placeholder="Enter 6-digit OTP"
-                                            value={otp}
-                                            onChange={(e) => {
-                                                const value = e.target.value.replace(/[^0-9]/g, '');
-                                                if (value.length <= 6) setOtp(value);
-                                            }}
-                                            maxLength={6}
-                                            disabled={resetPasswordLoading}
-                                            autoFocus
-                                        />
-                                        <button
-                                            type="button"
-                                            className="resend-otp"
-                                            onClick={handleResendOTP}
-                                            disabled={forgetPasswordLoading}>
-                                            {forgetPasswordLoading ? 'Sending...' : 'Resend OTP'}
-                                        </button>
-                                    </div>
+                                {/* OTP Input */}
+                                <div className="login_otp-wrapper">
+                                    <input
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                                        className="login_otp-input"
+                                        placeholder="● ● ● ● ● ●"
+                                        maxLength={6}
+                                    />
+                                </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">New Password</label>
+                                {/* New Password */}
+                                <div className="login_field-group">
+                                    <div className="login_input-wrapper">
+                                        <Lock className="login_input-icon" />
                                         <input
                                             type="password"
-                                            className="form-input"
-                                            placeholder="Enter new password (min 6 characters)"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
-                                            disabled={resetPasswordLoading}
+                                            className="login_input"
+                                            placeholder="Enter new password"
                                         />
                                     </div>
+                                </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Confirm New Password</label>
+                                {/* Confirm Password */}
+                                <div className="login_field-group">
+                                    <div className="login_input-wrapper">
+                                        <Lock className="login_input-icon" />
                                         <input
                                             type="password"
-                                            className="form-input"
-                                            placeholder="Confirm your new password"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            disabled={resetPasswordLoading}
+                                            className="login_input"
+                                            placeholder="Confirm new password"
                                         />
                                     </div>
+                                </div>
 
-                                    <div className="modal-buttons">
-                                        <button
-                                            className="modal-button secondary"
-                                            onClick={goBackStep}
-                                            disabled={resetPasswordLoading}>
-                                            Back
-                                        </button>
-                                        <button
-                                            className="modal-button"
-                                            onClick={handleResetPassword}
-                                            disabled={resetPasswordLoading || !otp || !newPassword || !confirmPassword}>
-                                            {resetPasswordLoading ? 'Resetting...' : 'Reset Password'}
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-
-                            {forgotStep === 3 && (
-                                // Step 3: Success
-                                <div className="success-step">
-                                    <div className="success-icon">✓</div>
-                                    <h3>Password Reset Successful!</h3>
-                                    <p>Your password has been reset successfully. You can now login with your new password.</p>
+                                <div className="login_modal-actions">
                                     <button
-                                        className="modal-button"
-                                        onClick={closeForgotPasswordModal}>
+                                        onClick={() => setForgotStep(1)}
+                                        className="login_modal-btn login_modal-btn--secondary">
+                                        Back
+                                    </button>
+                                    <button
+                                        onClick={handleResetPassword}
+                                        disabled={!otp || !newPassword || !confirmPassword || newPassword !== confirmPassword || resetPasswordLoading}
+                                        className="login_modal-btn login_modal-btn--primary">
+                                        Reset Password
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {forgotStep === 3 && (
+                            <div className="login_modal-content login_modal-content--success">
+                                <div className="login_success-wrapper">
+                                    <div className="login_success-icon">
+                                        <Star />
+                                    </div>
+                                    <div className="login_success-content">
+                                        <h3 className="login_success-title">Password Reset Complete!</h3>
+                                        <p className="login_success-description">
+                                            Your password has been successfully updated. You can now sign in with your new credentials.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={closeForgotPasswordModal}
+                                        className="login_modal-btn login_modal-btn--success">
                                         Continue to Login
                                     </button>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

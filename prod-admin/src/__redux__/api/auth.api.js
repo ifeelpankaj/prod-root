@@ -51,14 +51,19 @@ export const authAPI = createApi({
         }),
         //route for reset password
         resetPassword: builder.mutation({
-            query: (otp, newPassword) => ({
-                url: '/user/modify/password',
-                method: 'PUT',
-                body: otp,
-                newPassword
-            }),
+            query: ({ otp, newPassword }) => {
+                return {
+                    url: '/user/reset/password',
+                    method: 'PUT',
+                    body: {
+                        otp,
+                        newPassword
+                    }
+                };
+            },
             invalidatesTags: ['Auth']
         }),
+
         //route to get user booking histor by Id
         getUserBookingHistory: builder.query({
             query: ({ id, page, limit }) => ({

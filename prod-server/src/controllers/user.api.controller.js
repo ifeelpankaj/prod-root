@@ -264,7 +264,6 @@ export const updatePassword = async (req, res, next) => {
 export const forgetPassword = async (req, res, next) => {
     try {
         const { email } = req.body
-
         const user = await User.findOne({ email })
 
         if (!user) {
@@ -305,6 +304,9 @@ export const forgetPassword = async (req, res, next) => {
 export const resetPassword = async (req, res, next) => {
     try {
         const { otp, newPassword } = req.body
+        if (!otp || !newPassword) {
+            throw new CustomError(generic_msg.invalid_input('OTP & Password'))
+        }
 
         const user = await User.findOne({
             resetPasswordOtp: otp,

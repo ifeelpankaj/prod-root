@@ -1,15 +1,16 @@
 // eslint-disable-next-line no-unused-vars
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './__pages__/dashboard';
 import StylishLoader from './__components__/loader';
 import Login from './__pages__/login';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import 'react-loading-skeleton/dist/skeleton.css';
 import AuthProvider from './__components__/authprovider';
 
 import { AdminProtectedRoute, PublicRoute } from './__utils__/app.utils';
+const NotFoundPage = lazy(() => import('./__components__/page.not.found'));
 
 const Coupon = lazy(() => import('./__components__/apps/coupon'));
 const Stopwatch = lazy(() => import('./__components__/apps/stopwatch'));
@@ -481,12 +482,7 @@ function App() {
                         {/* Catch all route */}
                         <Route
                             path="*"
-                            element={
-                                <Navigate
-                                    to="/"
-                                    replace
-                                />
-                            }
+                            element={<NotFoundPage />}
                         />
                     </Routes>
                 </Suspense>

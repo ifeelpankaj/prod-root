@@ -1,11 +1,13 @@
+/* eslint-disable react/no-array-index-key */
 import React, { useState } from 'react';
 import { useAllUpcommingOrdersQuery } from '../../../__redux__/api/admin.api';
 import { formatDate } from '../../../__utils__/date.utils';
 import { Link } from 'react-router-dom';
 import TableHOC from '../../../__components__/tableHOC';
 import AdminSidebar from '../../../__components__/adminSidebar';
-import StylishLoader from '../../../__components__/loader';
+
 import MessageDisplay from '../../../__components__/messageDisplay';
+import Skeleton from 'react-loading-skeleton';
 
 const columns = [
     {
@@ -90,10 +92,37 @@ const UpcommingBookings = () => {
 
             <main>
                 {ordersLoading ? (
-                    <StylishLoader
-                        size="large"
-                        color="blue"
-                    />
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            minHeight: '100vh',
+                            width: '100%'
+                        }}>
+                        <div
+                            style={{
+                                padding: '1rem',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px',
+                                width: '100%'
+                                // maxWidth: '600px'
+                            }}>
+                            <Skeleton
+                                height={40}
+                                width="100%"
+                            />
+                            {[...Array(6)].map((_, index) => (
+                                <Skeleton
+                                    key={index}
+                                    height={50}
+                                    width="100%"
+                                />
+                            ))}
+                        </div>
+                    </div>
                 ) : isError ? (
                     <MessageDisplay
                         type="error"
