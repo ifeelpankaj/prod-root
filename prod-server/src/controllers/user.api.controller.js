@@ -151,7 +151,7 @@ export const logout = async (req, res, next) => {
         res.cookie('token', '', {
             expires: new Date(Date.now()),
             httpOnly: true,
-            secure: config.ENV === 'production', // Use secure cookies in production
+            // secure: config.ENV === 'production', // Use secure cookies in production
             sameSite: 'strict' // Protect against CSRF attacks
         })
             .cookie('deletionToken', '', {
