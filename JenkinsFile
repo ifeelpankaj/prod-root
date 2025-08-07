@@ -129,19 +129,16 @@ pipeline {
             steps {
                 sh '''
                     echo "Deploying application with ELK Stack..."
-                    # Adding logs folder to view logs in vm 
+                    # Create logs directory with proper permissions (no sudo needed)
                     echo "Creating logs directory on host..."
                     mkdir -p prod-server/logs
                     chmod 755 prod-server/logs
-
-                    # Set proper ownership (Docker typically uses uid 1000 for node user)
-                    sudo chown -R $USER:$USER prod-server/logs
-
-                    # Create empty log files to ensure they exist
+                    
+                    # Create empty log files
                     touch prod-server/logs/production.log
                     touch prod-server/logs/development.log
                     chmod 644 prod-server/logs/*.log
-
+                    
                     echo "Logs directory prepared:"
                     ls -la prod-server/logs/
                     # Clean up existing containers and volumes
