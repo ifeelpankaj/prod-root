@@ -274,7 +274,7 @@ const DriverDashboard = () => {
                                     {upcomingBookings.length > 0 ? (
                                         upcomingBookings.map((booking) => (
                                             <BookingCard
-                                                key={booking.orderId._id}
+                                                key={booking?.orderId?._id}
                                                 booking={booking}
                                                 type="assigned"
                                                 onAccept={handleAcceptBooking}
@@ -310,7 +310,7 @@ const DriverDashboard = () => {
                                     {confirmBookings.length > 0 ? (
                                         confirmBookings.map((booking) => (
                                             <BookingCard
-                                                key={booking.orderId._id}
+                                                key={booking?.orderId?._id}
                                                 booking={booking}
                                                 type="confirmed"
                                                 onComplete={handleCompleteBooking}
@@ -444,7 +444,9 @@ const BookingCard = ({
     const isCompleteLoading = isCompleting;
     const isAnyLoading = isAcceptLoading || isCancelLoading || isCompleteLoading;
     const hasError = confirmingError || cancellingError || completingError;
-
+    if (!booking) {
+        return <BookingCardSkeleton />;
+    }
     return (
         <motion.div
             className={`booking-card ${type} ${hasError ? 'error' : ''}`}
