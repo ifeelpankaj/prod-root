@@ -91,7 +91,7 @@ cabSchema.methods.removeBooking = async function (orderId, session = null) {
         }
 
         // Update the current document with the new data
-        // this.upcomingBookings = updatedCab.upcomingBookings
+        this.upcomingBookings = updatedCab.upcomingBookings
 
         return true
     } catch (err) {
