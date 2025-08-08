@@ -30,12 +30,6 @@ const DriverDashboard = () => {
     console.log('booking details', bookingsData);
     console.log('booking details', walletInfo);
     console.log('booking details', transactionDetails);
-    const [loadStart] = useState(Date.now()); // store the time when component first renders
-    const elapsed = Date.now() - loadStart;
-
-    const isAnyDataMissing = !bookingsData || !walletInfo || !transactionDetails;
-
-    const showLoader = isAnyDataMissing && elapsed < 10000 * 60;
 
     const [activeTab, setActiveTab] = useState('assigned');
 
@@ -93,7 +87,7 @@ const DriverDashboard = () => {
     return (
         <div className="dashboard-container">
             {/* Left Sidebar - Profile & Wallet */}
-            {walletLoading || showLoader ? (
+            {walletLoading ? (
                 <div className="dashboard-sidebar">
                     <div className="profile-section">
                         <Skeleton
@@ -162,7 +156,7 @@ const DriverDashboard = () => {
             )}
 
             {/* Main Content Area */}
-            {dashboardLoading || transactionLoading || showLoader ? (
+            {dashboardLoading || transactionLoading ? (
                 <div className="dashboard-main">
                     <div className="dashboard-header">
                         <Skeleton
