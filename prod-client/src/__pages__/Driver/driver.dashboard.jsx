@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable react/self-closing-comp */
 import { useState } from 'react';
@@ -27,9 +26,6 @@ const DriverDashboard = () => {
     const limit = 6;
     const page = 1;
     const { data: transactionDetails, isLoading: transactionLoading, isError: transactionError } = useDriverTransactionsQuery({ page, limit });
-    console.log('booking details', bookingsData);
-    console.log('booking details', walletInfo);
-    console.log('booking details', transactionDetails);
 
     const [activeTab, setActiveTab] = useState('assigned');
 

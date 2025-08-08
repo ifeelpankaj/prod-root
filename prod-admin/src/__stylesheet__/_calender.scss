@@ -1,0 +1,569 @@
+@use './variables' as *;
+@use 'sass:color';
+.calender_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: $overlay-dark;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: $z-modal;
+    padding: $space-4;
+    backdrop-filter: blur(4px);
+    animation: fadeIn $duration-base $ease-out;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-2;
+        align-items: flex-end;
+    }
+}
+
+.calender_content {
+    background: $bg-card;
+    border-radius: $modal-radius;
+    box-shadow: $modal-shadow;
+    max-width: 400px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(0);
+    animation: slideUp $duration-base $ease-out;
+
+    @media (max-width: $breakpoint-sm) {
+        max-width: 100%;
+        border-radius: $radius-2xl $radius-2xl 0 0;
+        max-height: 85vh;
+    }
+
+    &.calender_date-picker {
+        max-width: 380px;
+    }
+}
+
+// Dialog overlay for time picker consistency
+.calender_dialog-overlay {
+    @extend .calender_overlay;
+}
+
+.calender_dialog-content {
+    @extend .calender_content;
+
+    &.time-picker {
+        max-width: 320px;
+
+        @media (max-width: $breakpoint-sm) {
+            max-width: 100%;
+        }
+    }
+}
+
+// ===================
+// HEADER STYLES
+// ===================
+.calender_header,
+.calender_dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-6 $space-6 $space-4 $space-6;
+    border-bottom: 1px solid $border-light;
+    background: linear-gradient(135deg, $bg-primary 0%, $bg-secondary 100%);
+    border-radius: $modal-radius $modal-radius 0 0;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-4 $space-4 $space-3 $space-4;
+    }
+}
+
+.calender_title {
+    font-family: $font-display;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-heading;
+    margin: 0;
+    letter-spacing: -0.02em;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-lg;
+    }
+}
+
+.calender_dialog-header h3 {
+    @extend .calender_title;
+}
+
+.calender_close,
+.calender_dialog-close {
+    background: none;
+    border: none;
+    font-size: $font-size-2xl;
+    color: $text-secondary;
+    cursor: pointer;
+    padding: $space-2;
+    border-radius: $radius-full;
+    transition: $transition-colors;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+
+    &:hover {
+        background: $bg-tertiary;
+        color: $text-primary;
+        transform: scale(1.05);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        width: 32px;
+        height: 32px;
+        font-size: $font-size-xl;
+    }
+}
+
+// ===================
+// MONTH NAVIGATION
+// ===================
+.calender_month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-6;
+    background: $bg-secondary;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-3 $space-4;
+    }
+}
+
+.calender_month-btn {
+    background: none;
+    border: none;
+    font-size: $font-size-xl;
+    color: $brand-secondary;
+    cursor: pointer;
+    padding: $space-2;
+    border-radius: $radius-lg;
+    transition: $transition-all;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+
+    &:hover {
+        background: $brand-secondary;
+        color: $text-white;
+        transform: translateY(-1px);
+        box-shadow: $shadow-md;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        width: 36px;
+        height: 36px;
+        font-size: $font-size-lg;
+    }
+}
+
+.calender_month-label {
+    font-family: $font-display;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-heading;
+    text-align: center;
+    min-width: 160px;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-base;
+        min-width: 140px;
+    }
+}
+
+// ===================
+// WEEKDAYS HEADER
+// ===================
+.calender_weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: $space-4 $space-6 $space-2 $space-6;
+    background: $bg-primary;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-3 $space-4 $space-2 $space-4;
+    }
+}
+
+.calender_weekday {
+    text-align: center;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    padding: $space-2;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-xs;
+        padding: $space-1;
+    }
+}
+
+// ===================
+// CALENDAR GRID
+// ===================
+.calender_grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: 0 $space-6 $space-6 $space-6;
+    background: $bg-primary;
+    min-height: 240px;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: 0 $space-4 $space-4 $space-4;
+        min-height: 220px;
+    }
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    border-radius: $radius-lg;
+    transition: $transition-all;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+
+    &:hover:not(.disabled):not(.empty) {
+        background: $bg-tertiary;
+        transform: scale(1.05);
+        box-shadow: $shadow-sm;
+    }
+
+    &.selected {
+        background: $gradient-primary;
+        color: $text-white;
+        font-weight: $font-weight-semibold;
+        box-shadow: $shadow-md;
+        transform: scale(1.02);
+
+        &:hover {
+            transform: scale(1.08);
+        }
+    }
+
+    &.today {
+        background: $bg-tertiary;
+        color: $brand-secondary;
+        font-weight: $font-weight-semibold;
+        box-shadow: inset 0 0 0 2px $brand-secondary;
+
+        &:not(.selected):hover {
+            background: $brand-secondary;
+            color: $text-white;
+        }
+    }
+
+    &.disabled {
+        color: $text-muted;
+        cursor: not-allowed;
+        opacity: 0;
+
+        &:hover {
+            background: none;
+            transform: none;
+            box-shadow: none;
+        }
+    }
+
+    &.empty {
+        cursor: default;
+
+        &:hover {
+            background: none;
+            transform: none;
+            box-shadow: none;
+        }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-xs;
+        min-height: 36px;
+    }
+}
+
+// ===================
+// TIME PICKER STYLES
+// ===================
+.time-selector {
+    padding: $space-6;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: $space-4;
+    background: $bg-primary;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-4;
+        gap: $space-3;
+        flex-wrap: wrap;
+    }
+}
+
+.calender_time-input-group,
+.time-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+
+    label {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    select {
+        background: $bg-card;
+        border: 2px solid $border-light;
+        border-radius: $input-radius;
+        padding: $space-3 $space-4;
+        font-size: $font-size-base;
+        font-weight: $font-weight-medium;
+        color: $text-primary;
+        width: 80px;
+        text-align: center;
+        cursor: pointer;
+        transition: $transition-colors;
+
+        &:focus {
+            outline: none;
+            border-color: $brand-secondary;
+            box-shadow: 0 0 0 3px rgba($brand-secondary, 0.1);
+        }
+
+        &:hover {
+            border-color: $border-medium;
+        }
+
+        @media (max-width: $breakpoint-sm) {
+            width: 70px;
+            padding: $space-2 $space-3;
+            font-size: $font-size-sm;
+        }
+    }
+}
+
+.calender_time-separator {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $brand-secondary;
+    margin: 0 $space-1;
+    align-self: end;
+    padding-bottom: $space-4;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 40px;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: $font-size-2xl;
+        width: 16px;
+        height: 36px;
+        padding-bottom: $space-3;
+    }
+}
+
+.calender_period-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    align-items: center;
+
+    button {
+        background: $bg-tertiary;
+        border: 2px solid $border-light;
+        border-radius: $radius-lg;
+        padding: $space-2 $space-4;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $text-secondary;
+        cursor: pointer;
+        transition: $transition-all;
+        width: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+
+        &:hover {
+            background: $bg-secondary;
+            border-color: $border-medium;
+            transform: translateY(-1px);
+        }
+
+        &.active {
+            background: $gradient-primary;
+            border-color: $brand-secondary;
+            color: $text-white;
+            box-shadow: $shadow-sm;
+        }
+
+        @media (max-width: $breakpoint-sm) {
+            width: 45px;
+            padding: $space-1 $space-3;
+            font-size: $font-size-xs;
+        }
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+
+        button {
+            width: 60px;
+        }
+    }
+}
+
+// ===================
+// DIALOG ACTIONS
+// ===================
+.calender_dialog-actions {
+    display: flex;
+    gap: $space-3;
+    padding: $space-6;
+    border-top: 1px solid $border-light;
+    background: $bg-secondary;
+    border-radius: 0 0 $modal-radius $modal-radius;
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $space-4;
+        gap: $space-2;
+    }
+
+    .btn-secondary,
+    .btn-primary {
+        flex: 1;
+        padding: $space-3 $space-6;
+        border-radius: $button-radius;
+        font-size: $font-size-base;
+        font-weight: $font-weight-semibold;
+        cursor: pointer;
+        transition: $transition-all;
+        border: 2px solid transparent;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+
+        @media (max-width: $breakpoint-sm) {
+            padding: $space-2 $space-4;
+            font-size: $font-size-sm;
+        }
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: $shadow-md;
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: $text-secondary;
+        border-color: $border-medium;
+
+        &:hover {
+            background: $bg-tertiary;
+            color: $text-primary;
+            border-color: $border-dark;
+        }
+    }
+
+    .btn-primary {
+        background: $gradient-primary;
+        color: $text-white;
+        border-color: $brand-secondary;
+
+        &:hover {
+            background: linear-gradient(
+                135deg,
+                color.adjust($brand-primary, $lightness: -5%) 0%,
+                color.adjust($brand-secondary, $lightness: -5%) 100%
+            );
+            box-shadow: $shadow-lg;
+        }
+    }
+}
+
+// ===================
+// ANIMATIONS
+// ===================
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+// ===================
+// RESPONSIVE UTILITIES
+// ===================
+@media (max-width: $breakpoint-xs) {
+    .calender_content,
+    .calender_dialog-content {
+        margin: $space-2;
+        max-height: 95vh;
+    }
+
+    .calender_grid {
+        min-height: 200px;
+    }
+
+    .calendar-day {
+        min-height: 32px;
+        font-size: 11px;
+    }
+
+    .time-selector {
+        padding: $space-3;
+        gap: $space-2;
+    }
+}

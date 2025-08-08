@@ -7,6 +7,7 @@ import { useAdminModifyBookingMutation } from '../../../../__redux__/api/admin.a
 import StylishLoader from '../../../../__components__/loader';
 import MessageDisplay from '../../../../__components__/messageDisplay';
 import { toast } from 'react-toastify';
+import { DatePickerDialog, TimePickerDialog } from '../../../../__components__/calender';
 
 const ModifyOrder = () => {
     const { id } = useParams();
@@ -16,6 +17,18 @@ const ModifyOrder = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedOrder, setEditedOrder] = useState({});
     const [passengers, setPassengers] = useState([]);
+
+    // New state for date/time picker dialogs
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [showDropOffDatePicker, setShowDropOffDatePicker] = useState(false);
+    const [showDropOffTimePicker, setShowDropOffTimePicker] = useState(false);
+
+    // State for storing selected dates and times
+    const [departureDate, setDepartureDate] = useState(null);
+    const [departureTime, setDepartureTime] = useState('');
+    const [dropOffDate, setDropOffDate] = useState(null);
+    const [dropOffTime, setDropOffTime] = useState('');
 
     React.useEffect(() => {
         if (orderDetail) {
@@ -28,8 +41,104 @@ const ModifyOrder = () => {
                 numberOfPassengers: orderDetail.numberOfPassengers || 1
             });
             setPassengers(orderDetail.passengers || [{ firstName: '', lastName: '', age: '', gender: '' }]);
+
+            // Initialize date/time states from orderDetail
+            if (orderDetail.departureDate) {
+                const date = new Date(orderDetail.departureDate);
+                setDepartureDate(date);
+                setDepartureTime(
+                    date.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    })
+                );
+            }
+            if (orderDetail.dropOffDate) {
+                const date = new Date(orderDetail.dropOffDate);
+                setDropOffDate(date);
+                setDropOffTime(
+                    date.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    })
+                );
+            }
         }
     }, [orderDetail]);
+
+    // Helper function to combine date and time for form submission
+    const convertToISOString = (date, time) => {
+        const targetDate = new Date(date);
+        const [timeStr, modifier] = time.split(' ');
+        // eslint-disable-next-line prefer-const
+        let [hours, minutes] = timeStr.split(':').map(Number);
+
+        if (modifier === 'PM' && hours !== 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+
+        targetDate.setHours(hours);
+        targetDate.setMinutes(minutes);
+        targetDate.setSeconds(0);
+        targetDate.setMilliseconds(0);
+
+        return targetDate.toISOString();
+    };
+
+    // Handlers for departure date/time
+    const handleDepartureDateClick = () => {
+        setShowDatePicker(true);
+    };
+
+    const handleDepartureTimeClick = () => {
+        setShowTimePicker(true);
+    };
+
+    const handleDepartureDateSelect = (selectedDate) => {
+        setDepartureDate(selectedDate);
+        // Update the editedOrder state for form submission
+        const combinedDateTime = convertToISOString(selectedDate, departureTime);
+        if (combinedDateTime) {
+            setEditedOrder((prev) => ({ ...prev, departureDate: combinedDateTime }));
+        }
+    };
+
+    const handleDepartureTimeSelect = (selectedTime) => {
+        setDepartureTime(selectedTime);
+        // Update the editedOrder state for form submission
+        if (departureDate) {
+            const combinedDateTime = convertToISOString(departureDate, selectedTime);
+            setEditedOrder((prev) => ({ ...prev, departureDate: combinedDateTime }));
+        }
+    };
+
+    // Handlers for drop-off date/time
+    const handleDropOffDateClick = () => {
+        setShowDropOffDatePicker(true);
+    };
+
+    const handleDropOffTimeClick = () => {
+        setShowDropOffTimePicker(true);
+    };
+
+    const handleDropOffDateSelect = (selectedDate) => {
+        setDropOffDate(selectedDate);
+        // Update the editedOrder state for form submission
+        const combinedDateTime = convertToISOString(selectedDate, dropOffTime);
+        if (combinedDateTime) {
+            setEditedOrder((prev) => ({ ...prev, dropOffDate: combinedDateTime }));
+        }
+    };
+
+    const handleDropOffTimeSelect = (selectedTime) => {
+        setDropOffTime(selectedTime);
+        // Update the editedOrder state for form submission
+        if (dropOffDate) {
+            const combinedDateTime = convertToISOString(dropOffDate, selectedTime);
+            setEditedOrder((prev) => ({ ...prev, dropOffDate: combinedDateTime }));
+        }
+    };
 
     const handleEdit = () => setIsEditing(true);
 
@@ -73,11 +182,11 @@ const ModifyOrder = () => {
             return false;
         }
         if (!editedOrder.departureDate) {
-            toast.error('Departure date is required');
+            toast.error('Departure date and time are required');
             return false;
         }
         if (orderDetail?.bookingType === 'RoundTrip' && !editedOrder.dropOffDate) {
-            toast.error('Drop-off date is required for round trip');
+            toast.error('Drop-off date and time are required for round trip');
             return false;
         }
 
@@ -99,6 +208,7 @@ const ModifyOrder = () => {
 
         return true;
     };
+
     const handleUpdate = async (e) => {
         e.preventDefault();
 
@@ -113,16 +223,13 @@ const ModifyOrder = () => {
                 numberOfPassengers: passengers.length
             };
 
-            // Debug: Check what you're sending
-
             const resultAction = await updateOrder({
                 id,
                 newData: updateData
             }).unwrap();
             await refetch();
-            // console.log('Update result:', resultAction);
             const { message } = resultAction;
-            toast.success(message); // Add success feedback
+            toast.success(message);
             setIsEditing(false);
         } catch (error) {
             toast.error(error?.data?.message || 'Failed to update order');
@@ -141,6 +248,36 @@ const ModifyOrder = () => {
                 numberOfPassengers: orderDetail.numberOfPassengers || 1
             });
             setPassengers(orderDetail.passengers || [{ firstName: '', lastName: '', age: '', gender: '' }]);
+
+            // Reset date/time states
+            if (orderDetail.departureDate) {
+                const date = new Date(orderDetail.departureDate);
+                setDepartureDate(date);
+                setDepartureTime(
+                    date.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    })
+                );
+            } else {
+                setDepartureDate(null);
+                setDepartureTime('');
+            }
+            if (orderDetail.dropOffDate) {
+                const date = new Date(orderDetail.dropOffDate);
+                setDropOffDate(date);
+                setDropOffTime(
+                    date.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    })
+                );
+            } else {
+                setDropOffDate(null);
+                setDropOffTime('');
+            }
         }
     };
 
@@ -249,16 +386,22 @@ const ModifyOrder = () => {
                                         </div>
 
                                         <div className="modify_order_info_item">
-                                            <label>Departure Date</label>
+                                            <label>Departure Date & Time</label>
                                             {isEditing ? (
-                                                <input
-                                                    type="datetime-local"
-                                                    name="departureDate"
-                                                    value={editedOrder.departureDate}
-                                                    onChange={handleInputChange}
-                                                    className="modify_order_input"
-                                                    required
-                                                />
+                                                <div className="modify_order_datetime_container">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDepartureDateClick}
+                                                        className="modify_order_datetime_btn">
+                                                        📅 {departureDate ? departureDate.toLocaleDateString() : 'Select Date'}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDepartureTimeClick}
+                                                        className="modify_order_datetime_btn">
+                                                        🕒 {departureTime || 'Select Time'}
+                                                    </button>
+                                                </div>
                                             ) : (
                                                 <p>{new Date(orderDetail?.departureDate).toLocaleString()}</p>
                                             )}
@@ -266,16 +409,22 @@ const ModifyOrder = () => {
 
                                         {(orderDetail?.bookingType === 'RoundTrip' || isEditing) && (
                                             <div className="modify_order_info_item">
-                                                <label>Drop Off Date</label>
+                                                <label>Drop Off Date & Time</label>
                                                 {isEditing ? (
-                                                    <input
-                                                        type="datetime-local"
-                                                        name="dropOffDate"
-                                                        value={editedOrder.dropOffDate}
-                                                        onChange={handleInputChange}
-                                                        className="modify_order_input"
-                                                        required={orderDetail?.bookingType === 'RoundTrip'}
-                                                    />
+                                                    <div className="modify_order_datetime_container">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleDropOffDateClick}
+                                                            className="modify_order_datetime_btn">
+                                                            📅 {dropOffDate ? dropOffDate.toLocaleDateString() : 'Select Date'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleDropOffTimeClick}
+                                                            className="modify_order_datetime_btn">
+                                                            🕒 {dropOffTime || 'Select Time'}
+                                                        </button>
+                                                    </div>
                                                 ) : (
                                                     <p>
                                                         {orderDetail?.dropOffDate
@@ -547,6 +696,37 @@ const ModifyOrder = () => {
                                 )}
                             </section>
                         </main>
+
+                        {/* Date Picker Dialogs */}
+                        <DatePickerDialog
+                            isOpen={showDatePicker}
+                            onClose={() => setShowDatePicker(false)}
+                            onSelect={handleDepartureDateSelect}
+                            selectedDate={departureDate}
+                            minDate={new Date()}
+                        />
+
+                        <TimePickerDialog
+                            isOpen={showTimePicker}
+                            onClose={() => setShowTimePicker(false)}
+                            onSelect={handleDepartureTimeSelect}
+                            selectedTime={departureTime}
+                        />
+
+                        <DatePickerDialog
+                            isOpen={showDropOffDatePicker}
+                            onClose={() => setShowDropOffDatePicker(false)}
+                            onSelect={handleDropOffDateSelect}
+                            selectedDate={dropOffDate}
+                            minDate={departureDate || new Date()}
+                        />
+
+                        <TimePickerDialog
+                            isOpen={showDropOffTimePicker}
+                            onClose={() => setShowDropOffTimePicker(false)}
+                            onSelect={handleDropOffTimeSelect}
+                            selectedTime={dropOffTime}
+                        />
                     </div>
                 )}
             </main>
