@@ -27,12 +27,6 @@ router.route('/get/upcoming/bookings').get(isAuthenticated, getDriverUpcommingBo
 
 router.route('/all/bookings').get(isAuthenticated, getDriverAllBookings)
 
-router.route('/confirm-driver-booking').put(isAuthenticated, confirmBooking)
-
-router.route('/cancel-driver-booking').put(isAuthenticated, cancelBookingWithManualRollback)
-
-router.route('/complete-driver-booking').put(isAuthenticated, completeBookingWithManualRollback)
-
 router.route('/wallet-balance').get(isAuthenticated, getDriverWalletBalance)
 
 router.route('/get-all-transaction').get(isAuthenticated, getDriverAllTransaction)
