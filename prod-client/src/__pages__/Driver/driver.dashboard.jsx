@@ -447,6 +447,10 @@ const BookingCard = ({
     if (!booking) {
         return <BookingCardSkeleton />;
     }
+    const fare = Math.round(booking?.orderId?.driverShare?.driverCut) || ' Loading ...';
+    const pickUpLoacation = booking?.orderId?.pickupLocation || 'Loading..';
+    const dropOffLocation = booking?.orderId?.destination || 'Loading';
+    const bookingDate = date.formatDate(booking?.departureDate) || 'Loading';
     return (
         <motion.div
             className={`booking-card ${type} ${hasError ? 'error' : ''}`}
@@ -466,25 +470,25 @@ const BookingCard = ({
 
             <div className="booking-header">
                 <div className={`booking-status ${type}`}>{type === 'assigned' ? 'New Assignment' : 'Confirmed'}</div>
-                <div className="booking-fare">₹{Math.round(booking.orderId.driverShare.driverCut)}</div>
+                <div className="booking-fare">₹{fare}</div>
             </div>
 
             <div className="booking-route">
                 <div className="route-point pickup">
                     <div className="route-dot"></div>
-                    <span>{booking.orderId.pickupLocation}</span>
+                    <span>{pickUpLoacation}</span>
                 </div>
                 <div className="route-line"></div>
                 <div className="route-point destination">
                     <div className="route-dot"></div>
-                    <span>{booking.orderId.destination}</span>
+                    <span>{dropOffLocation}</span>
                 </div>
             </div>
 
             <div className="booking-footer">
                 <div className="booking-time">
                     <FaCalendarAlt />
-                    {date.formatDate(booking.departureDate)}
+                    {bookingDate}
                 </div>
 
                 <div className="booking-actions">
