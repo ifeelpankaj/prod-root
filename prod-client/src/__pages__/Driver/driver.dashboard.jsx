@@ -27,6 +27,13 @@ const DriverDashboard = () => {
     const page = 1;
     const { data: transactionDetails, isLoading: transactionLoading, isError: transactionError } = useDriverTransactionsQuery({ page, limit });
 
+    const [loadStart] = useState(Date.now()); // store the time when component first renders
+    const elapsed = Date.now() - loadStart;
+
+    const isAnyDataMissing = !bookingsData || !walletInfo || !transactionDetails;
+
+    const showLoader = isAnyDataMissing && elapsed < 10000 * 60;
+
     const [activeTab, setActiveTab] = useState('assigned');
 
     const walletBalance = walletInfo?.balance || 0;
@@ -78,7 +85,7 @@ const DriverDashboard = () => {
     };
 
     const handleViewDetails = (booking) => {
-        navigate(`/driver-order/${booking.orderId._id}`);
+        navigate(`/driver-order/${booking?.orderId?._id}`);
     };
     return (
         <div className="dashboard-container">
@@ -152,7 +159,7 @@ const DriverDashboard = () => {
             )}
 
             {/* Main Content Area */}
-            {dashboardLoading || transactionLoading ? (
+            {dashboardLoading || transactionLoading || showLoader ? (
                 <div className="dashboard-main">
                     <div className="dashboard-header">
                         <Skeleton
