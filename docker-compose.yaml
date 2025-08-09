@@ -16,6 +16,8 @@ services:
     build:
       context: ./prod-admin
       dockerfile: Dockerfile
+      args:
+        VITE_SERVER: "https://api.4biddencoder.tech"
     ports:
       - "4174:4174"
     depends_on:

@@ -91,7 +91,8 @@ pipeline {
                         #!/bin/bash
                         touch .env
                         cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        #sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        sed -i "s|VITE_SERVER=http://${EXTERNAL_IP}:4000|VITE_SERVER=https://api.4biddencoder.tech|g" .env
                     '''
                 }
             }
