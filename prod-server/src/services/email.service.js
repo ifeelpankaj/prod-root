@@ -16,7 +16,7 @@ const transporter = createTransport({
     maxConnections: 5, // limit to 5 concurrent connections
     maxMessages: 100, // limit to 100 messages per connection
     rateDelta: 1000, // limit to 1 message per second
-    rateLimit: 5 // limit to 5 messages per rateDelta
+    rateLimit: 5 // limit to 5 messages per rate  Delta
 })
 
 const sendMailPromise = promisify(transporter.sendMail).bind(transporter)
