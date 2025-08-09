@@ -1,5 +1,10 @@
+/* eslint-disable no-console */
 import { createAsyncThunk } from '@reduxjs/toolkit';
 const server = import.meta.env.VITE_SERVER || `http://${window.location.hostname}:4000`;
+console.log(import.meta.env.VITE_SERVER);
+console.log(`http://${window.location.hostname}:4000`);
+
+console.log(server);
 
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
     try {
