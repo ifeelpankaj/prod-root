@@ -91,7 +91,8 @@ pipeline {
                         #!/bin/bash
                         touch .env
                         cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=https://api.4biddencoder.tech|g"  .env
+                        sed -i "s|VITE_SERVER=http://.*|VITE_SERVER=https://api.4biddencoder.tech|g" .env   
                     '''
                 }
             }
@@ -104,7 +105,8 @@ pipeline {
                         #!/bin/bash
                         touch .env
                         cp ${APP_DIR}/.env .env
-                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=http://${EXTERNAL_IP}:4000|g" .env
+                        sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=https://api.4biddencoder.tech|g" .env
+                        sed -i "s|VITE_SERVER=http://.*|VITE_SERVER=https://api.4biddencoder.tech|g" .env
                     '''
                 }
             }
@@ -118,8 +120,8 @@ pipeline {
                         cp ${APP_DIR}/.env.development .env.development
                         cp ${APP_DIR}/.env.production .env.production
                         
-                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.production
-                        sed -i '/^ALLOWED_ORIGINS=/s|localhost|'${EXTERNAL_IP}'|g' .env.development
+                        sed -i 's|ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=https://4biddencoder.tech,https://www.4biddencoder.tech,https://admin.4biddencoder.tech|g' .env.production
+                        sed -i 's|ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=https://4biddencoder.tech,https://www.4biddencoder.tech,https://admin.4biddencoder.tech|g' .env.development
                     '''
                 }
             }
@@ -218,12 +220,16 @@ pipeline {
                     docker compose logs --tail=20 logstash
                     
                     echo "Deployment complete!"
-                    echo "Access URLs:"
-                    echo "- Application: http://${EXTERNAL_IP}:4173"
+                    echo "Local Access URLs (for testing):"
+                    echo "- Frontend: http://${EXTERNAL_IP}:4173"
                     echo "- Admin Panel: http://${EXTERNAL_IP}:4174"
                     echo "- API: http://${EXTERNAL_IP}:4000"
                     echo "- Kibana Dashboard: http://${EXTERNAL_IP}:5601"
-                    echo "- Elasticsearch: http://${EXTERNAL_IP}:9200"
+                    echo ""
+                    echo "Public URLs (via Load Balancer - may take 5-10 minutes to be ready):"
+                    echo "- Main Site: https://www.4biddencoder.tech"
+                    echo "- Admin Panel: https://admin.4biddencoder.tech"
+                    echo "- API: https://api.4biddencoder.tech"
                 '''
             }
         }

@@ -1034,4 +1034,509 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Verify all configuration files are properly formatted
 - Ensure system requirements are met
 
+# GCP Load Balancer + Managed SSL Setup
+
+## Overview
+
+We'll use **Google Cloud Load Balancer** with **Google-managed SSL certificates** to handle:
+
+- Domain routing with SSL termination
+- Automatic SSL certificate provisioning and renewal
+- High availability and performance
+- No need for Nginx or Certbot containers
+
+## Architecture
+
+```
+Internet → GCP Load Balancer (SSL termination) → Your VM:ports
+```
+
+## Step 1: DNS Configuration (Do This First)
+
+### Add these DNS records to your domain:
+
+```
+Type: A
+Name: @
+Value: [LOAD-BALANCER-IP] (we'll get this later)
+
+Type: A
+Name: www
+Value: [LOAD-BALANCER-IP]
+
+Type: A
+Name: client
+Value: [LOAD-BALANCER-IP]
+
+Type: A
+Name: api
+Value: [LOAD-BALANCER-IP]
+
+Type: A
+Name: admin
+Value: [LOAD-BALANCER-IP]
+```
+
+## Step 2: Update Docker Compose (Remove Nginx/Certbot)
+
+Keep your original ports exposed for Load Balancer to reach:
+
+```yaml
+services:
+  frontend:
+    build:
+      context: ./prod-client
+      dockerfile: Dockerfile
+    ports:
+      - "4173:4173" # Keep this - Load Balancer needs it
+    depends_on:
+      - backend
+    env_file:
+      - ./prod-client/.env
+    networks:
+      - app-network
+
+  admin:
+    build:
+      context: ./prod-admin
+      dockerfile: Dockerfile
+    ports:
+      - "4174:4173" # Keep this - Load Balancer needs it
+    depends_on:
+      - backend
+    env_file:
+      - ./prod-admin/.env
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./prod-server
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000" # Keep this - Load Balancer needs it
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      mongodb-init:
+        condition: service_completed_successfully
+      elasticsearch:
+        condition: service_healthy
+    env_file:
+      - ./prod-server/.env.production
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./prod-server/logs:/app/logs:rw
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Keep your existing MongoDB, ELK stack services as is
+  # Remove nginx and certbot services completely
+```
+
+## Step 3: GCP Load Balancer Setup (Console Method)
+
+### A. Create Health Checks
+
+1. **Go to**: Compute Engine → Health checks
+2. **Create Health Check** for each service:
+
+**Backend Health Check:**
+
+```
+Name: backend-health-check
+Protocol: HTTP
+Port: 4000
+Request path: /api/v1/system/health
+Check interval: 10 seconds
+Timeout: 5 seconds
+Healthy threshold: 2
+Unhealthy threshold: 3
+```
+
+**Frontend Health Check:**
+
+```
+Name: frontend-health-check
+Protocol: HTTP
+Port: 4173
+Request path: /
+Check interval: 10 seconds
+Timeout: 5 seconds
+Healthy threshold: 2
+Unhealthy threshold: 3
+```
+
+**Admin Health Check:**
+
+```
+Name: admin-health-check
+Protocol: HTTP
+Port: 4174
+Request path: /
+Check interval: 10 seconds
+Timeout: 5 seconds
+Healthy threshold: 2
+Unhealthy threshold: 3
+```
+
+### B. Create Instance Groups
+
+1. **Go to**: Compute Engine → Instance groups
+2. **Create Instance Group**:
+
+```
+Name: app-instance-group
+Zone: [Your VM's zone]
+Network: default
+Subnetwork: default
+Add your VM instance
+```
+
+### C. Create Backend Services
+
+1. **Go to**: Network services → Load balancing → Backend services
+
+**Backend Service:**
+
+```
+Name: backend-service
+Backend type: Instance group
+Protocol: HTTP
+Named port: http (4000)
+Instance group: app-instance-group
+Health check: backend-health-check
+```
+
+**Frontend Service:**
+
+```
+Name: frontend-service
+Backend type: Instance group
+Protocol: HTTP
+Named port: http (4173)
+Instance group: app-instance-group
+Health check: frontend-health-check
+```
+
+**Admin Service:**
+
+```
+Name: admin-service
+Backend type: Instance group
+Protocol: HTTP
+Named port: http (4174)
+Instance group: app-instance-group
+Health check: admin-health-check
+```
+
+### D. Create SSL Certificates
+
+1. **Go to**: Network services → Load balancing → Certificates
+2. **Create SSL Certificate**:
+
+```
+Name: app-ssl-cert
+Create mode: Google-managed certificate
+Domains:
+  - 4biddencoder.tech
+  - www.4biddencoder.tech
+  - client.4biddencoder.tech
+  - api.4biddencoder.tech
+  - admin.4biddencoder.tech
+```
+
+### E. Create URL Map
+
+1. **Go to**: Network services → Load balancing → URL maps
+2. **Create URL Map**:
+
+```
+Name: app-url-map
+Default service: frontend-service
+Host and path rules:
+  - Hosts: api.4biddencoder.tech → backend-service
+  - Hosts: admin.4biddencoder.tech → admin-service
+  - Hosts: 4biddencoder.tech, www.4biddencoder.tech, client.4biddencoder.tech → frontend-service
+```
+
+### F. Create HTTPS Load Balancer
+
+1. **Go to**: Network services → Load balancing
+2. **Create Load Balancer** → Application Load Balancer (HTTP/HTTPS)
+3. **Internet facing or internal only**: Internet-facing
+4. **Global or regional**: Global
+
+**Frontend Configuration:**
+
+```
+Name: app-https-lb
+Protocol: HTTPS
+Port: 443
+Certificate: app-ssl-cert
+```
+
+**Backend Configuration:**
+
+```
+URL map: app-url-map
+```
+
+### G. HTTP to HTTPS Redirect
+
+Create another frontend:
+
+```
+Protocol: HTTP
+Port: 80
+Redirect to HTTPS: Yes
+```
+
+## Step 4: GCP Load Balancer Setup (CLI Method)
+
+If you prefer command line:
+
+```bash
+# Set variables
+PROJECT_ID="your-project-id"
+VM_NAME="your-vm-name"
+ZONE="your-zone"
+
+# Create health checks
+gcloud compute health-checks create http backend-health-check \
+    --port=4000 \
+    --request-path="/api/v1/system/health"
+
+gcloud compute health-checks create http frontend-health-check \
+    --port=4173 \
+    --request-path="/"
+
+gcloud compute health-checks create http admin-health-check \
+    --port=4174 \
+    --request-path="/"
+
+# Create instance group
+gcloud compute instance-groups unmanaged create app-instance-group \
+    --zone=$ZONE
+
+gcloud compute instance-groups unmanaged add-instances app-instance-group \
+    --instances=$VM_NAME \
+    --zone=$ZONE
+
+# Set named ports
+gcloud compute instance-groups set-named-ports app-instance-group \
+    --named-ports=backend:4000,frontend:4173,admin:4174 \
+    --zone=$ZONE
+
+# Create backend services
+gcloud compute backend-services create backend-service \
+    --protocol=HTTP \
+    --port-name=backend \
+    --health-checks=backend-health-check \
+    --global
+
+gcloud compute backend-services add-backend backend-service \
+    --instance-group=app-instance-group \
+    --instance-group-zone=$ZONE \
+    --global
+
+gcloud compute backend-services create frontend-service \
+    --protocol=HTTP \
+    --port-name=frontend \
+    --health-checks=frontend-health-check \
+    --global
+
+gcloud compute backend-services add-backend frontend-service \
+    --instance-group=app-instance-group \
+    --instance-group-zone=$ZONE \
+    --global
+
+gcloud compute backend-services create admin-service \
+    --protocol=HTTP \
+    --port-name=admin \
+    --health-checks=admin-health-check \
+    --global
+
+gcloud compute backend-services add-backend admin-service \
+    --instance-group=app-instance-group \
+    --instance-group-zone=$ZONE \
+    --global
+
+# Create SSL certificate
+gcloud compute ssl-certificates create app-ssl-cert \
+    --domains=4biddencoder.tech,www.4biddencoder.tech,client.4biddencoder.tech,api.4biddencoder.tech,admin.4biddencoder.tech \
+    --global
+
+# Create URL map
+gcloud compute url-maps create app-url-map \
+    --default-service=frontend-service
+
+gcloud compute url-maps add-path-matcher app-url-map \
+    --path-matcher-name=api-matcher \
+    --default-service=backend-service \
+    --path-rules="/*=backend-service"
+
+gcloud compute url-maps add-host-rule app-url-map \
+    --hosts=api.4biddencoder.tech \
+    --path-matcher-name=api-matcher
+
+gcloud compute url-maps add-path-matcher app-url-map \
+    --path-matcher-name=admin-matcher \
+    --default-service=admin-service \
+    --path-rules="/*=admin-service"
+
+gcloud compute url-maps add-host-rule app-url-map \
+    --hosts=admin.4biddencoder.tech \
+    --path-matcher-name=admin-matcher
+
+# Create HTTPS proxy
+gcloud compute target-https-proxies create app-https-proxy \
+    --url-map=app-url-map \
+    --ssl-certificates=app-ssl-cert
+
+# Create HTTP proxy for redirect
+gcloud compute target-http-proxies create app-http-proxy \
+    --url-map=app-url-map
+
+# Create global forwarding rules
+gcloud compute forwarding-rules create app-https-forwarding-rule \
+    --global \
+    --target-https-proxy=app-https-proxy \
+    --ports=443
+
+gcloud compute forwarding-rules create app-http-forwarding-rule \
+    --global \
+    --target-http-proxy=app-http-proxy \
+    --ports=80
+
+# Get the Load Balancer IP
+gcloud compute forwarding-rules describe app-https-forwarding-rule \
+    --global \
+    --format="get(IPAddress)"
+```
+
+## Step 5: Update Environment Variables
+
+### Frontend (.env):
+
+```env
+VITE_SERVER=https://api.4biddencoder.tech
+```
+
+### Admin (.env):
+
+```env
+VITE_SERVER=https://api.4biddencoder.tech
+```
+
+### Backend (.env.production):
+
+```env
+ALLOWED_ORIGINS=https://4biddencoder.tech,https://www.4biddencoder.tech,https://client.4biddencoder.tech,https://admin.4biddencoder.tech
+```
+
+## Step 6: Update Jenkins Pipeline
+
+Remove Nginx setup stages and update environment setup:
+
+```groovy
+stage('Setup Client Environment') {
+    steps {
+        dir('prod-client') {
+            sh '''
+                #!/bin/bash
+                touch .env
+                cp ${APP_DIR}/.env .env
+                sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=https://api.4biddencoder.tech|g" .env
+            '''
+        }
+    }
+}
+
+stage('Setup Admin Environment') {
+    steps {
+        dir('prod-admin') {
+            sh '''
+                #!/bin/bash
+                touch .env
+                cp ${APP_DIR}/.env .env
+                sed -i "s|VITE_SERVER=http://localhost:4000|VITE_SERVER=https://api.4biddencoder.tech|g" .env
+            '''
+        }
+    }
+}
+
+stage('Setup Server Environment') {
+    steps {
+        dir('prod-server') {
+            sh '''
+                #!/bin/bash
+                touch .env.development .env.production
+                cp ${APP_DIR}/.env.development .env.development
+                cp ${APP_DIR}/.env.production .env.production
+
+                # Update CORS origins for HTTPS domains
+                sed -i 's|ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=https://4biddencoder.tech,https://www.4biddencoder.tech,https://client.4biddencoder.tech,https://admin.4biddencoder.tech|g' .env.production
+            '''
+        }
+    }
+}
+```
+
+## Step 7: Firewall Rules
+
+Ensure your VM allows traffic on the required ports:
+
+```bash
+# Allow HTTP/HTTPS traffic (if not already enabled)
+gcloud compute firewall-rules create allow-app-traffic \
+    --allow tcp:4000,tcp:4173,tcp:4174 \
+    --source-ranges 130.211.0.0/22,35.191.0.0/16 \
+    --description "Allow Load Balancer to reach app services"
+```
+
+## Benefits of This Setup:
+
+### ✅ **Fully Managed**:
+
+- Google handles SSL certificate provisioning, renewal, and management
+- No manual certificate management needed
+- Automatic scaling and load distribution
+
+### ✅ **High Performance**:
+
+- Google's global network and CDN
+- Automatic DDoS protection
+- Better latency worldwide
+
+### ✅ **Cost Effective**:
+
+- Pay only for what you use
+- No additional SSL certificate costs
+- Reduced server load (SSL termination at edge)
+
+### ✅ **Reliability**:
+
+- 99.95% SLA
+- Health checks and automatic failover
+- No single point of failure
+
+## Final URLs:
+
+- **Main Site**: https://4biddencoder.tech
+- **Client**: https://client.4biddencoder.tech (if you want separate)
+- **Admin Panel**: https://admin.4biddencoder.tech
+- **API**: https://api.4biddencoder.tech
+- **Kibana**: http://[VM-IP]:5601 (keep internal)
+
+## Important Notes:
+
+1. **SSL Certificate Provisioning**: Takes 10-60 minutes after DNS propagation
+2. **Health Checks**: Make sure your apps respond to health check paths
+3. **CORS**: Update your backend CORS settings for HTTPS domains
+4. **Cost**: Load Balancer costs ~$18/month + traffic costs
+
+The Load Balancer IP will be your new static IP that you point your DNS to!
 Happy Logging! 🎉
