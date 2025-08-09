@@ -17,7 +17,7 @@ services:
       context: ./prod-admin
       dockerfile: Dockerfile
     ports:
-      - "4174:4173"
+      - "4174:4174"
     depends_on:
       - backend
     env_file:
