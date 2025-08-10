@@ -13,94 +13,76 @@ export const user_emails = {
      * @param {number} otp - One-time password for verification
      */
     registration_email: (username, otp) => `<html>
-      <head>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            color: #333333;
-          }
-          .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            text-align: center;
-            padding: 20px 0;
-            background-color: #0073e6;
-            color: #ffffff;
-            border-radius: 8px 8px 0 0;
-          }
-          .header h1 {
-            margin: 0;
-            font-size: 28px;
-          }
-          .content {
-            padding: 20px;
-          }
-          h2 {
-            font-size: 20px;
-            color: #0073e6;
-            margin-bottom: 10px;
-          }
-          p {
-            line-height: 1.6;
-            margin-bottom: 15px;
-          }
-          .otp {
-            background-color: #0073e6;
-            color: #ffffff;
-            padding: 10px;
-            font-size: 22px;
-            font-weight: bold;
-            text-align: center;
-            border-radius: 4px;
-            margin: 20px 0;
-          }
-          .footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #f1f1f1;
-            color: #777777;
-            border-radius: 0 0 8px 8px;
-          }
-          .footer p {
-            margin: 0;
-            font-size: 14px;
-          }
-          a {
-            color: #0073e6;
-            text-decoration: none;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${EApplicationEnvironment.SITE_NAME}</h1>
-          </div>
-          <div class="content">
-            <h2>Verify Your Account</h2>
-            <p>Hello ${username},</p>
-            <p>Thank you for registering with us! Please use the following One-Time Password (OTP) to verify your account:</p>
-            <div class="otp">${otp}</div>
-            <p>This OTP is valid for 5 minutes. Please complete your verification process within this time frame.</p>
-            <p>If you did not request this, please disregard this email or contact our support team.</p>
-          </div>
-          <div class="footer">
-            <p>Best regards,<br>Your App Team</p>
-            <p>For support, contact us at <a href="mailto:support@yourapp.com">support@yourapp.com</a></p>
-          </div>
-        </div>
-      </body>
-    </html>`,
+     <head>
+      <style>
+        body, html {
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #444444;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      a {
+        color: #1a73e8;
+        text-decoration: none;
+      }
+        a:hover {
+        text-decoration: underline;
+      }
+      </style>
+    </head>
+    <body>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f8fafc" style="padding: 30px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="border: 1px solid #dde3ea; border-radius: 10px;">
+              <!-- Header -->
+              <tr>
+                <td align="center" bgcolor="#1a3d7c" style="padding: 25px 0; border-radius: 10px 10px 0 0; color: #ffffff; font-size: 30px; font-weight: 600;">
+                  ${EApplicationEnvironment.SITE_NAME}
+                </td>
+              </tr>
+              <!-- Content -->
+              <tr>
+                <td style="padding: 30px 40px; color: #444444; line-height: 1.5;">
+                  <h2 style="color: #1a3d7c; font-size: 24px; margin-top: 0; margin-bottom: 20px; font-weight: 600;">Verify Your Account</h2>
+                  <p style="margin-bottom: 15px;">Hello ${username},</p>
+                  <p style="margin-bottom: 25px;">Thank you for registering with us! Please use the following One-Time Password (OTP) to verify your account:</p>
+
+                  <!-- OTP box -->
+                  <p style="background: linear-gradient(135deg, #1a3d7c, #3a5bb8); color: #ffffff; font-size: 26px; font-weight: 700; text-align: center; padding: 15px 0; border-radius: 8px; letter-spacing: 5px; margin: 0 0 30px 0; user-select: all;">
+                    ${otp}
+                  </p>
+
+                  <p style="margin-bottom: 10px; font-size: 14px; color: #666666;">
+                    This OTP is valid for 5 minutes. Please complete your verification within this timeframe.
+                  </p>
+                  <p style="margin-bottom: 0; font-size: 14px; color: #666666;">
+                    If you did not request this, please ignore this email or contact our support team.
+                  </p>
+                </td>
+              </tr>
+              <!-- Divider -->
+              <tr>
+                <td style="border-top: 1px solid #dde3ea;"></td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td align="center" bgcolor="#f4f7fa" style="padding: 25px 40px; color: #777777; font-size: 14px; border-radius: 0 0 10px 10px;">
+                  <p style="margin: 0 0 5px 0;">Best regards,<br>Your App Team</p>
+                  <p style="margin: 0;">
+                    For support, contact us at <a href="mailto:support@yourapp.com">support@yourapp.com</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`,
     /**
      * Verification Success Email
      * @param {string} username - User's name
