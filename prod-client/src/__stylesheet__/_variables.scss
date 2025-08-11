@@ -7,13 +7,14 @@
 // BRAND COLORS
 // =============
 $brand-primary: #2c3e50; // Deep navy blue - trust & reliability
-$brand-secondary: #3498db; // Professional blue - technology & efficiency
+$brand-secondary: #3b82f6; // Professional blue - technology & efficiency
 $brand-accent: #f39c12; // Warm orange - energy & movement
 $brand-success: #27ae60; // Green - safety & go
 $brand-warning: #e67e22; // Orange - caution & alerts
 $brand-danger: #e74c3c; // Red - emergency & urgent
 $brand-info: #16a085; // Teal - information & support
 $brand-black: black;
+
 // ===================
 // SEMANTIC UI COLORS
 // ===================
@@ -30,19 +31,20 @@ $color-luxury: #2c3e50; // Luxury service
 // ==================
 $bg-primary: #ffffff; // Main background
 $bg-secondary: #f8f9fa; // Section backgrounds
-$bg-tertiary: #ecf0f1; // Card backgrounds
+$bg-tertiary: #e2e8f8; // Card backgrounds
 $bg-dark: #2c3e50; // Dark sections
 $bg-light-gray: #f4f6f7; // Light gray sections
 $bg-hero: linear-gradient(135deg, $brand-primary 0%, $brand-secondary 100%);
 $bg-heading: linear-gradient(125deg, $bg-primary 0%, $brand-accent 100%);
-
+$bg-accent: linear-gradient(90deg, #fbbf24, #f59e0b);
+$bg-prime: linear-gradient(90deg, #3b82f6, #1d4ed8);
 $bg-card: #ffffff; // Card backgrounds
 $bg-modal: rgba(44, 62, 80, 0.9); // Modal overlay
 
 // ==============
 // TEXT COLORS
 // ==============
-$text-primary: #2c3e50; // Main text
+$text-primary: black; // Main text
 $text-secondary: #7f8c8d; // Secondary text
 $text-muted: #95a5a6; // Muted text
 $text-light: #bdc3c7; // Light text
@@ -51,7 +53,7 @@ $text-link: #3498db; // Links
 $text-link-hover: #2980b9; // Link hover
 $text-heading: #2c3e50; // Headings
 $text-error: #e74c3c; // Error messages
-$text-success: #34e77e; // Success messages
+$text-success: #35d60d; // Success messages
 
 // ===============
 // BORDER COLORS
@@ -126,6 +128,7 @@ $space-12: 3rem; // 48px
 $space-16: 4rem; // 64px
 $space-20: 5rem; // 80px
 $space-24: 6rem; // 96px
+$space-25: 10rem;
 
 // Component Specific Spacing
 $header-height: 4rem; // 64px

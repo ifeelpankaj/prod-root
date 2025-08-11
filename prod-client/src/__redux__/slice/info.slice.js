@@ -6,7 +6,8 @@ const initialState = {
     pickupDate: null,
     dropOffDate: null,
     cabType: 'OneWay',
-    distance: 0
+    distance: 0,
+    totalCharges: 0
 };
 const infoSlice = createSlice({
     name: 'info',

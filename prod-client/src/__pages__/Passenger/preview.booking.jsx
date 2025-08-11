@@ -15,9 +15,10 @@ import { loadScripts } from '../../__scripts__/map.script';
 const PreviewBooking = () => {
     const navigate = useNavigate();
     const bookingData = useSelector((state) => state.info);
-
+    const contact_number = ' +91 9999999999';
+    const support_domain = 'xyz@domain.com';
     React.useEffect(() => {
-        if (!bookingData.from || !bookingData.to) {
+        if (!bookingData.from || !bookingData.to || !bookingData.distance) {
             toast.info('It seems you have reloaded the page kindly fill the details again');
             navigate('/');
         }
@@ -70,7 +71,7 @@ const PreviewBooking = () => {
     }
     const imageGallery = cab.photos || [];
     const cabInfo = cab || {};
-    const TotalAmount = Math.round(cabInfo.rate * bookingData.distance);
+    const TotalAmount = Math.round(cabInfo.rate * bookingData.distance + bookingData.totalCharges);
 
     const submitHandler = async (e) => {
         e.preventDefault();
@@ -158,21 +159,36 @@ const PreviewBooking = () => {
                     <div className="book_driver_info">
                         <h1 className="book_cab_model_name">{cabInfo.modelName}</h1>
                         <h1 className="book_section_heading">About our drivers</h1>
-                        <p className="book_section_content">100% of drivers are police verified, licensed, and audited</p>
+                        <p className="book_section_content">
+                            All our drivers are <strong>police-verified</strong>, <strong>licensed</strong>, and have completed
+                            <strong> extensive hill-driving training</strong> for safe travel in Uttarakhand.
+                        </p>
                     </div>
                     <div className="book_tour_inclusions">
-                        <h1 className="book_section_heading">Inclusions & exclusions</h1>
-                        <p className="book_section_content">Included in your fare</p>
+                        <h1 className="book_section_heading">Inclusions & Exclusions</h1>
+                        <p className="book_section_content">Your fare includes:</p>
+                        <ul className="book_info_list">
+                            <li>Driver allowance</li>
+                            <li>Fuel charges</li>
+                            <li>Applicable tolls (if selected)</li>
+                        </ul>
+                        <p className="book_section_content">Not included:</p>
+                        <ul className="book_info_list">
+                            <li>Extra stops beyond itinerary</li>
+                            <li>Entry fees to tourist attractions</li>
+                        </ul>
                     </div>
                     <div className="book_pickup_info">
-                        <h1 className="book_section_heading">Enter exact pick up location</h1>
+                        <h1 className="book_section_heading">Exact Pickup Location</h1>
                         <input
                             className="book_pickup_input"
                             type="text"
                             value={exactLocation}
                             onChange={(e) => setExactLocation(e.target.value)}
-                            placeholder="Enter your exact pickup location"
+                            placeholder="e.g.  Dewaray colony haldwani..."
+                            required
                         />
+                        <small className="field_note">Ensure the location is accurate for on-time pickup</small>
                     </div>
                     <div className="book_passenger_info">
                         <h1 className="book_section_heading">Enter Passenger Details</h1>
@@ -218,13 +234,16 @@ const PreviewBooking = () => {
                     </div>
                     <div className="book_cancellation_policy">
                         <h1 className="book_section_heading">Cancellation Policy</h1>
-                        <p className="book_section_content">Enjoy Worry-Free Booking with Free Cancellation!</p>
+                        <p className="book_section_content">
+                            Enjoy worry-free booking! <strong>Free cancellation</strong> up to 24 hours before departure.
+                        </p>
                     </div>
                     <div className="book_additional_info">
                         <h1 className="book_section_heading">Other Information</h1>
                         <ul className="book_info_list">
                             <li>AC will be switched off in hilly areas</li>
                             <li>Only one pick-up, one drop & one pit stop for meal is included</li>
+                            <li>Music system available </li>
                         </ul>
                     </div>
                 </section>
@@ -263,7 +282,9 @@ const PreviewBooking = () => {
                         Place Order
                     </button>
                     <div className="book_contact_info">
-                        <p>Contact us: +91 9999999999 | xyz@domain.com</p>
+                        <p>
+                            Contact us: {contact_number}| {support_domain}
+                        </p>
                     </div>
                 </section>
             </div>

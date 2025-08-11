@@ -19,10 +19,10 @@ export const otherAPI = createApi({
     tagTypes: ['users', 'orders', 'cabs', 'distance'],
     endpoints: (builder) => ({
         calculateDistance: builder.query({
-            query: ({ origin, destination }) => ({
+            query: ({ origin, destination, startDate }) => ({
                 url: '/system/distance',
                 method: 'GET',
-                params: { origin, destination }
+                params: { origin, destination, startDate }
             }),
             providesTags: ['distance'],
 

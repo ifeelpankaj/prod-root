@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { priceCalculator } from '../../__utils__/user.utils';
+import { extractNumericValue, priceCalculator } from '../../__utils__/user.utils';
 import Skeleton from 'react-loading-skeleton';
 
 const CabCard = ({ cab = {}, distance, isLoading }) => {
@@ -12,7 +12,6 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
     const [currentPhotoIndex, setCurrentPhotoIndex] = React.useState(0);
 
     // Calculate price based on distance and rate
-    const priceTotal = priceCalculator(distance, rate);
 
     const nextPhoto = () => {
         setCurrentPhotoIndex((prevIndex) => (prevIndex + 1) % photos.length);
@@ -20,12 +19,6 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
 
     const prevPhoto = () => {
         setCurrentPhotoIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);
-    };
-
-    const cardVariants = {
-        hidden: { opacity: 0, rotateY: -90 },
-        visible: { opacity: 1, rotateY: 0, transition: { type: 'spring', damping: 15, stiffness: 100 } },
-        hover: { scale: 1.03, boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.2)', transition: { duration: 0.3 } }
     };
 
     const imageVariants = {
@@ -77,7 +70,33 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
         }
     };
 
-    if (isLoading) {
+    const cardVariants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6, ease: 'easeOut' }
+        }
+    };
+
+    const barVariants = {
+        hidden: { width: 0 },
+        visible: (percentage) => ({
+            width: percentage,
+            transition: { duration: 1, delay: 0.3, ease: 'easeOut' }
+        })
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, x: -20 },
+        visible: (i) => ({
+            opacity: 1,
+            x: 0,
+            transition: { delay: i * 0.1, duration: 0.5 }
+        })
+    };
+
+    if (isLoading && !distance) {
         return (
             <motion.section
                 className="cabs_card"
@@ -115,6 +134,10 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
             </motion.section>
         );
     }
+    const { breakdown = {}, totalHours = 0, nightCharge = 0, tollTax = 0, totalCharges, distance: distance_data } = distance || {};
+    const distanceInKM = extractNumericValue(distance_data);
+
+    const priceTotal = priceCalculator(distanceInKM, rate, totalCharges);
 
     return (
         <motion.section
@@ -154,45 +177,112 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}>
                 <h2>{modelName}</h2>
-                <p className="cabs_price">₹ {priceTotal > 0 ? priceTotal : 'N/A'}</p>
+                <p className="cabs_price">
+                    <span style={{ textDecoration: 'line-through', color: '#888', fontSize: '0.9rem', marginRight: '6px' }}>
+                        ₹ {priceTotal > 0 ? Math.round(priceTotal * 1.2) : 'N/A'}
+                    </span>
+                    ₹ {priceTotal > 0 ? priceTotal : 'N/A'}
+                </p>
 
                 <p className="cabs_description">Experience luxury and comfort with our {modelName}. Perfect for your journey 💫 ...</p>
-                <div className="cabs_features">
-                    <span>
-                        Included Km <p>{distance} Km</p>
-                    </span>
-                    <span>
-                        Extra fare/Km <p>₹ {rate}/Km</p>
-                    </span>
-                    <span>
-                        Fuel Charges <p>Included</p>
-                    </span>
+                <motion.section
+                    className="breakdown_card"
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible">
+                    <motion.div
+                        className="breakdown_section"
+                        variants={itemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={0}>
+                        <h3>Travel Time Distribution</h3>
 
-                    <span>
-                        Night Charge <p>Included</p>
-                    </span>
-                    <span>
-                        Driver Charge <p>Included</p>
-                    </span>
-                </div>
-                <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}>
-                    {priceTotal > 0 ? (
-                        <Link
-                            className="cabs_book_button"
-                            to={`/preview-booking/${_id}`}>
-                            Book Now
-                        </Link>
-                    ) : (
-                        <Link
-                            className="cabs_book_button"
-                            to={'/'}>
-                            Not Available
-                        </Link>
-                    )}
-                </motion.div>
+                        <div className="percentage_item">
+                            <div className="percentage_header">
+                                <span className="label">Day Travel</span>
+                                <span className="value">{breakdown.dayPercentage}</span>
+                            </div>
+                            <div className="progress_bar">
+                                <motion.div
+                                    className="progress_fill day"
+                                    variants={barVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    custom={breakdown.dayPercentage}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="percentage_item">
+                            <div className="percentage_header">
+                                <span className="label">Night Travel</span>
+                                <span className="value">{breakdown.nightPercentage}</span>
+                            </div>
+                            <div className="progress_bar">
+                                <motion.div
+                                    className="progress_fill night"
+                                    variants={barVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    custom={breakdown.nightPercentage}
+                                />
+                            </div>
+                        </div>
+                    </motion.div>
+                    <motion.div
+                        className="breakdown_section"
+                        variants={itemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={1}>
+                        <h3>Trip Details</h3>
+                        <div className="details_grid">
+                            <div className="detail_item">
+                                <span className="detail_label">Included Km</span>
+                                <span className="detail_value">{distanceInKM ? distanceInKM : 0} Km</span>
+                            </div>
+                            <div className="detail_item">
+                                <span className="detail_label">Duration</span>
+                                <span className="detail_value">{Math.round(totalHours)} hrs</span>
+                            </div>
+
+                            <div className="detail_item">
+                                <span className="detail_label">Fare</span>
+                                <span className="detail_value">{rate}/ Km</span>
+                            </div>
+                            <div className="detail_item">
+                                <span className="detail_label">Toll Tax</span>
+                                <span className="detail_value">₹{tollTax}/Included</span>
+                            </div>
+                            <div className="detail_item">
+                                <span className="detail_label">Night Charge</span>
+                                <span className="detail_value">₹{nightCharge}/Included</span>
+                            </div>
+                        </div>
+                    </motion.div>
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}>
+                        {priceTotal > 0 ? (
+                            <Link
+                                className="cabs_book_button"
+                                to={`/preview-booking/${_id}`}>
+                                Book Now
+                            </Link>
+                        ) : (
+                            <Link
+                                className="cabs_book_button"
+                                to={'/'}>
+                                Not Available
+                            </Link>
+                        )}
+                    </motion.div>
+                </motion.section>
             </motion.div>
+            {/* Day night distribution */}
+
+            {/* Day/Night Distribution */}
         </motion.section>
     );
 };
@@ -210,7 +300,17 @@ CabCard.propTypes = {
         type: PropTypes.string,
         rate: PropTypes.number.isRequired
     }).isRequired,
-    distance: PropTypes.number.isRequired,
+    distance: PropTypes.shape({
+        breakdown: PropTypes.shape({
+            dayPercentage: PropTypes.string.isRequired,
+            nightPercentage: PropTypes.string.isRequired
+        }).isRequired,
+        distance: PropTypes.string.isRequired,
+        totalHours: PropTypes.number.isRequired,
+        nightCharge: PropTypes.number.isRequired,
+        tollTax: PropTypes.number.isRequired,
+        totalCharges: PropTypes.number.isRequired
+    }),
     isLoading: PropTypes.bool.isRequired
 };
 

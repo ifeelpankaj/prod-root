@@ -1539,4 +1539,334 @@ gcloud compute firewall-rules create allow-app-traffic \
 4. **Cost**: Load Balancer costs ~$18/month + traffic costs
 
 The Load Balancer IP will be your new static IP that you point your DNS to!
-Happy Logging! 🎉
+
+# Production Deployment Troubleshooting Guide
+
+## Problem Summary
+
+Applications deployed via Jenkins pipeline using Docker containers were not accessible through production domains, showing 404 errors.
+
+## Root Causes Identified
+
+### 1. Nginx Configuration Mismatch
+
+**Problem**: Nginx was configured to serve static files from `/var/www/` directories, but applications were running as Docker containers on specific ports.
+
+**Impact**:
+
+- `https://4biddencoder.tech` and `https://www.4biddencoder.tech` → 404 errors
+- `https://admin.4biddencoder.tech` → 404 errors
+- Only `https://api.4biddencoder.tech` was working (correctly proxied)
+
+### 2. Mixed Content Security Issue
+
+**Problem**: Frontend applications were making HTTP requests to `http://api.4biddencoder.tech` instead of `https://api.4biddencoder.tech`.
+
+**Impact**:
+
+- CORS failures (HTTPS pages cannot make HTTP requests)
+- Connection refused/reset errors
+- Application functionality breaking
+
+## Solutions Implemented
+
+### Solution 1: Fixed Nginx Configuration
+
+#### Before (Incorrect)
+
+```nginx
+# Frontend - Trying to serve static files (WRONG)
+server {
+    listen 443 ssl;
+    server_name 4biddencoder.tech www.4biddencoder.tech;
+    ssl_certificate /etc/letsencrypt/live/4biddencoder.tech/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/4biddencoder.tech/privkey.pem;
+    root /var/www/4biddencoder.tech;  # ❌ No files here
+    index index.html;
+}
+```
+
+#### After (Correct)
+
+```nginx
+# Redirect all HTTP to HTTPS
+server {
+    listen 80;
+    server_name 4biddencoder.tech www.4biddencoder.tech admin.4biddencoder.tech api.4biddencoder.tech;
+    return 301 https://$host$request_uri;
+}
+
+######################
+# Main Website (Frontend) - Proxy to Docker Container
+######################
+server {
+    listen 443 ssl;
+    server_name 4biddencoder.tech www.4biddencoder.tech;
+
+    ssl_certificate /etc/letsencrypt/live/4biddencoder.tech/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/4biddencoder.tech/privkey.pem;
+
+    # SSL Configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://127.0.0.1:4173;  # ✅ Proxy to Docker container
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Handle WebSocket connections if needed
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+
+        # Timeout settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+
+######################
+# Admin Panel - Proxy to Docker Container
+######################
+server {
+    listen 443 ssl;
+    server_name admin.4biddencoder.tech;
+
+    ssl_certificate /etc/letsencrypt/live/4biddencoder.tech/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/4biddencoder.tech/privkey.pem;
+
+    # SSL Configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://127.0.0.1:4174;  # ✅ Proxy to Docker container
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Handle WebSocket connections if needed
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+
+        # Timeout settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+
+######################
+# Backend API
+######################
+server {
+    listen 443 ssl;
+    server_name api.4biddencoder.tech;
+
+    ssl_certificate /etc/letsencrypt/live/4biddencoder.tech/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/4biddencoder.tech/privkey.pem;
+
+    # SSL Configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://127.0.0.1:4000;  # ✅ Proxy to Docker container
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Handle WebSocket connections if needed
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+
+        # Timeout settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+```
+
+### Solution 2: Fixed Environment Configuration
+
+#### Problem
+
+Environment files were configured with HTTP endpoints instead of HTTPS:
+
+```bash
+# ❌ Wrong - HTTP endpoint
+VITE_SERVER=http://api.4biddencoder.tech
+```
+
+#### Solution
+
+Updated environment files to use HTTPS:
+
+```bash
+# ✅ Correct - HTTPS endpoint
+VITE_SERVER=https://api.4biddencoder.tech
+```
+
+### Solution 3: Updated CORS Configuration
+
+Ensured CORS origins included all production domains:
+
+```bash
+ALLOWED_ORIGINS="http://localhost:4173,http://localhost:4174,https://4biddencoder.tech,https://www.4biddencoder.tech,https://admin.4biddencoder.tech"
+```
+
+## Step-by-Step Implementation
+
+### Step 1: Backup Current Configuration
+
+```bash
+sudo cp /etc/nginx/sites-available/your-config /etc/nginx/sites-available/your-config.backup
+```
+
+### Step 2: Update Nginx Configuration
+
+1. Replace the nginx configuration with the corrected version above
+2. Test configuration:
+
+```bash
+sudo nginx -t
+```
+
+### Step 3: Update Environment Files
+
+```bash
+# Update client environment
+cd /app/prod-client
+sed -i "s|VITE_SERVER=http://api.4biddencoder.tech|VITE_SERVER=https://api.4biddencoder.tech|g" .env
+
+# Update admin environment
+cd /app/prod-admin
+sed -i "s|VITE_SERVER=http://api.4biddencoder.tech|VITE_SERVER=https://api.4biddencoder.tech|g" .env
+```
+
+### Step 4: Rebuild and Restart Services
+
+```bash
+# Reload Nginx
+sudo systemctl reload nginx
+
+# Rebuild Docker containers
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Step 5: Verify Fix
+
+```bash
+# Test local container access
+curl -I http://localhost:4173  # Frontend
+curl -I http://localhost:4174  # Admin
+curl -I http://localhost:4000/api/v1/system/health  # Backend
+
+# Check container status
+docker compose ps
+```
+
+## Troubleshooting Commands
+
+### Check Container Logs
+
+```bash
+docker compose logs frontend
+docker compose logs admin
+docker compose logs backend
+```
+
+### Check Container Status
+
+```bash
+docker compose ps
+docker ps | grep -E "(frontend|admin|backend)"
+```
+
+### Test Network Connectivity
+
+```bash
+# Test if services are listening on expected ports
+netstat -tlnp | grep -E "(4173|4174|4000)"
+
+# Test container networking
+docker compose exec frontend netstat -tlnp
+docker compose exec admin netstat -tlnp
+```
+
+### Check Nginx Status
+
+```bash
+# Test Nginx configuration
+sudo nginx -t
+
+# Check Nginx access logs
+sudo tail -f /var/log/nginx/access.log
+
+# Check Nginx error logs
+sudo tail -f /var/log/nginx/error.log
+```
+
+## Architecture Overview
+
+```
+Internet → Cloudflare/DNS
+    ↓
+Nginx (SSL Termination + Reverse Proxy)
+    ↓
+┌─────────────────────────────────────────────────────┐
+│                Docker Network                        │
+│                                                     │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
+│  │  Frontend   │  │    Admin    │  │   Backend   │  │
+│  │  :4173      │  │    :4174    │  │    :4000    │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  │
+│                                          │          │
+│  ┌─────────────┐  ┌─────────────────────────────────┤
+│  │  MongoDB    │  │         ELK Stack               │
+│  │  :27017     │  │  Elasticsearch, Logstash,      │
+│  │             │  │  Kibana, Filebeat               │
+│  └─────────────┘  └─────────────────────────────────┘
+└─────────────────────────────────────────────────────┘
+```
+
+## Domain Mapping
+
+| Domain                            | Target                  | Purpose             |
+| --------------------------------- | ----------------------- | ------------------- |
+| `https://4biddencoder.tech`       | `http://localhost:4173` | Main Frontend       |
+| `https://www.4biddencoder.tech`   | `http://localhost:4173` | Main Frontend (www) |
+| `https://admin.4biddencoder.tech` | `http://localhost:4174` | Admin Panel         |
+| `https://api.4biddencoder.tech`   | `http://localhost:4000` | Backend API         |
+
+## Key Learnings
+
+1. **Container vs Static Files**: When using Docker containers, Nginx must proxy to container ports, not serve static files
+2. **Protocol Consistency**: All frontend-to-backend communication must use consistent protocols (HTTPS in production)
+3. **CORS Configuration**: Must include all production domains in allowed origins
+4. **SSL Configuration**: Proper SSL settings enhance security and compatibility
+5. **Health Checks**: Always verify each layer (containers → nginx → domains) individually
+
+## Prevention Checklist
+
+- [ ] Nginx configuration matches deployment method (containers vs static files)
+- [ ] Environment variables use correct protocol (HTTPS in production)
+- [ ] CORS origins include all production domains
+- [ ] SSL certificates are valid and properly configured
+- [ ] Container health checks pass before nginx configuration
+- [ ] All services tested individually before integration testing
+      Happy Logging! 🎉

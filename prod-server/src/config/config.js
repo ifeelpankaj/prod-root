@@ -9,7 +9,7 @@ export default {
     DB_URI: process.env.DATABASE_URI,
     SESSION_SECRET: process.env.SESSION_SECRET,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
-
+    FROM_NAME: process.env.FROM_NAME,
     //auth
     OTP_LENGTH: process.env.OTP_LENGTH,
     OTP_EXPIRE: process.env.OTP_EXPIRE,
@@ -45,5 +45,9 @@ export default {
     FOUR_SEATER_RATE: process.env.FOUR_SEATER_RATE,
     FIVE_SEATER_RATE: process.env.FIVE_SEATER_RATE,
     SIX_SEATER_RATE: process.env.SIX_SEATER_RATE,
-    SEVEN_SEATER_RATE: process.env.SEVEN_SEATER_RATE
+    SEVEN_SEATER_RATE: process.env.SEVEN_SEATER_RATE,
+
+    //RATE
+    NIGHT_CHARGE: process.env.NIGHT_CHARGE,
+    TOLL_TAX: process.env.TOLL_TAX
 }

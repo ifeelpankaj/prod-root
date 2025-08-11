@@ -55,7 +55,7 @@ export const extractNumericValue = (distanceString) => {
     return Math.round(totaldistance);
 };
 
-export const priceCalculator = (distance, rate) => {
+export const priceCalculator = (distance, rate, totalCharges) => {
     if (typeof distance !== 'number' || typeof rate !== 'number') return 0;
 
     if (isNaN(distance) || isNaN(rate)) return 0;
@@ -63,5 +63,5 @@ export const priceCalculator = (distance, rate) => {
     const totalprice = distance * rate;
 
     // Return the rounded price
-    return Math.round(totalprice);
+    return Math.round(totalprice + totalCharges);
 };

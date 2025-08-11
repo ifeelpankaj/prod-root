@@ -2,10 +2,12 @@ import httpResponse from '../utils/httpResponse.js'
 import { generic_msg } from '../constants/res.message.js'
 import httpError from '../utils/httpError.js'
 import { getApplicationHealth, getSystemHealth } from '../utils/quicker.js'
+
 import CustomError from '../utils/customeError.js'
 import config from '../config/config.js'
 import logger from '../utils/logger.js'
 import axios from 'axios'
+import { calculateRate } from '../services/rate.service.js'
 
 export default {
     self: (req, res, next) => {
@@ -29,19 +31,20 @@ export default {
         }
     },
     calculateDistance: async (req, res, next) => {
-        const { origin, destination } = req.query
-        // Check if both origin and destination are provided
-        if (!origin || !destination) {
-            return httpError('CALCULATE DISTANCE', next, new CustomError('Origin and destination are required', 400), req, 400)
-        }
-        const apiKey = config.GOOGLE_MAPS_API_KEY
-
-        if (!apiKey) {
-            logger.error('Google Maps API key is missing from environment variables')
-            return httpError('CALCULATE DISTANCE', next, new CustomError('Server configuration error', 500), req, 500)
-        }
         try {
-            // Call Google Distance Matrix API
+            const { origin, destination, startDate } = req.query
+            let route_distance = null
+            let route_duration = null
+
+            if (!origin || !destination || !startDate) {
+                throw new CustomError(generic_msg.invalid_input('Origin , destination & datetime'))
+            }
+            const apiKey = config.GOOGLE_MAPS_API_KEY
+
+            if (!apiKey) {
+                logger.error('Google Maps API key is missing from environment variables')
+                throw new CustomError(generic_msg.something_went_wrong)
+            }
             const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
                 params: {
                     origins: origin,
@@ -49,23 +52,22 @@ export default {
                     key: apiKey
                 }
             })
-
             const { data } = response
-
-            // Check if API response is valid and contains data
             if (data.status === 'OK' && data.rows[0]?.elements[0]?.status === 'OK') {
                 const distance = data.rows[0].elements[0].distance.text
                 const duration = data.rows[0].elements[0].duration.text
-
-                return httpResponse(req, res, 200, 'Distance and duration calculated successfully', { distance, duration }, null)
+                route_distance = distance
+                route_duration = duration
             } else {
                 // Handle case where Google API responds with non-OK status
                 logger.warn('Unable to calculate distance: Invalid API response', { origin, destination, data })
                 throw new CustomError('Unable to calculate distance', 400)
             }
+
+            const res_data = calculateRate(route_distance, route_duration, startDate)
+            return httpResponse(req, res, 200, 'Distance and duration calculated successfully', res_data, null)
         } catch (error) {
-            // Handle possible errors (like network issues or invalid API keys)
-            return httpError('CALCULATE DISTANCE', next, error, req, 500)
+            return httpError('CALCULATE DISTANCE & RATE', next, error, req, 500)
         }
     }
 }

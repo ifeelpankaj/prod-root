@@ -25,7 +25,7 @@ const DisplayCabs = () => {
         data: distanceData,
         isLoading: distanceLoading,
         error: distanceError
-    } = useCalculateDistanceQuery({ origin: formData.from, destination: formData.to });
+    } = useCalculateDistanceQuery({ origin: formData.from, destination: formData.to, startDate: formData.pickupDate });
 
     React.useEffect(() => {
         if (distanceError && !errorShown) {
@@ -43,6 +43,7 @@ const DisplayCabs = () => {
 
             const distanceInKM = extractNumericValue(distanceData.distance);
             dispatch(updateFormField({ field: 'distance', value: distanceInKM }));
+            dispatch(updateFormField({ field: 'totalCharges', value: distanceData.totalCharges }));
         } else {
             const defaultValue = 0;
             dispatch(updateFormField({ field: 'distance', value: defaultValue }));
@@ -74,6 +75,7 @@ const DisplayCabs = () => {
             />
         );
     }
+
     return (
         <main className="cabs_page">
             <main className="cabs_review_main">
@@ -104,7 +106,7 @@ const DisplayCabs = () => {
                                 variants={containerVariants}>
                                 <CabCard
                                     cab={cab}
-                                    distance={formData.distance}
+                                    distance={distanceData}
                                     isLoading={distanceLoading}
                                 />
                             </motion.div>

@@ -121,7 +121,7 @@
     overflow: hidden;
     box-shadow: $card-shadow;
     transition: all $duration-base $ease-in-out;
-    height: 45rem;
+    // height: 45rem;
     border: 1px solid $border-light;
     position: relative;
 
@@ -201,161 +201,199 @@
         }
     }
 
+    // .cabs_info {
+    //     padding: $card-padding;
+    //     height: 260px;
+    //     display: flex;
+    //     flex-direction: column;
+    //     justify-content: space-between;
+
+    //     h2 {
+    //         color: $text-heading;
+    //         font-size: $font-size-2xl;
+    //         font-weight: $font-weight-bold;
+    //         font-family: $font-display;
+    //         margin-bottom: $space-3;
+    //         line-height: $line-height-tight;
+
+    //         // Subtle gradient text effect
+    //         background: linear-gradient(135deg, $text-heading 0%, $brand-secondary 100%);
+    //         -webkit-background-clip: text;
+    //         -webkit-text-fill-color: transparent;
+    //         background-clip: text;
+    //     }
+
+    //     .cabs_price {
+    //         font-size: $font-size-xl;
+    //         color: $brand-success;
+    //         font-weight: $font-weight-bold;
+    //         font-family: $font-display;
+    //         margin-bottom: $space-4;
+    //         display: flex;
+    //         align-items: center;
+    //         gap: $space-2;
+    //     }
+
+    //     .cabs_description {
+    //         color: $text-secondary;
+    //         font-size: $font-size-base;
+    //         line-height: $line-height-relaxed;
+    //         margin-bottom: $space-4;
+    //         flex-grow: 1;
+    //         min-height: 4rem;
+    //     }
+    // }
     .cabs_info {
-        padding: $card-padding;
-        height: 260px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        font-family: $font-primary;
+        background: $bg-card;
+        padding: $space-4;
+        border-radius: $card-radius;
+        box-shadow: $card-shadow;
+        color: $text-primary;
 
         h2 {
-            color: $text-heading;
-            font-size: $font-size-2xl;
-            font-weight: $font-weight-bold;
             font-family: $font-display;
-            margin-bottom: $space-3;
-            line-height: $line-height-tight;
-
-            // Subtle gradient text effect
-            background: linear-gradient(135deg, $text-heading 0%, $brand-secondary 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: $font-size-xl;
+            font-weight: $font-weight-semibold;
+            color: $brand-primary;
+            margin-bottom: $space-1;
         }
 
         .cabs_price {
-            font-size: $font-size-xl;
-            color: $brand-success;
-            font-weight: $font-weight-bold;
-            font-family: $font-display;
-            margin-bottom: $space-4;
-            display: flex;
-            align-items: center;
-            gap: $space-2;
+            font-size: $font-size-lg;
+            font-weight: $font-weight-semibold;
+            color: $brand-accent;
+            margin-bottom: $space-2;
         }
 
         .cabs_description {
+            font-size: $font-size-sm;
+            line-height: $line-height-snug;
             color: $text-secondary;
-            font-size: $font-size-base;
-            line-height: $line-height-relaxed;
             margin-bottom: $space-4;
-            flex-grow: 1;
-            min-height: 4rem;
         }
 
-        .cabs_features {
-            margin: 0 0 $space-5;
+        .breakdown_card {
+            display: flex;
+            flex-direction: column;
+            gap: $space-4;
 
-            span {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: $space-2 0;
-                border-bottom: 1px solid $border-light;
-                font-family: $font-secondary;
-                font-size: $font-size-sm;
+            .breakdown_section {
+                background: $bg-secondary;
+                padding: $space-2;
+                border-radius: $radius-md;
+                box-shadow: $shadow-sm;
 
-                &:last-child {
-                    border-bottom: none;
-                }
-
-                // Left side text (labels) in dark black
-                color: black;
-                font-weight: $font-weight-semibold;
-
-                p {
-                    width: 4rem;
-                    display: flex;
-                    margin: 0;
-                    color: $brand-success;
+                h3 {
+                    font-size: $font-size-base;
                     font-weight: $font-weight-semibold;
-                    font-size: $font-size-sm;
+                    margin-bottom: $space-2;
+                    color: #1e293b;
+                    margin: 0 0 8px 0;
+                    background: linear-gradient(135deg, $brand-secondary, #8b5cf6);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
                 }
-            }
 
-            @media (max-width: $breakpoint-sm) {
-                span {
-                    font-size: $font-size-xs;
+                .percentage_item {
+                    margin-bottom: $space-3;
 
-                    p {
+                    .percentage_header {
+                        display: flex;
+                        justify-content: space-between;
                         font-size: $font-size-xs;
+                        font-weight: $font-weight-medium;
+                        margin-bottom: $space-1;
+                        .label {
+                            font-weight: 500;
+                            color: $brand-black;
+                            font-size: 16px;
+                        }
+                        .value {
+                            font-weight: 700;
+                            color: #1e293b;
+                            font-size: 16px;
+                        }
+                    }
+
+                    .progress_bar {
+                        background: $bg-tertiary;
+                        border-radius: $radius-full;
+                        height: $space-2;
+                        overflow: hidden;
+
+                        .progress_fill {
+                            height: 100%;
+                            border-radius: $radius-full;
+
+                            &.day {
+                                background: $bg-accent;
+                            }
+                            &.night {
+                                background: $bg-prime;
+                            }
+                        }
+                    }
+                }
+
+                /* New compact row layout for details */
+                .details_grid {
+                    display: flex;
+                    flex-direction: column;
+
+                    row-gap: $space-2;
+                    column-gap: $space-4;
+
+                    .detail_item {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: $font-size-sm;
+                        color: $brand-black;
+
+                        .detail_label {
+                            font-weight: $font-weight-medium;
+                            color: $brand-black;
+                            margin-right: $space-1;
+                        }
+
+                        .detail_value {
+                            width: $space-24;
+                            font-weight: $font-weight-semibold;
+                            color: $text-success;
+                        }
                     }
                 }
             }
         }
 
+        /* Full-width button styling */
         .cabs_book_button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: $gradient-primary;
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: $brand-secondary;
             color: $text-white;
-            padding: $space-4 $space-8;
+            padding: $space-3;
             border-radius: $button-radius;
-            text-decoration: none;
-            font-weight: $font-weight-semibold;
-            font-size: $font-size-base;
-            font-family: $font-primary;
-            transition: all $duration-base $ease-in-out;
-            box-shadow: $button-shadow;
+            font-size: $font-size-sm;
+            font-weight: $font-weight-medium;
             border: none;
             cursor: pointer;
-            min-height: $btn-height-md;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-
-            // Ripple effect
-            &::before {
-                content: '';
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 0;
-                height: 0;
-                background: rgba($text-white, 0.2);
-                border-radius: $radius-full;
-                transform: translate(-50%, -50%);
-                transition:
-                    width 0.6s,
-                    height 0.6s;
-            }
-
+            box-shadow: $button-shadow;
+            transition: $transition-all;
+            text-decoration: none;
             &:hover {
-                background: linear-gradient(
-                    135deg,
-                    color.adjust($brand-primary, $lightness: -8%) 0%,
-                    color.adjust($brand-secondary, $lightness: -5%) 100%
-                );
-                box-shadow: $shadow-lg;
-                transform: translateY(-3px);
-
-                &::before {
-                    width: 300px;
-                    height: 300px;
-                }
-            }
-
-            &:active {
-                transform: translateY(-1px);
+                background: color.adjust($brand-secondary, $lightness: -5%);
                 box-shadow: $shadow-md;
             }
+        }
 
-            // Not available state
-            &[href='/'] {
-                background: linear-gradient(135deg, $text-muted 0%, color.adjust($text-muted, $lightness: -10%) 100%);
-                cursor: not-allowed;
+        @media (max-width: $breakpoint-md) {
+            padding: $space-3;
 
-                &:hover {
-                    background: linear-gradient(135deg, $text-muted 0%, color.adjust($text-muted, $lightness: -10%) 100%);
-                    transform: none;
-                    box-shadow: $button-shadow;
-
-                    &::before {
-                        width: 0;
-                        height: 0;
-                    }
-                }
+            h2 {
+                font-size: $font-size-lg;
             }
         }
     }
