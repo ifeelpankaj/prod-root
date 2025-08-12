@@ -15,8 +15,8 @@ import { loadScripts } from '../../__scripts__/map.script';
 const PreviewBooking = () => {
     const navigate = useNavigate();
     const bookingData = useSelector((state) => state.info);
-    const contact_number = ' +91 9999999999';
-    const support_domain = 'xyz@domain.com';
+    const contact_number = ' +91 7028531074';
+    const support_domain = 'support@safarcabs.com';
     React.useEffect(() => {
         if (!bookingData.from || !bookingData.to || !bookingData.distance) {
             toast.info('It seems you have reloaded the page kindly fill the details again');
