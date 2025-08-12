@@ -43,7 +43,10 @@ const DisplayCabs = () => {
 
             const distanceInKM = extractNumericValue(distanceData.distance);
             dispatch(updateFormField({ field: 'distance', value: distanceInKM }));
-            dispatch(updateFormField({ field: 'totalCharges', value: distanceData.totalCharges }));
+
+            if (distanceData.totalCharges !== undefined) {
+                dispatch(updateFormField({ field: 'totalCharges', value: distanceData.totalCharges }));
+            }
         } else {
             const defaultValue = 0;
             dispatch(updateFormField({ field: 'distance', value: defaultValue }));
@@ -75,8 +78,7 @@ const DisplayCabs = () => {
             />
         );
     }
-    // eslint-disable-next-line no-console
-    console.log('Distance data:', distanceData);
+
     return (
         <main className="cabs_page">
             <main className="cabs_review_main">
