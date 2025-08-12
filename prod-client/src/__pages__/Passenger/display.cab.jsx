@@ -75,6 +75,8 @@ const DisplayCabs = () => {
             />
         );
     }
+    // eslint-disable-next-line no-console
+    console.log('Distance data:', distanceData);
     return (
         <main className="cabs_page">
             <main className="cabs_review_main">
