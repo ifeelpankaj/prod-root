@@ -34,7 +34,7 @@ const DisplayCabs = () => {
         }
     }, [distanceError, errorShown]);
     React.useEffect(() => {
-        if (distanceData && distanceData.distance) {
+        if (distanceData && distanceData.distance && distanceData.totalCharges) {
             if (formData.cabType === 'OneWay') {
                 const duration = calculateDropOffDate(formData.pickupDate, distanceData.duration);
 
@@ -75,7 +75,6 @@ const DisplayCabs = () => {
             />
         );
     }
-
     return (
         <main className="cabs_page">
             <main className="cabs_review_main">
