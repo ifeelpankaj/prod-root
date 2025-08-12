@@ -85,6 +85,20 @@ $font-display:
     BlinkMacSystemFont,
     sans-serif;
 $font-mono: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+@font-face {
+    font-family: 'LogoFont';
+    src: url('../__assets__/fonts/logo.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'LogoFontAlt';
+    src: url('../__assets__/fonts/logo1.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+$font-logo: 'LogoFont', $font-primary;
+$font-logo-alt: 'LogoFontAlt', $font-primary;
 
 // Font Weights
 $font-weight-light: 300;

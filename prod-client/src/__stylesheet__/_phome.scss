@@ -7,6 +7,408 @@
 // ===================
 // HERO SECTION LAYOUT
 // ===================
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+// ===================================
+// SAFARCAB HOMEPAGE STYLES
+// ===================================
+
+// Import Google Fonts for modern typography
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+// ===================================
+// SAFARCAB HOMEPAGE STYLES
+// ===================================
+
+.safarcab_hero_section_container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    overflow: hidden;
+
+    // Modern overlay that complements the warm tones in your image
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg,
+            rgba(44, 62, 80, 0.4) 0%,
+            rgba(52, 73, 94, 0.3) 25%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(243, 156, 18, 0.1) 75%,
+            rgba(230, 126, 34, 0.2) 100%
+        );
+        z-index: 1;
+    }
+
+    // Subtle bokeh effect to match the background lights
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 15% 20%, rgba(243, 156, 18, 0.15) 0%, transparent 25%),
+            radial-gradient(circle at 85% 15%, rgba(230, 126, 34, 0.1) 0%, transparent 30%),
+            radial-gradient(circle at 70% 80%, rgba(241, 196, 15, 0.08) 0%, transparent 35%),
+            radial-gradient(circle at 25% 75%, rgba(243, 156, 18, 0.12) 0%, transparent 28%);
+        animation: bokehFloat 15s ease-in-out infinite;
+        z-index: 2;
+    }
+}
+
+@keyframes bokehFloat {
+    0%,
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 0.8;
+    }
+    33% {
+        transform: scale(1.1) translateY(-10px);
+        opacity: 0.6;
+    }
+    66% {
+        transform: scale(0.9) translateY(5px);
+        opacity: 0.9;
+    }
+}
+
+.safarcab_hero_section_overlay {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: $container-xl;
+    margin: 0 auto;
+    padding: 0 $space-6;
+
+    @media (max-width: $breakpoint-md) {
+        padding: 0 $space-4;
+    }
+}
+
+.safarcab_hero_section_content {
+    text-align: left; // Changed to left align for modern asymmetric look
+    color: $text-white;
+    position: relative;
+    max-width: 650px; // Constrain width for better readability
+    margin-left: 0; // Align to left side
+
+    // Add a subtle backdrop for text readability
+
+    @media (max-width: $breakpoint-md) {
+        text-align: center;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+.safarcab_hero_section_text_wrapper {
+    position: relative;
+    padding: $space-8;
+
+    @media (max-width: $breakpoint-md) {
+        padding: $space-6;
+    }
+}
+
+.safarcab_hero_tagline {
+    font-family: 'Space Grotesk', $font-display;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $brand-accent;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: $space-3;
+    position: relative;
+    display: inline-block;
+
+    // Modern accent line
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, $brand-accent, transparent);
+        border-radius: $radius-full;
+    }
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-xs;
+        text-align: center;
+        display: block;
+
+        &::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+}
+
+.safarcab_hero_section_headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp($font-size-3xl, 6vw, $font-size-5xl);
+    font-weight: $font-weight-bold;
+    line-height: $line-height-tight;
+    margin-bottom: $space-5;
+    color: $text-white;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+
+    // Modern gradient text with warm tones matching the image
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 30%, #fbbf24 70%, #f59e0b 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    // Subtle glow that matches the warm lighting
+    animation: warmGlow 4s ease-in-out infinite alternate;
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-2xl;
+        margin-bottom: $space-4;
+        text-align: center;
+    }
+}
+
+// Fallback for browsers that don't support background-clip: text
+@supports not (-webkit-background-clip: text) {
+    .safarcab_hero_section_headline {
+        color: $text-white;
+        -webkit-text-fill-color: initial;
+        background: none;
+    }
+}
+
+@keyframes warmGlow {
+    0% {
+        text-shadow:
+            0 0 20px rgba(251, 191, 36, 0.3),
+            0 0 40px rgba(245, 158, 11, 0.2),
+            0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+    100% {
+        text-shadow:
+            0 0 30px rgba(251, 191, 36, 0.5),
+            0 0 60px rgba(245, 158, 11, 0.3),
+            0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.safarcab_hero_section_subtext {
+    font-family: 'Inter', $font-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-relaxed;
+    color: rgba($text-white, 0.85);
+    margin-bottom: $space-8;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+
+    @media (max-width: $breakpoint-md) {
+        font-size: $font-size-sm;
+        margin-bottom: $space-6;
+        text-align: center;
+    }
+}
+
+.safarcab_hero_section_cta_buttons {
+    display: flex;
+    gap: $space-4;
+    align-items: center;
+
+    @media (max-width: $breakpoint-md) {
+        justify-content: center;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        flex-direction: column;
+        gap: $space-3;
+        width: 100%;
+    }
+}
+
+.safarcab_hero_section_btn {
+    font-family: 'Inter', $font-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    padding: $space-4 $space-6;
+    border-radius: $radius-2xl;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px;
+    height: $btn-height-md;
+    position: relative;
+    overflow: hidden;
+    transition: $transition-all;
+    text-transform: none; // More modern approach
+    letter-spacing: 0.02em;
+
+    // Modern glass morphism effect
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    // Subtle ripple effect
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition:
+            width 0.6s ease,
+            height 0.6s ease;
+    }
+
+    &:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        width: 100%;
+        max-width: 300px;
+        min-width: auto;
+    }
+}
+
+.safarcab_hero_section_btn_primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: $text-white;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+
+    &:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+        border-color: rgba(251, 191, 36, 0.5);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow:
+            0 8px 25px rgba(59, 130, 246, 0.5),
+            0 0 0 3px rgba(251, 191, 36, 0.4);
+    }
+}
+
+.safarcab_hero_section_btn_outlined {
+    background: rgba(255, 255, 255, 0.1);
+    color: $text-white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+        background: rgba(251, 191, 36, 0.15);
+        border-color: rgba(251, 191, 36, 0.5);
+        color: #fbbf24;
+        box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow:
+            0 8px 25px rgba(251, 191, 36, 0.3),
+            0 0 0 3px rgba(251, 191, 36, 0.4);
+    }
+}
+
+// Modern content positioning for asymmetric layout
+@media (min-width: $breakpoint-lg) {
+    .safarcab_hero_section_content {
+        margin-left: 2%; // Push content slightly to left for modern asymmetric look
+        margin-top: 30vh; // Slight upward positioning
+    }
+}
+
+// Enhanced mobile experience
+@media (max-width: $breakpoint-md) {
+    .safarcab_hero_section_container {
+        background-attachment: scroll;
+        min-height: 90vh;
+
+        &::before {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(44, 62, 80, 0.4) 50%, rgba(0, 0, 0, 0.7) 100%);
+        }
+    }
+
+    .safarcab_hero_section_content {
+        padding-top: $space-12;
+
+        &::before {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+    }
+}
+
+// Add loading animation for buttons
+.safarcab_hero_section_btn {
+    &.loading {
+        pointer-events: none;
+        opacity: $utility-opacity-disabled;
+
+        &::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: $loading-animation;
+        }
+    }
+}
+
+// Enhanced focus styles for accessibility
+.safarcab_hero_section_btn:focus-visible {
+    outline: 2px solid $brand-accent;
+    outline-offset: 2px;
+}
+
+// Add subtle entrance animations for better UX
+.safarcab_hero_section_container {
+    animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 // Simple & Attractive Google Autocomplete Styles
 // Classy & Clear Google Autocomplete Styles
 .pac-container {
@@ -185,7 +587,7 @@
 // BRAND TITLE - PREMIUM STYLING
 // ===================
 .p_home_brand-title {
-    font-family: $font-display;
+    font-family: $font-logo-alt;
     font-size: $font-size-4xl;
     font-weight: $font-weight-extrabold;
     text-align: center;

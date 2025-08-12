@@ -247,7 +247,7 @@ const PassengerHome = () => {
             style={{ backgroundImage: `url(${heroBg})` }}>
             <div>
                 <div className="p_home_booking-card">
-                    <h1 className="p_home_brand-title">Velocity Rides</h1>
+                    <h1 className="p_home_brand-title">Safar Cabs</h1>
 
                     <div className="p_home_trip-toggle">
                         <button

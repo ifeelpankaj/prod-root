@@ -252,7 +252,7 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
                                 <span className="detail_value">{rate}/ Km</span>
                             </div>
                             <div className="detail_item">
-                                <span className="detail_label">Toll Tax</span>
+                                <span className="detail_label">GST</span>
                                 <span className="detail_value">₹{tollTax}/Included</span>
                             </div>
                             <div className="detail_item">

@@ -81,12 +81,23 @@ const Header = () => {
                             src={Logo}
                             className="header__logo-icon"
                         />
-                        <span className="header__logo-text">VELOCITY RIDES</span>
+                        <span className="header__logo-text">SafarCabs</span>
                     </Link>
                 )}
 
                 <nav className={`header__nav ${isNavMenuOpen ? 'header__nav--open' : ''}`}>
-                    {['Home', 'Our Fleet', 'Services', 'Contact'].map((item) => (
+                    {isMobileView && (
+                        <Link
+                            to="/"
+                            className="header__logo">
+                            <img
+                                src={Logo}
+                                className="header__logo-icon"
+                            />
+                            <span className="header__logo-text">SafarCabs</span>
+                        </Link>
+                    )}
+                    {['Home', 'Services', 'About', 'Contact'].map((item) => (
                         <Link
                             key={item}
                             to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(' ', '-')}`}

@@ -26,6 +26,9 @@ const UpdateCab = lazy(() => import('./__pages__/Driver/update.cab'));
 
 // Non-lazy components
 import Header from './__components__/header';
+import Services from './__components__/services';
+import About from './__components__/about';
+import Contact from './__components__/contact';
 
 function App() {
     const { isLoading } = useFetchUser();
@@ -58,6 +61,18 @@ function App() {
                         <Route
                             path="/home"
                             element={<PassengerHome />}
+                        />
+                        <Route
+                            path="/services"
+                            element={<Services />}
+                        />
+                        <Route
+                            path="/about"
+                            element={<About />}
+                        />
+                        <Route
+                            path="/contact"
+                            element={<Contact />}
                         />
                         <Route
                             path="/auth"
