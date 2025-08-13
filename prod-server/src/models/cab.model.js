@@ -37,12 +37,10 @@ cabSchema.methods.hasBooking = function (orderId) {
 
 cabSchema.methods.updateUpcomingBookings = function () {
     const now = new Date()
-    this.upcomingBookings = this.upcomingBookings.filter((booking) => {
-        if (booking.departureDate > now) {
-            return true
+    this.upcomingBookings.forEach((booking) =>{
+        if(booking.dropOffDate <= now){
+            booking.status = 'Past'
         }
-        booking.status = 'Past'
-        return false
     })
 }
 
