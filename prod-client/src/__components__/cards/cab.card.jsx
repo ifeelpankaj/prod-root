@@ -135,7 +135,10 @@ const CabCard = ({ cab = {}, distance, isLoading }) => {
         );
     }
     const { breakdown = {}, totalHours = 0, nightCharge = 0, tollTax = 0, totalCharges, distance: distance_data } = distance || {};
+    
     const distanceInKM = extractNumericValue(distance_data);
+        // eslint-disable-next-line no-console
+    console.log(distance)
 
     const priceTotal = priceCalculator(distanceInKM, rate, totalCharges);
 
