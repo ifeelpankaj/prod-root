@@ -42,6 +42,7 @@ export const calculateRate = (distance, duration, startDateTime) => {
 
     const parsedDistance = parseDistance(distance)
     const durationHours = parseDurationToHours(duration)
+    const doubleParseDistance = durationHours + (durationHours/2)
 
     // Convert start time to India timezone
     const startTime = new Date(startDateTime)
@@ -62,6 +63,7 @@ export const calculateRate = (distance, duration, startDateTime) => {
     // Calculate what portion of the journey is during night time
     let nightHours = 0
     const totalHours = durationHours
+      
 
     // Check each hour of the journey
     for (let i = 0; i < Math.ceil(durationHours * 4); i++) {
@@ -95,6 +97,7 @@ export const calculateRate = (distance, duration, startDateTime) => {
     // Calculate toll tax: Rs 25 per 50 km (always applies for total distance)
     const tollTax = Math.ceil(parsedDistance / 50) * Number(config.TOLL_TAX)
 
+    
     return {
         distance,
         parsedDistance,
