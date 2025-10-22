@@ -20,7 +20,7 @@ pipeline {
                     echo "Setting up system requirements for ELK Stack..."
                     
                     # Set vm.max_map_count for Elasticsearch (required)
-                    sysctl -w vm.max_map_count=262144
+                    sudo -S sysctl -w vm.max_map_count=262144
                     
                     # Make it persistent
                     if ! grep -q "vm.max_map_count=262144" /etc/sysctl.conf; then
