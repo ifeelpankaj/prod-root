@@ -12,6 +12,19 @@ services:
     networks:
       - app-network
 
+  admin:
+    build:
+      context: ./prod-admin
+      dockerfile: Dockerfile
+    ports:
+      - "4174:4173"
+    depends_on:
+      - backend
+    env_file:
+      - ./prod-admin/.env
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./prod-server
@@ -36,13 +49,164 @@ services:
       - app-network
     restart: unless-stopped
 
- 
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: prod-db
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./mongo-keyfile:/opt/keyfile:ro
+    networks:
+      - app-network
+    command: >
+      mongod --auth 
+       --replSet rs0 
+       --bind_ip_all 
+       --keyFile /opt/keyfile/mongodb-keyfile
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--port",
+          "27017",
+          "--quiet",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  mongodb-init:
+    image: mongo:7.0
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app-network
+    command: >
+      mongosh --host mongodb:27017 --username admin --password password123 --authenticationDatabase admin --eval "
+        try {
+          rs.status();
+          print('Replica set already initialized');
+        } catch (e) {
+          if (e.message.includes('no replset config has been received') || e.message.includes('not running with --replSet')) {
+            print('Initializing replica set...');
+            rs.initiate({
+              _id: 'rs0',
+              members: [{ _id: 0, host: 'mongodb:27017' }]
+            });
+            print('Waiting for replica set to be ready...');
+            while (rs.isMaster().ismaster !== true) {
+              sleep(1000);
+            }
+            print('Replica set initialized successfully');
+          } else {
+            print('Error: ' + e.message);
+            quit(1);
+          }
+        }
+      "
+    restart: "no"
+
+  # ELK Stack Services
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # Reduced for GCP VM
+      - bootstrap.memory_lock=true
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s # Increased for GCP VM
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./prod-server/logs:/logs:ro
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m" # Reduced for GCP VM
+    networks:
+      - app-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    networks:
+      - app-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./prod-server/logs:/logs:ro
+      - filebeat_data:/usr/share/filebeat/data
+    environment:
+      - output.elasticsearch.hosts=["elasticsearch:9200"]
+    networks:
+      - app-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: filebeat -e -strict.perms=false
+
 networks:
   app-network:
     driver: bridge
 
 volumes:
-
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
   elasticsearch_data:
     driver: local
   filebeat_data:
