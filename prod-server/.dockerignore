@@ -11,5 +11,5 @@ coverage
 .next
 build
 dist
-.env.development
-.env.production
+.env.dev
+.env.prod
