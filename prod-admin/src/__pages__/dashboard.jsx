@@ -16,7 +16,12 @@ const Dashboard = () => {
     const { data: stats, isLoading, isError } = useStatsQuery();
 
     const rev = stats?.count?.revenue ? revenueViewer(Math.round(stats.count.revenue)) : '0';
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const months = Array.from({ length: 6 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - (5 - i)); // last 6 months
+        return date.toLocaleString('default', { month: 'short' }); // e.g. "May", "Jun"
+    });
+
     const [logoutUser] = useLazyLogoutQuery();
     const dispatch = useDispatch();
 

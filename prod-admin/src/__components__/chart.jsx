@@ -12,71 +12,50 @@ import {
     ArcElement,
     PointElement,
     LineElement,
-    Filler
+    Filler,
+    LineController,
+    BarController,
+    DoughnutController,
+    PieController
 } from 'chart.js';
 import { Bar, Doughnut, Line, Pie } from 'react-chartjs-2';
 
 // Register Chart.js modules
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler);
+// ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler);
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+    LineController,
+    BarController,
+    DoughnutController,
+    PieController
+);
 
 // Default fallback labels
-const defaultLabels = ['January', 'February', 'March', 'April', 'May', 'June'];
+const defaultLabels = ['Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
-// === ✅ BAR CHART ===
 export const BarChart = ({
-    horizontal = false,
-    data_1 = [10, 20, 30, 40, 50, 60],
-    data_2 = [5, 15, 25, 35, 45, 55],
-    title_1 = 'Dataset 1',
-    title_2 = 'Dataset 2',
-    bgColor_1 = 'rgba(75,192,192,0.6)',
-    bgColor_2 = 'rgba(153,102,255,0.6)',
+    data_1 = [10, 20, 30, 40, 50, 60], // Revenue
+    data_2 = [5, 15, 25, 35, 45, 55], // Transactions
+    title_1 = 'Revenue',
+    title_2 = 'Transactions',
+    bgColor_1 = 'rgba(0, 115, 255, 0.9)',
+    bgColor_2 = 'rgba(53, 162, 235, 0.9)',
     labels = defaultLabels
 }) => {
-    // Ensure data arrays have the same length as labels
     const normalizedData1 = Array.isArray(data_1) ? data_1.slice(0, labels.length) : [];
     const normalizedData2 = Array.isArray(data_2) ? data_2.slice(0, labels.length) : [];
 
-    // Pad with zeros if data is shorter than labels
-    while (normalizedData1.length < labels.length) {
-        normalizedData1.push(0);
-    }
-    while (normalizedData2.length < labels.length) {
-        normalizedData2.push(0);
-    }
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: horizontal ? 'y' : 'x',
-        plugins: {
-            legend: {
-                display: !!title_2,
-                position: 'top'
-            },
-            title: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { display: false },
-                ticks: {
-                    callback(value) {
-                        return typeof value === 'number' ? value.toLocaleString() : value;
-                    }
-                }
-            },
-            x: {
-                grid: { display: false },
-                ticks: {
-                    maxRotation: 45,
-                    minRotation: 0
-                }
-            }
-        }
-    };
+    while (normalizedData1.length < labels.length) normalizedData1.push(0);
+    while (normalizedData2.length < labels.length) normalizedData2.push(0);
 
     const data = {
         labels,
@@ -87,37 +66,69 @@ export const BarChart = ({
                 backgroundColor: bgColor_1,
                 borderColor: bgColor_1,
                 borderWidth: 1,
-                barThickness: 'flex',
-                barPercentage: 0.8,
-                categoryPercentage: 0.9
+                yAxisID: 'y1', // For Revenue
+                type: 'bar'
             },
-            ...(title_2
-                ? [
-                      {
-                          label: title_2,
-                          data: normalizedData2,
-                          backgroundColor: bgColor_2,
-                          borderColor: bgColor_2,
-                          borderWidth: 1,
-                          barThickness: 'flex',
-                          barPercentage: 0.8,
-                          categoryPercentage: 0.9
-                      }
-                  ]
-                : [])
+            {
+                label: title_2,
+                data: normalizedData2,
+                borderColor: bgColor_2,
+                backgroundColor: bgColor_2,
+                yAxisID: 'y2', // For Transactions
+                type: 'line',
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 4
+            }
         ]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        },
+        scales: {
+            y1: {
+                beginAtZero: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: title_1
+                },
+                grid: {
+                    drawOnChartArea: false
+                }
+            },
+            y2: {
+                beginAtZero: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: title_2
+                },
+                grid: {
+                    drawOnChartArea: false
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
     };
 
     return (
         <div style={{ height: '300px', width: '100%' }}>
             <Bar
-                options={options}
                 data={data}
+                options={options}
             />
         </div>
     );
 };
-
 BarChart.propTypes = {
     horizontal: PropTypes.bool,
     data_1: PropTypes.arrayOf(PropTypes.number),
