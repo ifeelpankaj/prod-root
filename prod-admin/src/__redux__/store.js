@@ -6,8 +6,6 @@ import { cabAPI } from './api/cab.api';
 import { orderApi } from './api/order.api';
 import { transactionAPI } from './api/transaction.api';
 
-// eslint-disable-next-line no-console
-console.log(import.meta.env.VITE_SERVER);
 export const store = configureStore({
     reducer: {
         auth: authReducer,

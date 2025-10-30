@@ -3,7 +3,7 @@ FROM node:20.17.0
 WORKDIR /app
 
 # Accept build argument for VITE_SERVER
-ARG VITE_SERVER=https://api.4biddencoder.tech
+ARG VITE_SERVER=https://cabservice-api.4biddencoder.tech
 
 # Set as environment variable for the build process
 ENV VITE_SERVER=$VITE_SERVER

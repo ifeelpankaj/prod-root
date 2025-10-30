@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaChartLine, FaChartPie, FaGamepad, FaStopwatch } from 'react-icons/fa';
+import { FaGamepad, FaStopwatch } from 'react-icons/fa';
 import { HiMenuAlt4 } from 'react-icons/hi';
 
 import { RiCoupon3Fill } from 'react-icons/ri';
@@ -109,18 +109,6 @@ const DivTwo = ({ location }) => (
                 url="/admin/quicker/add/display-cab"
                 text="Add Display Cab"
                 Icon={SquarePlus}
-                location={location}
-            />
-            <Li
-                url="/admin/chart/pie"
-                text="Pie"
-                Icon={FaChartPie}
-                location={location}
-            />
-            <Li
-                url="/admin/chart/line"
-                text="Line"
-                Icon={FaChartLine}
                 location={location}
             />
         </ul>
