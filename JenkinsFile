@@ -102,6 +102,7 @@ pipeline {
                     cp nginx/cabservice-app.conf /etc/nginx/sites-available/
                     cp nginx/cabservice-admin.conf /etc/nginx/sites-available/
                     
+                    
                     echo "Nginx configuration applied successfully!"
                 '''
             }
