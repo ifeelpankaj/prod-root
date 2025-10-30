@@ -96,22 +96,6 @@ pipeline {
                     sudo cp nginx/cabservice-app.conf /etc/nginx/sites-available/
                     sudo cp nginx/cabservice-admin.conf /etc/nginx/sites-available/
                     
-                    # Remove old symbolic links if they exist
-                    sudo rm -f /etc/nginx/sites-enabled/cabservice-api.conf
-                    sudo rm -f /etc/nginx/sites-enabled/cabservice-app.conf
-                    sudo rm -f /etc/nginx/sites-enabled/cabservice-admin.conf
-                    
-                    # Create symbolic links
-                    sudo ln -sf /etc/nginx/sites-available/cabservice-api.conf /etc/nginx/sites-enabled/
-                    sudo ln -sf /etc/nginx/sites-available/cabservice-app.conf /etc/nginx/sites-enabled/
-                    sudo ln -sf /etc/nginx/sites-available/cabservice-admin.conf /etc/nginx/sites-enabled/
-                    
-                    # Test Nginx configuration
-                    sudo nginx -t
-                    
-                    # Reload Nginx to apply changes
-                    sudo systemctl reload nginx
-                    sudo systemctl enable nginx
                     
                     echo "Nginx configuration applied successfully!"
                 '''
