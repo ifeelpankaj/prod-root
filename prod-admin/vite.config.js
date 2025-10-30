@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc';
 export default defineConfig({
     plugins: [react()],
     preview: {
-        allowedHosts: ['4biddencoder.tech', 'www.4biddencoder.tech', 'admin.4biddencoder.tech'],
+        allowedHosts: ['cabservice-admin.4biddencoder.tech', 'localhost', '127.0.0.1'],
         port: 4174 // or 4174 for admin app
     }
 });
