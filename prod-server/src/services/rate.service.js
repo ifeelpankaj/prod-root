@@ -1,6 +1,6 @@
 import config from '../config/config.js'
 
-export const calculateRate = (distance, duration, startDateTime) => {
+export const calculateRate = async (distance, duration, startDateTime) => {
     function parseDistance(distanceInput) {
         if (typeof distanceInput === 'number') {
             return distanceInput
@@ -106,9 +106,9 @@ export const calculateRate = (distance, duration, startDateTime) => {
         totalHours,
         nightDistance: parseFloat(nightDistance.toFixed(2)),
         dayDistance: parseFloat((parsedDistance - nightDistance).toFixed(2)),
-        nightCharge,
+        nightCharge: Math.round(nightCharge),
         tollTax,
-        totalCharges: nightCharge + tollTax,
+        totalCharges: Math.round(nightCharge + tollTax),
         breakdown: {
             nightPercentage: `${parseFloat(((nightHours / totalHours) * 100).toFixed(1))}%`,
             dayPercentage: `${parseFloat((((totalHours - nightHours) / totalHours) * 100).toFixed(1))}%`

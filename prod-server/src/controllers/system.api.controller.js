@@ -64,7 +64,7 @@ export default {
                 throw new CustomError('Unable to calculate distance', 400)
             }
 
-            const res_data = calculateRate(route_distance, route_duration, startDate)
+            const res_data = await calculateRate(route_distance, route_duration, startDate)
             return httpResponse(req, res, 200, 'Distance and duration calculated successfully', res_data, null)
         } catch (error) {
             return httpError('CALCULATE DISTANCE & RATE', next, error, req, 500)
